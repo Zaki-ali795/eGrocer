@@ -2,28 +2,19 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { motion } from 'motion/react';
 import { Navbar } from './components/Navbar';
-import { CartPreview } from './components/CartPreview';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
+import { CategoryBrowsePage } from './pages/CategoryBrowsePage';
+import { ProductDetailPage } from './pages/ProductDetailPage';
+import { SearchResultsPage } from './pages/SearchResultsPage';
+import { CartPage } from './pages/CartPage';
 import { RequestsPage } from './pages/RequestsPage';
 import { TrackingPage } from './pages/TrackingPage';
 import { FlashDealsPage } from './pages/FlashDealsPage';
 import { PreviousOrdersPage } from './pages/PreviousOrdersPage';
+import { Product } from '../services/api';
 
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  rating: number;
-  reviews: number;
-  inStock: boolean;
-  organic?: boolean;
-  nutritionHighlights?: string[];
-  reorderable?: boolean;
-}
+
 
 interface CartItem {
   id: string;
@@ -34,30 +25,15 @@ interface CartItem {
 }
 
 export default function App() {
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: '1',
-      name: 'Organic Avocados (6 pack)',
-      price: 899,
-      quantity: 2,
-      image: 'https://images.unsplash.com/photo-1601379760607-78be3d4ff432?w=200',
-    },
-    {
-      id: '2',
-      name: 'Fresh Strawberries (500g)',
-      price: 649,
-      quantity: 1,
-      image: 'https://images.unsplash.com/photo-1621295538579-7fd8bb7a662a?w=200',
-    },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const handleAddToCart = (product: Product) => {
-    const existingItem = cartItems.find(item => item.id === product.id);
+    const productId = String(product.id);
+    const existingItem = cartItems.find(item => item.id === productId);
 
     if (existingItem) {
       setCartItems(cartItems.map(item =>
-        item.id === product.id
+        item.id === productId
           ? { ...item, quantity: item.quantity + 1 }
           : item
       ));
@@ -65,7 +41,7 @@ export default function App() {
       setCartItems([
         ...cartItems,
         {
-          id: product.id,
+          id: productId,
           name: product.name,
           price: product.price,
           quantity: 1,
@@ -73,33 +49,41 @@ export default function App() {
         }
       ]);
     }
+  };
 
-    setIsCartOpen(true);
+  const handleUpdateQuantity = (id: string, qty: number) => {
+    if (qty < 1) return;
+    setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: qty } : item));
+  };
+
+  const handleRemoveItem = (id: string) => {
+    setCartItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleClearCart = () => {
+    setCartItems([]);
   };
 
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-[var(--background)]">
         <Navbar
-          onCartOpen={() => setIsCartOpen(true)}
           cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
         />
 
         <Routes>
           <Route path="/" element={<HomePage onAddToCart={handleAddToCart} />} />
+          <Route path="/categories" element={<CategoryBrowsePage onAddToCart={handleAddToCart} />} />
+          <Route path="/product/:productId" element={<ProductDetailPage onAddToCart={handleAddToCart} />} />
+          <Route path="/search" element={<SearchResultsPage onAddToCart={handleAddToCart} />} />
+          <Route path="/cart" element={<CartPage items={cartItems} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} onClearCart={handleClearCart} />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/tracking" element={<TrackingPage />} />
-          <Route path="/flash-deals" element={<FlashDealsPage />} />
+          <Route path="/flash-deals" element={<FlashDealsPage onAddToCart={handleAddToCart} />} />
           <Route path="/previous-orders" element={<PreviousOrdersPage />} />
         </Routes>
 
         <Footer />
-
-        <CartPreview
-          isOpen={isCartOpen}
-          onClose={() => setIsCartOpen(false)}
-          items={cartItems}
-        />
 
         {/* Scroll to Top Button */}
         <motion.button

@@ -5,38 +5,24 @@ import { QuickAccessMenu } from './QuickAccessMenu';
 import { useNavigate } from 'react-router';
 
 interface NavbarProps {
-  onCartOpen: () => void;
   cartItemCount: number;
 }
 
-export function Navbar({ onCartOpen, cartItemCount }: NavbarProps) {
+export function Navbar({ cartItemCount }: NavbarProps) {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');  // ← new
 
-  const categories = [
-    {
-      name: 'Fruits & Vegetables',
-      subcategories: ['Fresh Fruits', 'Vegetables', 'Organic Produce', 'Exotic Fruits']
-    },
-    {
-      name: 'Dairy & Eggs',
-      subcategories: ['Milk', 'Cheese', 'Yogurt', 'Eggs']
-    },
-    {
-      name: 'Meat & Seafood',
-      subcategories: ['Fresh Meat', 'Poultry', 'Fish', 'Seafood']
-    },
-    {
-      name: 'Bakery',
-      subcategories: ['Bread', 'Cakes', 'Pastries', 'Cookies']
-    },
-    {
-      name: 'Beverages',
-      subcategories: ['Juices', 'Soft Drinks', 'Water', 'Tea & Coffee']
-    },
-  ];
+  const handleSearch = () => {
+    const q = searchQuery.trim();
+    if (!q) return;
+    navigate(`/search?q=${encodeURIComponent(q)}`);
+    setSearchQuery('');
+    setIsMenuOpen(false);
+  };
+
 
   return (
     <motion.nav
@@ -55,9 +41,11 @@ export function Navbar({ onCartOpen, cartItemCount }: NavbarProps) {
             onClick={() => navigate('/')}
           >
             <h1 className="flex items-center gap-2 cursor-pointer">
-              <div className="w-10 h-10 bg-gradient-to-br from-[var(--green-primary)] to-[var(--green-secondary)] rounded-2xl flex items-center justify-center shadow-lg shadow-[var(--green-primary)]/20">
-                <span className="text-white font-bold">eG</span>
-              </div>
+              <img
+                src="/src/imports/logo.png"
+                alt="eGrocer logo"
+                className="w-10 h-10 rounded-2xl shadow-lg shadow-[var(--green-primary)]/20 object-cover"
+              />
               <span className="hidden sm:block bg-gradient-to-r from-[var(--green-primary)] to-[var(--green-secondary)] bg-clip-text text-transparent">
                 eGrocer
               </span>
@@ -66,55 +54,33 @@ export function Navbar({ onCartOpen, cartItemCount }: NavbarProps) {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
-            {categories.map((category) => (
-              <div
-                key={category.name}
-                className="relative"
-                onMouseEnter={() => setActiveCategory(category.name)}
-                onMouseLeave={() => setActiveCategory(null)}
-              >
-                <button className="px-4 py-2 text-sm transition-colors hover:text-[var(--green-primary)] flex items-center gap-1 group">
-                  {category.name}
-                  <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
-                </button>
-
-                <AnimatePresence>
-                  {activeCategory === category.name && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-[var(--green-primary)]/10 p-2"
-                    >
-                      {category.subcategories.map((sub) => (
-                        <button
-                          key={sub}
-                          className="w-full text-left px-4 py-2.5 text-sm rounded-xl hover:bg-[var(--green-primary)]/5 hover:text-[var(--green-primary)] transition-colors"
-                        >
-                          {sub}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
+            <button
+              onClick={() => navigate('/categories')}
+              className="px-6 py-2.5 bg-gradient-to-r from-[var(--green-primary)]/10 to-[var(--green-secondary)]/10 text-[var(--green-dark)] border border-[var(--green-primary)]/20 rounded-full font-semibold transition-all hover:from-[var(--green-primary)] hover:to-[var(--green-secondary)] hover:text-white hover:shadow-lg hover:shadow-[var(--green-primary)]/30 flex items-center gap-1"
+            >
+              Categories
+            </button>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar — desktop */}
           <motion.div
             className="hidden md:flex flex-1 max-w-xl mx-4"
-            animate={{
-              scale: isSearchFocused ? 1.02 : 1,
-            }}
-            transition={{ type: "spring", stiffness: 300 }}
+            animate={{ scale: isSearchFocused ? 1.02 : 1 }}
+            transition={{ type: 'spring', stiffness: 300 }}
           >
             <div className="relative w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--green-primary)]/60" />
+              <button
+                onClick={handleSearch}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--green-primary)]/60 hover:text-[var(--green-primary)] transition-colors"
+              >
+                <Search className="w-5 h-5" />
+              </button>
               <input
                 type="text"
                 placeholder="Search for fresh groceries..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 className="w-full pl-12 pr-4 py-3 bg-[var(--beige)] rounded-full border-2 border-transparent focus:border-[var(--green-primary)] focus:bg-white outline-none transition-all"
@@ -138,7 +104,7 @@ export function Navbar({ onCartOpen, cartItemCount }: NavbarProps) {
             <motion.button
               whileHover={{ scale: 1.1, rotate: -5 }}
               whileTap={{ scale: 0.9 }}
-              onClick={onCartOpen}
+              onClick={() => navigate('/cart')}
               className="p-2 hover:bg-[var(--green-primary)]/10 rounded-full transition-colors relative"
             >
               <ShoppingCart className="w-6 h-6 text-[var(--green-primary)]" />
@@ -176,10 +142,18 @@ export function Navbar({ onCartOpen, cartItemCount }: NavbarProps) {
         {/* Mobile Search */}
         <div className="md:hidden pb-4">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--green-primary)]/60" />
+            <button
+              onClick={handleSearch}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--green-primary)]/60 hover:text-[var(--green-primary)] transition-colors"
+            >
+              <Search className="w-5 h-5" />
+            </button>
             <input
               type="text"
               placeholder="Search groceries..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="w-full pl-12 pr-4 py-3 bg-[var(--beige)] rounded-full border-2 border-transparent focus:border-[var(--green-primary)] focus:bg-white outline-none transition-all"
             />
           </div>
@@ -196,13 +170,15 @@ export function Navbar({ onCartOpen, cartItemCount }: NavbarProps) {
             className="lg:hidden border-t border-[var(--green-primary)]/10 overflow-hidden bg-white"
           >
             <div className="px-4 py-4 space-y-2">
-              {categories.map((category) => (
-                <div key={category.name} className="space-y-1">
-                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-[var(--green-primary)]/5 transition-colors">
-                    {category.name}
-                  </button>
-                </div>
-              ))}
+              <button
+                onClick={() => {
+                  navigate('/categories');
+                  setIsMenuOpen(false);
+                }}
+                className="w-full text-center px-4 py-3 bg-gradient-to-r from-[var(--green-primary)]/10 to-[var(--green-secondary)]/10 text-[var(--green-dark)] border border-[var(--green-primary)]/20 rounded-xl font-semibold hover:from-[var(--green-primary)] hover:to-[var(--green-secondary)] hover:text-white transition-all shadow-sm"
+              >
+                Categories
+              </button>
             </div>
           </motion.div>
         )}

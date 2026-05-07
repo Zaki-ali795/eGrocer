@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingCart, Heart, Star, Info, RotateCcw, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { motion } from 'motion/react';
+import { ShoppingCart, Heart, Star, Info, RotateCcw } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -23,9 +24,9 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [showNutrition, setShowNutrition] = useState(false);
 
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -82,11 +83,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             whileHover={{ scale: 1.1, rotate: 10 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setIsFavorite(!isFavorite)}
-            className={`p-2 rounded-full backdrop-blur-md ${
-              isFavorite
+            className={`p-2 rounded-full backdrop-blur-md ${isFavorite
                 ? 'bg-red-500 text-white'
                 : 'bg-white/90 text-gray-700 hover:text-red-500'
-            } transition-colors`}
+              } transition-colors`}
           >
             <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
           </motion.button>
@@ -94,8 +94,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => setShowNutrition(!showNutrition)}
+            onClick={() => navigate(`/product/${product.id}`)}
             className="p-2 bg-white/90 rounded-full backdrop-blur-md text-gray-700 hover:text-[var(--green-primary)] transition-colors"
+            title="View details"
           >
             <Info className="w-5 h-5" />
           </motion.button>
@@ -109,28 +110,6 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             </div>
           </div>
         )}
-
-        {/* Nutrition Info Overlay */}
-        <AnimatePresence>
-          {showNutrition && product.nutritionHighlights && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="absolute inset-0 bg-white/95 backdrop-blur-md p-4 flex flex-col justify-center"
-            >
-              <h4 className="mb-3 text-[var(--green-primary)]">Nutrition Highlights</h4>
-              <ul className="space-y-1 text-sm">
-                {product.nutritionHighlights.map((item, i) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-[var(--green-primary)] rounded-full" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       {/* Content */}

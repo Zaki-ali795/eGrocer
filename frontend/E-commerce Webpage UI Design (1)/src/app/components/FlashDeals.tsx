@@ -1,71 +1,39 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Zap, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { Zap, ChevronLeft, ChevronRight, Clock, Loader2, ShoppingCart } from 'lucide-react';
+import { productApi, FlashDeal, Product } from '../../services/api';
+import { toast } from 'sonner';
 
-interface Deal {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  originalPrice: number;
-  stock: number;
-  totalStock: number;
-  endsAt: Date;
+interface FlashDealsProps {
+  onAddToCart: (product: Product) => void;
 }
 
-export function FlashDeals() {
-  const [scrollPosition, setScrollPosition] = useState(0);
+export function FlashDeals({ onAddToCart }: FlashDealsProps) {
+  const [deals, setDeals] = useState<FlashDeal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [timeRemaining, setTimeRemaining] = useState<{[key: string]: string}>({});
 
-  const deals: Deal[] = [
-    {
-      id: '1',
-      name: 'Organic Strawberries (500g)',
-      image: 'https://images.unsplash.com/photo-1621295538579-7fd8bb7a662a?w=400',
-      price: 499,
-      originalPrice: 899,
-      stock: 15,
-      totalStock: 50,
-      endsAt: new Date(Date.now() + 3600000 * 4), // 4 hours
-    },
-    {
-      id: '2',
-      name: 'Fresh Avocado Bundle',
-      image: 'https://images.unsplash.com/photo-1601379760607-78be3d4ff432?w=400',
-      price: 699,
-      originalPrice: 1199,
-      stock: 8,
-      totalStock: 30,
-      endsAt: new Date(Date.now() + 3600000 * 2), // 2 hours
-    },
-    {
-      id: '3',
-      name: 'Premium Mixed Nuts (1kg)',
-      image: 'https://images.unsplash.com/photo-1621295239171-6f95272fdf45?w=400',
-      price: 1299,
-      originalPrice: 1999,
-      stock: 22,
-      totalStock: 40,
-      endsAt: new Date(Date.now() + 3600000 * 6), // 6 hours
-    },
-    {
-      id: '4',
-      name: 'Exotic Fruit Mix',
-      image: 'https://images.unsplash.com/photo-1623125489492-6d3641414e37?w=400',
-      price: 999,
-      originalPrice: 1599,
-      stock: 12,
-      totalStock: 25,
-      endsAt: new Date(Date.now() + 3600000 * 5), // 5 hours
-    },
-  ];
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const data = await productApi.getFlashDeals();
+        setDeals(data);
+      } catch (err) {
+        console.error('Failed to fetch flash deals:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDeals();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
       const newTimeRemaining: {[key: string]: string} = {};
       deals.forEach(deal => {
         const now = new Date().getTime();
-        const distance = deal.endsAt.getTime() - now;
+        const endsAt = new Date(deal.endsAt).getTime();
+        const distance = endsAt - now;
 
         if (distance > 0) {
           const hours = Math.floor(distance / (1000 * 60 * 60));
@@ -80,7 +48,7 @@ export function FlashDeals() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [deals]);
 
   const scroll = (direction: 'left' | 'right') => {
     const container = document.getElementById('flash-deals-scroll');
@@ -137,7 +105,15 @@ export function FlashDeals() {
           className="flex gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-4"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {deals.map((deal, index) => {
+          {isLoading ? (
+            <div className="w-full flex justify-center py-12">
+              <Loader2 className="w-8 h-8 text-[var(--terracotta)] animate-spin" />
+            </div>
+          ) : deals.length === 0 ? (
+            <div className="w-full text-center py-12 text-gray-500">
+              No flash deals active at the moment. Check back later!
+            </div>
+          ) : deals.map((deal, index) => {
             const discount = Math.round(((deal.originalPrice - deal.price) / deal.originalPrice) * 100);
             const stockPercentage = (deal.stock / deal.totalStock) * 100;
 
@@ -222,8 +198,19 @@ export function FlashDeals() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 bg-gradient-to-r from-[var(--terracotta)] to-orange-500 text-white rounded-2xl shadow-lg shadow-[var(--terracotta)]/30 hover:shadow-xl transition-shadow"
+                    onClick={() => {
+                      onAddToCart({
+                        id: parseInt(deal.productId),
+                        name: deal.productName,
+                        price: deal.price,
+                        image: deal.image,
+                        category: '',
+                      });
+                      toast.success(`Added ${deal.productName} to cart!`);
+                    }}
+                    className="w-full py-3 bg-gradient-to-r from-[var(--terracotta)] to-orange-500 text-white rounded-2xl shadow-lg shadow-[var(--terracotta)]/30 hover:shadow-xl transition-shadow flex items-center justify-center gap-2 font-medium"
                   >
+                    <ShoppingCart className="w-5 h-5" />
                     Grab Deal Now
                   </motion.button>
                 </div>

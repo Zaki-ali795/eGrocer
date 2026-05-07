@@ -1,7 +1,11 @@
 import { motion } from 'motion/react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
-export function Hero() {
+interface HeroProps {
+  onStartShopping?: () => void;
+}
+
+export function Hero({ onStartShopping }: HeroProps) {
   return (
     <section className="relative h-[600px] overflow-hidden bg-gradient-to-br from-[var(--green-light)]/20 via-[var(--cream)] to-[var(--beige)]">
       {/* Background Image with Overlay */}
@@ -60,6 +64,7 @@ export function Hero() {
             <motion.button
               whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(39, 174, 96, 0.3)" }}
               whileTap={{ scale: 0.95 }}
+              onClick={onStartShopping}
               className="px-8 py-4 bg-gradient-to-r from-[var(--green-primary)] to-[var(--green-secondary)] text-white rounded-full flex items-center justify-center gap-2 shadow-lg shadow-[var(--green-primary)]/30 group"
             >
               <span>Start Shopping</span>
