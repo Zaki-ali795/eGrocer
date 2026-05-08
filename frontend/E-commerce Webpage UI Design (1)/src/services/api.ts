@@ -1,6 +1,6 @@
 // src/services/api.ts
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 async function request<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`);

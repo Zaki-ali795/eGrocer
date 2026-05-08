@@ -160,6 +160,22 @@ class OrderRepository extends BaseRepository {
 
         return result.recordset;
     }
+
+    /**
+     * Helper for testing/dummy state: Gets the first valid customer and their address.
+     * This avoids hardcoding IDs that might not exist in a fresh DB.
+     */
+    async getDummyCustomerAndAddress() {
+        const req = this.pool.request();
+        const result = await req.query(`
+            SELECT TOP 1 
+                c.customer_id, 
+                (SELECT TOP 1 address_id FROM Addresses WHERE user_id = c.customer_id) as address_id
+            FROM Customers c
+            ORDER BY c.customer_id ASC
+        `);
+        return result.recordset[0] || null;
+    }
 }
 
 module.exports = OrderRepository;

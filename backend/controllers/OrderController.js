@@ -16,10 +16,12 @@ class OrderController {
 
     async processCheckout(req, res, next) {
         try {
-            // For now, we assume customerId = 1 and addressId = 1 (from seed data)
-            // In a real app, customerId comes from req.user (auth middleware)
-            const customerId = 1;
-            const billingAddressId = 1;
+            // For now, if no auth, we fetch the first available customer/address
+            const dummy = await this.orderService.getDummyCustomerAndAddress();
+            if (!dummy) throw new Error('No customers found in database.');
+
+            const customerId = dummy.customer_id;
+            const billingAddressId = dummy.address_id;
             const shippingAddressId = req.body.shippingAddressId || billingAddressId;
             const { items } = req.body;
 
@@ -39,7 +41,9 @@ class OrderController {
 
     async getMyOrders(req, res, next) {
         try {
-            const customerId = 1; // Hardcoded dummy customer for now
+            const dummy = await this.orderService.getDummyCustomerAndAddress();
+            const customerId = dummy ? dummy.customer_id : 1; 
+            
             const orders = await this.orderService.getUserOrders(customerId);
             
             res.json({
@@ -53,7 +57,9 @@ class OrderController {
 
     async getTracking(req, res, next) {
         try {
-            const customerId = 1; // Hardcoded dummy customer
+            const dummy = await this.orderService.getDummyCustomerAndAddress();
+            const customerId = dummy ? dummy.customer_id : 1;
+
             const trackingData = await this.orderService.getTrackingData(customerId);
 
             res.json({

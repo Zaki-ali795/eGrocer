@@ -180,6 +180,10 @@ class OrderService {
 
         return Array.from(orderMap.values());
     }
+
+    async getDummyCustomerAndAddress() {
+        return await this.orderRepo.getDummyCustomerAndAddress();
+    }
 }
 
 module.exports = OrderService;
