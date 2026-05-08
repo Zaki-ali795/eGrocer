@@ -6,56 +6,65 @@ class OrderRepository extends BaseRepository {
         super(pool);
     }
 
-    /**
-     * Creates an order and its items in a transaction.
-     * SRP: Responsible only for executing the SQL to persist an order.
-     */
     async createOrder(orderData, itemsData) {
         const transaction = this.pool.transaction();
         try {
             await transaction.begin();
 
+            // 1. Insert Order (commercial/financial concern only)
             const orderReq = transaction.request();
-            orderReq.input('userId', orderData.userId);
-            orderReq.input('shippingAddressId', orderData.shippingAddressId);
-            orderReq.input('billingAddressId', orderData.billingAddressId);
-            orderReq.input('subtotal', orderData.subtotal);
-            orderReq.input('taxAmount', orderData.taxAmount);
-            orderReq.input('deliveryFee', orderData.deliveryFee);
-            orderReq.input('discountAmount', orderData.discountAmount);
-            orderReq.input('totalAmount', orderData.totalAmount);
-            orderReq.input('orderNumber', 'ORD-' + Math.floor(100000 + Math.random() * 900000));
+            orderReq.input('customerId',        orderData.customerId);
+            orderReq.input('billingAddressId',  orderData.billingAddressId);
+            orderReq.input('promoId',           orderData.promoId || null);
+            orderReq.input('subtotal',          orderData.subtotal);
+            orderReq.input('taxAmount',         orderData.taxAmount);
+            orderReq.input('discountAmount',    orderData.discountAmount);
+            orderReq.input('paymentMethod',     orderData.paymentMethod || 'cash_on_delivery');
+            orderReq.input('orderNumber',       'ORD-' + Math.floor(100000 + Math.random() * 900000));
 
             const orderResult = await orderReq.query(`
                 INSERT INTO Orders (
-                    order_number, user_id, shipping_address_id, billing_address_id,
-                    subtotal, tax_amount, delivery_fee, discount_amount, total_amount
-                ) 
+                    order_number, customer_id, billing_address_id, promo_id,
+                    subtotal, tax_amount, discount_amount, payment_method
+                )
                 OUTPUT inserted.order_id, inserted.order_number
                 VALUES (
-                    @orderNumber, @userId, @shippingAddressId, @billingAddressId,
-                    @subtotal, @taxAmount, @deliveryFee, @discountAmount, @totalAmount
+                    @orderNumber, @customerId, @billingAddressId, @promoId,
+                    @subtotal, @taxAmount, @discountAmount, @paymentMethod
                 );
             `);
 
-            const orderId = orderResult.recordset[0].order_id;
+            const orderId     = orderResult.recordset[0].order_id;
             const orderNumber = orderResult.recordset[0].order_number;
 
+            // 2. Insert Delivery (logistics concern only)
+            const deliveryReq = transaction.request();
+            deliveryReq.input('orderId',               orderId);
+            deliveryReq.input('shippingAddressId',     orderData.shippingAddressId);
+            deliveryReq.input('deliveryFee',           orderData.deliveryFee);
+            deliveryReq.input('estimatedDeliveryDate', orderData.estimatedDeliveryDate || null);
+
+            await deliveryReq.query(`
+                INSERT INTO Deliveries (order_id, shipping_address_id, delivery_fee, estimated_delivery_date)
+                VALUES (@orderId, @shippingAddressId, @deliveryFee, @estimatedDeliveryDate);
+            `);
+
+            // 3. Insert Order Items
             for (const item of itemsData) {
                 const itemReq = transaction.request();
-                itemReq.input('orderId', orderId);
+                itemReq.input('orderId',   orderId);
                 itemReq.input('productId', item.productId);
-                itemReq.input('quantity', item.quantity);
+                itemReq.input('sellerId',  item.sellerId || null);
+                itemReq.input('quantity',  item.quantity);
                 itemReq.input('unitPrice', item.price);
 
                 await itemReq.query(`
-                    INSERT INTO OrderItems (order_id, product_id, quantity, unit_price)
-                    VALUES (@orderId, @productId, @quantity, @unitPrice);
+                    INSERT INTO OrderItems (order_id, product_id, seller_id, quantity, unit_price)
+                    VALUES (@orderId, @productId, @sellerId, @quantity, @unitPrice);
                 `);
 
-                // Optional: Reduce inventory
                 const invReq = transaction.request();
-                invReq.input('qty', item.quantity);
+                invReq.input('qty',    item.quantity);
                 invReq.input('prodId', item.productId);
                 await invReq.query(`
                     UPDATE Inventory
@@ -64,7 +73,7 @@ class OrderRepository extends BaseRepository {
                 `);
             }
 
-            // Insert initial status history
+            // 4. Insert initial status history
             const statusReq = transaction.request();
             statusReq.input('orderId', orderId);
             await statusReq.query(`
@@ -80,50 +89,62 @@ class OrderRepository extends BaseRepository {
         }
     }
 
-    /**
-     * Gets previous orders for a user.
-     * Joins Orders, OrderItems, and Products.
-     */
-    async getUserOrders(userId) {
+    async getUserOrders(customerId) {
         const req = this.pool.request();
-        req.input('userId', userId);
+        req.input('customerId', customerId);
 
         const result = await req.query(`
-            SELECT 
-                o.order_id, o.order_number, o.user_id, o.subtotal, o.tax_amount, 
-                o.delivery_fee, o.discount_amount, o.total_amount, o.order_status, 
-                o.payment_status, o.created_at,
+            SELECT
+                owt.order_id, owt.order_number, owt.customer_id,
+                owt.subtotal, owt.tax_amount, owt.discount_amount,
+                owt.total_delivery_fee, owt.total_amount,
+                owt.order_status, owt.payment_status, owt.payment_method, owt.created_at,
+                d.delivery_fee, d.delivery_status, d.estimated_delivery_date, d.actual_delivery_date,
                 oi.order_item_id, oi.product_id, oi.quantity, oi.unit_price,
                 p.product_name, p.image_url, p.brand
-            FROM Orders o
-            LEFT JOIN OrderItems oi ON o.order_id = oi.order_id
+            FROM OrdersWithTotal owt
+            LEFT JOIN Deliveries d ON owt.order_id = d.order_id
+            LEFT JOIN OrderItems oi ON owt.order_id = oi.order_id
             LEFT JOIN Products p ON oi.product_id = p.product_id
-            WHERE o.user_id = @userId
-            ORDER BY o.created_at DESC
+            WHERE owt.customer_id = @customerId
+            ORDER BY owt.created_at DESC
         `);
 
         return result.recordset;
     }
 
-    /**
-     * Gets active orders with their status history for tracking.
-     */
-    async getActiveTrackingOrders(userId) {
+    async getActiveTrackingOrders(customerId) {
         const req = this.pool.request();
-        req.input('userId', userId);
+        req.input('customerId', customerId);
 
         const result = await req.query(`
-            SELECT 
-                o.order_id, o.order_number, o.order_status, o.total_amount, o.delivery_instructions, o.estimated_delivery_date,
-                (SELECT COUNT(*) FROM OrderItems oi WHERE oi.order_id = o.order_id) AS items_count,
-                sh.status, sh.notes, sh.created_at as status_time
-            FROM Orders o
-            LEFT JOIN OrderStatusHistory sh ON o.order_id = sh.order_id
-            WHERE o.user_id = @userId AND o.order_status NOT IN ('delivered', 'cancelled', 'refunded')
-            ORDER BY o.created_at DESC, sh.created_at ASC
+            SELECT
+                owt.order_id, owt.order_number, owt.order_status, owt.total_amount,
+                d.delivery_instructions, d.estimated_delivery_date, d.delivery_status, d.delivery_fee,
+                (SELECT COUNT(*) FROM OrderItems oi WHERE oi.order_id = owt.order_id) AS items_count,
+                sh.status, sh.notes, sh.created_at AS status_time
+            FROM OrdersWithTotal owt
+            LEFT JOIN Deliveries d ON owt.order_id = d.order_id
+            LEFT JOIN OrderStatusHistory sh ON owt.order_id = sh.order_id
+            WHERE owt.customer_id = @customerId
+              AND owt.order_status NOT IN ('cancelled', 'refunded')
+              AND (d.delivery_status IS NULL OR d.delivery_status NOT IN ('delivered', 'returned'))
+            ORDER BY owt.created_at DESC, sh.created_at ASC
         `);
 
         return result.recordset;
+    }
+
+    async getDummyCustomerAndAddress() {
+        const req    = this.pool.request();
+        const result = await req.query(`
+            SELECT TOP 1
+                c.customer_id,
+                (SELECT TOP 1 address_id FROM Addresses WHERE user_id = c.customer_id) AS address_id
+            FROM Customers c
+            ORDER BY c.customer_id ASC
+        `);
+        return result.recordset[0] || null;
     }
 }
 

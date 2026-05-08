@@ -7,19 +7,19 @@ class OrderController {
 
     async processCheckout(req, res, next) {
         try {
-            // For now, we assume user_id = 1 and address_id = 1 (from seed data)
-            // In a real app, userId comes from req.user (auth middleware)
-            const userId = 1;
-            const addressId = 1;
-            const { items } = req.body;
+            const dummy = await this.orderService.getDummyCustomerAndAddress();
+            if (!dummy) throw new Error('No customers found in database.');
 
-            const orderResult = await this.orderService.processCheckout(userId, addressId, items);
-            
-            res.status(201).json({
-                success: true,
-                message: 'Order placed successfully',
-                data: orderResult
-            });
+            const customerId      = req.user?.user_id || dummy.customer_id;
+            const { items, shippingAddressId, billingAddressId, addressId, paymentMethod } = req.body;
+            const shippingAddr    = shippingAddressId || addressId || dummy.address_id;
+            const billingAddr     = billingAddressId  || addressId || dummy.address_id;
+
+            const orderResult = await this.orderService.processCheckout(
+                customerId, shippingAddr, billingAddr, items, paymentMethod
+            );
+
+            res.status(201).json({ success: true, message: 'Order placed successfully', data: orderResult });
         } catch (error) {
             next(error);
         }
@@ -27,13 +27,10 @@ class OrderController {
 
     async getMyOrders(req, res, next) {
         try {
-            const userId = 1; // Hardcoded dummy user for now
-            const orders = await this.orderService.getUserOrders(userId);
-            
-            res.json({
-                success: true,
-                data: orders
-            });
+            const dummy      = await this.orderService.getDummyCustomerAndAddress();
+            const customerId = req.user?.user_id || (dummy ? dummy.customer_id : 3);
+            const orders     = await this.orderService.getUserOrders(customerId);
+            res.json({ success: true, data: orders });
         } catch (error) {
             next(error);
         }
@@ -41,13 +38,10 @@ class OrderController {
 
     async getTracking(req, res, next) {
         try {
-            const userId = 1; // Hardcoded dummy user
-            const trackingData = await this.orderService.getTrackingData(userId);
-
-            res.json({
-                success: true,
-                data: trackingData
-            });
+            const dummy        = await this.orderService.getDummyCustomerAndAddress();
+            const customerId   = req.user?.user_id || (dummy ? dummy.customer_id : 3);
+            const trackingData = await this.orderService.getTrackingData(customerId);
+            res.json({ success: true, data: trackingData });
         } catch (error) {
             next(error);
         }

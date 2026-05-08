@@ -1,6 +1,6 @@
 // src/services/api.ts
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 async function request<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`);
@@ -115,13 +115,14 @@ export interface OrderItem {
 export interface Order {
   order_id: number;
   order_number: string;
-  user_id: number;
+  customer_id: number;
   subtotal: number;
   tax_amount: number;
-  delivery_fee: number;
+  delivery_fee: number;       // from Deliveries table (joined in backend)
   discount_amount: number;
-  total_amount: number;
+  total_amount: number;        // computed at runtime in backend
   order_status: string;
+  delivery_status: string;     // from Deliveries table
   payment_status: string;
   created_at: string;
   items: OrderItem[];
@@ -132,9 +133,16 @@ export interface CheckoutRequestItem {
   quantity: number;
 }
 
+export interface CheckoutRequest {
+  items: CheckoutRequestItem[];
+  shippingAddressId?: number;  // optional — defaults to billing address in backend
+}
+
 export interface TrackingOrder {
   id: string;
   status: string;
+  orderStatus?: string;
+  deliveryStatus?: string;
   currentStep?: number;
   estimatedDelivery: string;
   items: number;
@@ -153,11 +161,11 @@ export interface TrackingOrder {
 
 // ─── Order API calls ─────────────────────────────────────────────
 export const orderApi = {
-  createOrder: async (items: CheckoutRequestItem[]) => {
+  createOrder: async (items: CheckoutRequestItem[], shippingAddressId?: number) => {
     const res = await fetch(`${BASE_URL}/orders/checkout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ items, shippingAddressId }),
     });
     const json = await res.json();
     if (!json.success) throw new Error(json.message || 'Failed to place order');
