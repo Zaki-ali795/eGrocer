@@ -1,7 +1,17 @@
+/**
+ * Factory Pattern (GoF Creational):
+ * Reconstructs structured Order objects from flat SQL JOIN result rows.
+ * 
+ * Schema adaptation notes:
+ * - delivery_fee now comes from the Deliveries table (joined in the query)
+ * - total_amount is computed at runtime in the SQL query (BCNF compliance)
+ * - user_id → customer_id (references Customers sub-table)
+ * - delivery_status added from the Deliveries table
+ */
 class OrderFactory {
     /**
-     * Reconstructs an Order object (with nested items array) from flat SQL rows
-     * @param {Array} rows - The flat rows returned by a SQL JOIN between Orders and OrderItems
+     * Reconstructs an Order object (with nested items array) from flat SQL rows.
+     * @param {Array} rows - The flat rows returned by a SQL JOIN between Orders, Deliveries, and OrderItems
      * @returns {Object|null}
      */
     static createFromDbRows(rows) {
@@ -10,13 +20,14 @@ class OrderFactory {
         const order = {
             order_id: rows[0].order_id,
             order_number: rows[0].order_number,
-            user_id: rows[0].user_id,
+            customer_id: rows[0].customer_id,
             subtotal: rows[0].subtotal,
             tax_amount: rows[0].tax_amount,
-            delivery_fee: rows[0].delivery_fee,
             discount_amount: rows[0].discount_amount,
-            total_amount: rows[0].total_amount,
+            delivery_fee: rows[0].delivery_fee || 0,       // from Deliveries table
+            total_amount: rows[0].total_amount,              // computed at runtime in SQL
             order_status: rows[0].order_status,
+            delivery_status: rows[0].delivery_status || 'pending',  // from Deliveries table
             payment_status: rows[0].payment_status,
             created_at: rows[0].created_at,
             items: []
@@ -44,7 +55,7 @@ class OrderFactory {
     }
 
     /**
-     * Converts a flat array of multiple orders' rows into an array of structured Order objects
+     * Converts a flat array of multiple orders' rows into an array of structured Order objects.
      */
     static createMultipleFromDbRows(rows) {
         if (!rows || rows.length === 0) return [];

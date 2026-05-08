@@ -1,6 +1,16 @@
 // backend/services/OrderService.js
 const OrderFactory = require('../factories/OrderFactory');
 
+/**
+ * Business logic layer for orders.
+ * SRP: Handles order processing logic — delegates DB access to repositories.
+ * DIP: Depends on repository abstractions injected via constructor.
+ *
+ * Schema adaptation notes:
+ * - Order data (financial) and delivery data (logistics) are now separate concerns.
+ * - processCheckout builds two distinct data objects: orderData + deliveryData.
+ * - Tracking combines order_status (commercial) + delivery_status (logistics).
+ */
 class OrderService {
     constructor(orderRepo, productRepo) {
         this.orderRepo = orderRepo;
@@ -10,8 +20,9 @@ class OrderService {
     /**
      * Processes a checkout request.
      * Business logic: Recalculates total based on DB prices to prevent tampering.
+     * SRP split: Builds separate orderData (financial) and deliveryData (logistics).
      */
-    async processCheckout(userId, addressId, cartItems) {
+    async processCheckout(customerId, billingAddressId, shippingAddressId, cartItems) {
         if (!cartItems || cartItems.length === 0) {
             throw new Error('Cart is empty.');
         }
@@ -38,56 +49,60 @@ class OrderService {
 
         const taxAmount = subtotal * 0.08;
         const deliveryFee = subtotal > 5000 ? 0 : 499;
-        const discountAmount = subtotal * 0.05; // 5% card discount logic 
-        const totalAmount = subtotal + taxAmount + deliveryFee - discountAmount;
+        const discountAmount = subtotal * 0.05; // 5% card discount logic
 
+        // Order data — commercial/financial concern only (goes to Orders table)
         const orderData = {
-            userId: userId,
-            shippingAddressId: addressId,
-            billingAddressId: addressId,
+            customerId,
+            billingAddressId,
             subtotal,
             taxAmount,
-            deliveryFee,
-            discountAmount,
-            totalAmount
+            discountAmount
         };
 
-        const result = await this.orderRepo.createOrder(orderData, processedItems);
+        // Delivery data — logistics concern only (goes to Deliveries table)
+        const deliveryData = {
+            shippingAddressId,
+            deliveryFee
+        };
+
+        const result = await this.orderRepo.createOrder(orderData, deliveryData, processedItems);
         return result;
     }
 
     /**
      * Gets user's previous orders formatted nicely.
      */
-    async getUserOrders(userId) {
-        const rawRows = await this.orderRepo.getUserOrders(userId);
+    async getUserOrders(customerId) {
+        const rawRows = await this.orderRepo.getUserOrders(customerId);
         return OrderFactory.createMultipleFromDbRows(rawRows);
     }
 
     /**
      * Gets active orders formatted for the tracking UI.
+     * Now combines order_status (commercial) + delivery_status (logistics).
      */
-    async getTrackingData(userId) {
-        const rawRows = await this.orderRepo.getActiveTrackingOrders(userId);
+    async getTrackingData(customerId) {
+        const rawRows = await this.orderRepo.getActiveTrackingOrders(customerId);
         
         if (!rawRows || rawRows.length === 0) return [];
 
         const orderMap = new Map();
 
-        // The UI expects these exact steps
-        const stepDefinitions = ['pending', 'processing', 'shipped', 'delivered'];
+        // Steps now reflect both order and delivery lifecycle
+        const stepDefinitions = ['pending', 'confirmed', 'dispatched', 'delivered'];
         const stepLabels = ['Order Confirmed', 'Processing', 'Out for Delivery', 'Delivered'];
 
         rawRows.forEach(row => {
             if (!orderMap.has(row.order_id)) {
-                // Initialize the order object
                 const estDelivery = row.estimated_delivery_date 
                     ? new Date(row.estimated_delivery_date).toLocaleDateString() + ' ' + new Date(row.estimated_delivery_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
                     : 'Pending Estimate';
 
                 orderMap.set(row.order_id, {
                     id: row.order_number,
-                    status: row.order_status,
+                    orderStatus: row.order_status,
+                    deliveryStatus: row.delivery_status || 'pending',
                     estimatedDelivery: estDelivery,
                     items: row.items_count,
                     total: row.total_amount,
@@ -116,30 +131,51 @@ class OrderService {
                 if (statusIndex !== -1) {
                     for (let i = 0; i <= statusIndex; i++) {
                         order.steps[i].completed = true;
-                        // Only set the time for the exact step, not the previous ones unless we have them
                         if (i === statusIndex) {
                             order.steps[i].time = displayTime;
                         }
                     }
                 }
             }
+
+            // Also check delivery_status for logistics steps
+            const deliveryStepMap = { 'dispatched': 2, 'in_transit': 2, 'delivered': 3 };
+            const deliveryIdx = deliveryStepMap[row.delivery_status];
+            if (deliveryIdx !== undefined) {
+                for (let i = 0; i <= deliveryIdx; i++) {
+                    order.steps[i].completed = true;
+                }
+            }
         });
 
-        // Ensure notifications are sorted latest first
+        // Format for UI
         Array.from(orderMap.values()).forEach(order => {
             order.notifications.reverse();
-            
-            // Set current step for the progress bar logic if needed
             order.currentStep = order.steps.filter(s => s.completed).length - 1;
             
-            // Format status for UI
+            // Combined status display
             const statusMap = {
                 'pending': 'Order Confirmed',
+                'confirmed': 'Confirmed',
                 'processing': 'Processing',
-                'shipped': 'In Transit',
-                'delivered': 'Delivered'
+                'cancelled': 'Cancelled',
+                'refunded': 'Refunded'
             };
-            order.status = statusMap[order.status] || order.status;
+            const deliveryStatusMap = {
+                'pending': 'Awaiting Dispatch',
+                'dispatched': 'Dispatched',
+                'in_transit': 'In Transit',
+                'delivered': 'Delivered',
+                'failed': 'Delivery Failed',
+                'returned': 'Returned'
+            };
+            
+            // Show delivery status if order is confirmed/processing
+            if (['confirmed', 'processing'].includes(order.orderStatus)) {
+                order.status = deliveryStatusMap[order.deliveryStatus] || order.deliveryStatus;
+            } else {
+                order.status = statusMap[order.orderStatus] || order.orderStatus;
+            }
         });
 
         return Array.from(orderMap.values());

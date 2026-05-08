@@ -1,5 +1,14 @@
 // backend/controllers/OrderController.js
 
+/**
+ * HTTP layer for order-related endpoints.
+ * SRP: Only handles req/res — all logic delegated to OrderService.
+ *
+ * Schema adaptation notes:
+ * - userId → customerId (references Customers sub-table)
+ * - processCheckout now accepts separate billing and shipping address IDs
+ *   to support the Orders/Deliveries split.
+ */
 class OrderController {
     constructor(orderService) {
         this.orderService = orderService;
@@ -7,13 +16,16 @@ class OrderController {
 
     async processCheckout(req, res, next) {
         try {
-            // For now, we assume user_id = 1 and address_id = 1 (from seed data)
-            // In a real app, userId comes from req.user (auth middleware)
-            const userId = 1;
-            const addressId = 1;
+            // For now, we assume customerId = 1 and addressId = 1 (from seed data)
+            // In a real app, customerId comes from req.user (auth middleware)
+            const customerId = 1;
+            const billingAddressId = 1;
+            const shippingAddressId = req.body.shippingAddressId || billingAddressId;
             const { items } = req.body;
 
-            const orderResult = await this.orderService.processCheckout(userId, addressId, items);
+            const orderResult = await this.orderService.processCheckout(
+                customerId, billingAddressId, shippingAddressId, items
+            );
             
             res.status(201).json({
                 success: true,
@@ -27,8 +39,8 @@ class OrderController {
 
     async getMyOrders(req, res, next) {
         try {
-            const userId = 1; // Hardcoded dummy user for now
-            const orders = await this.orderService.getUserOrders(userId);
+            const customerId = 1; // Hardcoded dummy customer for now
+            const orders = await this.orderService.getUserOrders(customerId);
             
             res.json({
                 success: true,
@@ -41,8 +53,8 @@ class OrderController {
 
     async getTracking(req, res, next) {
         try {
-            const userId = 1; // Hardcoded dummy user
-            const trackingData = await this.orderService.getTrackingData(userId);
+            const customerId = 1; // Hardcoded dummy customer
+            const trackingData = await this.orderService.getTrackingData(customerId);
 
             res.json({
                 success: true,
