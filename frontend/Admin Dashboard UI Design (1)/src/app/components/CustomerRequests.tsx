@@ -72,7 +72,10 @@ export function CustomerRequests() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200"
+          onClick={() => setFilter('open')}
+          className={`rounded-2xl p-6 border transition-all cursor-pointer hover:shadow-md ${
+            filter === 'open' ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'
+          }`}
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
@@ -90,7 +93,10 @@ export function CustomerRequests() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 border border-emerald-200"
+          onClick={() => setFilter('active')}
+          className={`rounded-2xl p-6 border transition-all cursor-pointer hover:shadow-md ${
+            filter === 'active' ? 'bg-emerald-100 border-emerald-300' : 'bg-emerald-50 border-emerald-200'
+          }`}
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
@@ -108,7 +114,10 @@ export function CustomerRequests() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200"
+          onClick={() => setFilter('closed')}
+          className={`rounded-2xl p-6 border transition-all cursor-pointer hover:shadow-md ${
+            filter === 'closed' ? 'bg-gray-200 border-gray-400' : 'bg-gray-50 border-gray-200'
+          }`}
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-gray-500 rounded-xl flex items-center justify-center">
@@ -116,7 +125,7 @@ export function CustomerRequests() {
             </div>
             <div>
               <p className="font-['Manrope'] text-xs text-gray-700">Closed</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">{stats.closed}</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-blue-900">{stats.closed}</p>
             </div>
           </div>
           <p className="font-['Manrope'] text-sm text-gray-700">Successfully fulfilled</p>

@@ -9,15 +9,15 @@ class AdminRepository extends BaseRepository {
     async getPlatformStats() {
         const stats = await this.pool.request().query(`
             SELECT 
-                (SELECT COUNT(*) FROM Users WHERE role = 'customer') as customer_count,
+                (SELECT COUNT(*) FROM Users WHERE user_type = 'customer') as customer_count,
                 (SELECT COUNT(*) FROM Sellers) as seller_count,
                 (SELECT COUNT(*) FROM Orders WHERE CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)) as today_orders,
                 (SELECT COUNT(*) FROM Orders WHERE order_status = 'processing' AND CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)) as today_processing,
                 (SELECT COUNT(*) FROM Orders WHERE order_status = 'delivered' AND CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)) as today_delivered,
-                ISNULL((SELECT SUM(total_amount) FROM Orders WHERE created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)), 0) as monthly_revenue,
+                ISNULL((SELECT SUM(subtotal - discount_amount + tax_amount) FROM Orders WHERE created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)), 0) as monthly_revenue,
                 (SELECT COUNT(*) FROM FlashDeals WHERE is_active = 1 AND end_datetime > GETDATE()) as active_flash_deals,
                 (SELECT COUNT(*) FROM Inventory i INNER JOIN Products p ON i.product_id = p.product_id WHERE i.quantity_in_stock < 20 AND p.is_active = 1) as low_stock_count,
-                (SELECT COUNT(*) FROM ProductRequests WHERE request_status = 'open') as pending_refunds_count -- Placeholder logic for refunds if not in schema
+                (SELECT COUNT(*) FROM ProductRequests WHERE request_status = 'open') as pending_refunds_count
         `);
         return stats.recordset[0];
     }
@@ -26,7 +26,7 @@ class AdminRepository extends BaseRepository {
         const result = await this.pool.request().query(`
             SELECT TOP 7
                 FORMAT(created_at, 'MMM') as name,
-                SUM(total_amount) as revenue,
+                SUM(subtotal - discount_amount + tax_amount) as revenue,
                 COUNT(order_id) as orders
             FROM Orders
             WHERE created_at >= DATEADD(month, -7, GETDATE())
@@ -221,11 +221,11 @@ class AdminRepository extends BaseRepository {
                 code,
                 discount_type as type,
                 discount_value as value,
-                min_order_amount as minOrder,
+                minimum_order_amount as minOrder,
                 used_count as usage,
                 usage_limit as limit,
-                end_date as expiry,
-                CASE WHEN is_active = 1 AND end_date > GETDATE() THEN 'active' ELSE 'inactive' END as status
+                valid_until as expiry,
+                CASE WHEN is_active = 1 AND valid_until > GETDATE() THEN 'active' ELSE 'inactive' END as status
             FROM PromoCodes
             ORDER BY created_at DESC
         `);

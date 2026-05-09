@@ -24,6 +24,7 @@ export function FlashDealsManagement() {
   const [showActive, setShowActive] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDeal, setEditingDeal] = useState<FlashDeal | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -55,7 +56,36 @@ export function FlashDealsManagement() {
     loadData();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleOpenModal = (deal: FlashDeal | null = null) => {
+    if (deal) {
+      setEditingDeal(deal);
+      setFormData({
+        name: '', // Flash deals might not have a separate name in the schema, but keeping it for UI
+        description: '',
+        productId: deal.product_id?.toString() || '',
+        discount: deal.discount.toString(),
+        price: deal.originalPrice.toString(),
+        start: deal.startTime.split('.')[0], // Handle ISO format
+        end: deal.endTime.split('.')[0],
+        max: deal.max.toString()
+      });
+    } else {
+      setEditingDeal(null);
+      setFormData({
+        name: '',
+        description: '',
+        productId: '',
+        discount: '10',
+        price: '',
+        start: '',
+        end: '',
+        max: '50'
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const data = {
@@ -66,7 +96,13 @@ export function FlashDealsManagement() {
         max: parseInt(formData.max),
         adminId: 1 // Default admin ID
       };
-      await adminApi.createFlashDeal(data);
+
+      if (editingDeal) {
+        // await adminApi.updateFlashDeal(editingDeal.id, data);
+        alert('Update functionality coming soon in backend');
+      } else {
+        await adminApi.createFlashDeal(data);
+      }
       setIsModalOpen(false);
       loadData();
     } catch (err: any) {
@@ -128,7 +164,7 @@ export function FlashDealsManagement() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => handleOpenModal()}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#ff6b35] to-[#ff8c42] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           <Plus className="w-5 h-5" />
@@ -236,7 +272,10 @@ export function FlashDealsManagement() {
             </div>
 
             <div className="flex gap-2">
-              <button className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-gray-200 transition-colors">
+              <button 
+                onClick={() => handleOpenModal(deal)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-gray-200 transition-colors"
+              >
                 Edit
               </button>
               <button 
@@ -268,13 +307,15 @@ export function FlashDealsManagement() {
               className="relative bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]"
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">Create Flash Deal</h2>
+                <h2 className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">
+                  {editingDeal ? 'Edit Flash Deal' : 'Create Flash Deal'}
+                </h2>
                 <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                   <X className="w-6 h-6 text-gray-500" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreate} className="space-y-4">
+              <form onSubmit={handleSave} className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Deal Name</label>
                   <input
@@ -377,7 +418,7 @@ export function FlashDealsManagement() {
                     type="submit"
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-[#ff6b35] to-[#ff8c42] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
-                    Create Deal
+                    {editingDeal ? 'Update Deal' : 'Create Deal'}
                   </button>
                 </div>
               </form>

@@ -7,12 +7,15 @@
  * 
  * Satisfies DIP: services depend on this abstraction, not concrete DB calls.
  */
+const { sql } = require('../config/db');
+
 class BaseRepository {
     constructor(pool) {
         if (new.target === BaseRepository) {
             throw new Error('BaseRepository is abstract and cannot be instantiated directly.');
         }
         this.pool = pool;
+        this.sql = sql;
     }
 }
 

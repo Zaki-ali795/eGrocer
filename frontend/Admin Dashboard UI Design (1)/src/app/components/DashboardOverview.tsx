@@ -5,7 +5,11 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { useState, useEffect } from 'react';
 import { adminApi } from '../services/api';
 
-export function DashboardOverview() {
+interface DashboardOverviewProps {
+  onNavigate: (page: string) => void;
+}
+
+export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -184,7 +188,12 @@ export function DashboardOverview() {
             <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">Recent Activity</h2>
             <p className="font-['Manrope'] text-sm text-gray-500">Real-time platform updates</p>
           </div>
-          <button className="font-['Manrope'] text-sm text-[#1a3a2e] hover:text-[#2a5f4a] font-semibold">View All</button>
+          <button 
+            onClick={() => onNavigate('orders')}
+            className="font-['Manrope'] text-sm text-[#1a3a2e] hover:text-[#2a5f4a] font-semibold"
+          >
+            View All
+          </button>
         </div>
         <div className="space-y-4">
           {recentActivity.map((activity: any, index: number) => {
@@ -218,7 +227,8 @@ export function DashboardOverview() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.3, duration: 0.5 }}
-          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-3xl p-6 border border-emerald-200"
+          onClick={() => onNavigate('inventory')}
+          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-3xl p-6 border border-emerald-200 cursor-pointer hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center">
@@ -236,7 +246,8 @@ export function DashboardOverview() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.4, duration: 0.5 }}
-          className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-6 border border-orange-200"
+          onClick={() => onNavigate('inventory')}
+          className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-6 border border-orange-200 cursor-pointer hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center">
@@ -254,7 +265,8 @@ export function DashboardOverview() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.5, duration: 0.5 }}
-          className="bg-gradient-to-br from-red-50 to-red-100 rounded-3xl p-6 border border-red-200"
+          onClick={() => onNavigate('requests')}
+          className="bg-gradient-to-br from-red-50 to-red-100 rounded-3xl p-6 border border-red-200 cursor-pointer hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center">

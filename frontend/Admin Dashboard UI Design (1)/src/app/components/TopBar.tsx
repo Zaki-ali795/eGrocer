@@ -1,9 +1,15 @@
-import { Search, Bell, User, ChevronDown } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Search, Bell, User, ChevronDown, LogOut, Settings, Shield } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 
-export function TopBar() {
+export function TopBar({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const [notifications] = useState(7);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const handleSignOut = () => {
+    // In a real app, clear tokens/session
+    window.location.reload(); 
+  };
 
   return (
     <motion.header
@@ -44,19 +50,79 @@ export function TopBar() {
 
           <div className="h-8 w-px bg-gray-300"></div>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gray-100 transition-all"
-          >
-            <div className="w-10 h-10 bg-gradient-to-br from-[#1a3a2e] to-[#2a5f4a] rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-white" />
-            </div>
-            <div className="text-left">
-              <p className="font-['Manrope'] font-semibold text-sm text-gray-800">Admin User</p>
-              <p className="font-['Manrope'] text-xs text-gray-500">Super Admin</p>
-            </div>
-            <ChevronDown className="w-4 h-4 text-gray-400" />
-          </motion.button>
+          <div className="relative">
+            <button 
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className="flex items-center gap-3 p-1.5 pr-4 bg-white border border-gray-100 rounded-2xl hover:border-emerald-200 hover:shadow-md transition-all group"
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white shadow-inner group-hover:scale-105 transition-transform">
+                <User className="w-6 h-6" />
+              </div>
+              <div className="text-left hidden lg:block">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">Administrator</p>
+                <p className="text-sm font-bold text-gray-800 leading-none">Rehan Ahmed</p>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {isUserMenuOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-[60]" 
+                    onClick={() => setIsUserMenuOpen(false)}
+                  ></div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute right-0 mt-3 w-64 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[70]"
+                  >
+                    <div className="p-5 border-b border-gray-50 bg-gray-50/50">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700">
+                          <User className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">Rehan Ahmed</p>
+                          <p className="text-xs text-gray-500">rehan.admin@egrocer.com</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-2">
+                      <button 
+                        onClick={() => { setIsUserMenuOpen(false); onNavigate?.('settings'); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-2xl transition-colors"
+                      >
+                        <User className="w-4 h-4" />
+                        View Profile
+                      </button>
+                      <button 
+                        onClick={() => { setIsUserMenuOpen(false); onNavigate?.('settings'); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-2xl transition-colors"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Account Settings
+                      </button>
+                    </div>
+                    <div className="p-2 border-t border-gray-50">
+                      <button 
+                        onClick={() => {
+                          if(window.confirm('Are you sure you want to sign out?')) {
+                            handleSignOut();
+                          }
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-2xl transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </motion.header>

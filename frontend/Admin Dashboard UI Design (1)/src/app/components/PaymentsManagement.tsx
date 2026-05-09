@@ -76,14 +76,17 @@ export function PaymentsManagement() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-3xl p-6 border border-emerald-200"
+          onClick={() => setFilter('completed')}
+          className={`rounded-3xl p-6 border transition-all cursor-pointer hover:shadow-md ${
+            filter === 'completed' ? 'bg-emerald-100 border-emerald-300 shadow-inner' : 'bg-emerald-50 border-emerald-200'
+          }`}
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center">
               <DollarSign className="w-7 h-7 text-white" />
             </div>
             <div>
-              <p className="font-['Manrope'] text-xs text-emerald-700">Total Revenue</p>
+              <p className="font-['Manrope'] text-xs text-emerald-700">Completed</p>
               <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">Rs {totalRevenue.toLocaleString()}</p>
             </div>
           </div>
@@ -97,7 +100,10 @@ export function PaymentsManagement() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-3xl p-6 border border-amber-200"
+          onClick={() => setFilter('pending')}
+          className={`rounded-3xl p-6 border transition-all cursor-pointer hover:shadow-md ${
+            filter === 'pending' ? 'bg-amber-100 border-amber-300 shadow-inner' : 'bg-amber-50 border-amber-200'
+          }`}
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center">
@@ -117,7 +123,10 @@ export function PaymentsManagement() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-red-50 to-red-100 rounded-3xl p-6 border border-red-200"
+          onClick={() => setFilter('refunded')}
+          className={`rounded-3xl p-6 border transition-all cursor-pointer hover:shadow-md ${
+            filter === 'refunded' ? 'bg-red-100 border-red-300 shadow-inner' : 'bg-red-50 border-red-200'
+          }`}
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center">

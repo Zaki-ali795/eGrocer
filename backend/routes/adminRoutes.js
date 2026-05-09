@@ -6,43 +6,58 @@ const AdminRepository = require('../repositories/AdminRepository');
 const AdminService = require('../services/AdminService');
 const AdminController = require('../controllers/AdminController');
 
-(async () => {
+// Lazy initialization of the controller to avoid blocking route registration
+let controller = null;
+async function getController() {
+    if (controller) return controller;
     const pool = await getPool();
     const repo = new AdminRepository(pool);
     const service = new AdminService(repo);
-    const controller = new AdminController(service);
+    controller = new AdminController(service);
+    return controller;
+}
 
-    router.get('/dashboard/overview', controller.getDashboardOverview);
-    router.get('/users', controller.getUsers);
-    router.get('/categories', controller.getCategories);
-    router.get('/products', controller.getProducts);
-    router.get('/orders', controller.getOrders);
-    router.get('/flash-deals', controller.getFlashDeals);
-    router.get('/inventory', controller.getInventory);
-    router.get('/promotions', controller.getPromotions);
-    router.get('/payments', controller.getPayments);
-    router.get('/product-requests', controller.getProductRequests);
+// Helper to wrap controller methods with lazy initialization and error handling
+const handle = (method) => async (req, res, next) => {
+    try {
+        const ctrl = await getController();
+        await ctrl[method](req, res, next);
+    } catch (err) {
+        next(err);
+    }
+};
 
-    // Write Routes
-    router.post('/products', controller.createProduct);
-    router.put('/products/:id', controller.updateProduct);
-    router.delete('/products/:id', controller.deleteProduct);
+// ── Read Routes ──────────────────────────────────────────────────
+router.get('/dashboard/overview', handle('getDashboardOverview'));
+router.get('/users', handle('getUsers'));
+router.get('/categories', handle('getCategories'));
+router.get('/products', handle('getProducts'));
+router.get('/orders', handle('getOrders'));
+router.get('/flash-deals', handle('getFlashDeals'));
+router.get('/inventory', handle('getInventory'));
+router.get('/promotions', handle('getPromotions'));
+router.get('/payments', handle('getPayments'));
+router.get('/product-requests', handle('getProductRequests'));
 
-    router.post('/categories', controller.createCategory);
-    router.put('/categories/:id', controller.updateCategory);
-    router.delete('/categories/:id', controller.deleteCategory);
+// ── Write Routes ─────────────────────────────────────────────────
+router.post('/products', handle('createProduct'));
+router.put('/products/:id', handle('updateProduct'));
+router.delete('/products/:id', handle('deleteProduct'));
 
-    router.put('/orders/:id/status', controller.updateOrderStatus);
-    router.put('/inventory/:id/adjust', controller.adjustStock);
+router.post('/categories', handle('createCategory'));
+router.put('/categories/:id', handle('updateCategory'));
+router.delete('/categories/:id', handle('deleteCategory'));
 
-    router.post('/flash-deals', controller.createFlashDeal);
-    router.put('/flash-deals/:id/end', controller.endFlashDeal);
+router.put('/orders/:id/status', handle('updateOrderStatus'));
+router.put('/inventory/:id/adjust', handle('adjustStock'));
 
-    router.post('/promotions', controller.createPromotion);
-    router.delete('/promotions/:id', controller.deletePromotion);
+router.post('/flash-deals', handle('createFlashDeal'));
+router.put('/flash-deals/:id/end', handle('endFlashDeal'));
 
-    router.put('/users/:id/status', controller.toggleUserStatus);
-    router.put('/settings', controller.updateSettings);
-})();
+router.post('/promotions', handle('createPromotion'));
+router.delete('/promotions/:id', handle('deletePromotion'));
+
+router.put('/users/:id/status', handle('toggleUserStatus'));
+router.put('/settings', handle('updateSettings'));
 
 module.exports = router;

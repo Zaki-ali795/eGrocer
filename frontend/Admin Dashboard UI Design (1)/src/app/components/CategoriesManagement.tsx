@@ -14,7 +14,11 @@ interface Category {
   parent_id?: string;
 }
 
-export function CategoriesManagement() {
+interface CategoriesManagementProps {
+  onNavigateProducts: (categoryName: string) => void;
+}
+
+export function CategoriesManagement({ onNavigateProducts }: CategoriesManagementProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +154,8 @@ export function CategoriesManagement() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + index * 0.05 }}
-              className="group bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-2xl p-5 hover:border-[#1a3a2e]/30 hover:shadow-lg transition-all duration-300"
+              onClick={() => onNavigateProducts(category.name)}
+              className="group bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-2xl p-5 hover:border-[#1a3a2e]/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300 overflow-hidden">
@@ -162,13 +167,13 @@ export function CategoriesManagement() {
                 </div>
                 <div className="flex gap-1">
                   <button 
-                    onClick={() => handleOpenModal(category)}
+                    onClick={(e) => { e.stopPropagation(); handleOpenModal(category); }}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                   >
                     <Edit className="w-4 h-4 text-gray-600" />
                   </button>
                   <button 
-                    onClick={() => handleDelete(category.id)}
+                    onClick={(e) => { e.stopPropagation(); handleDelete(category.id); }}
                     className="p-2 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                   >
                     <Trash2 className="w-4 h-4 text-red-600" />

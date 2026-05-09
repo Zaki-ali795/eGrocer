@@ -16,15 +16,21 @@ import { Settings } from './components/Settings';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [navigationParams, setNavigationParams] = useState<any>(null);
+
+  const handleNavigate = (page: string, params: any = null) => {
+    setCurrentPage(page);
+    setNavigationParams(params);
+  };
 
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <DashboardOverview />;
+        return <DashboardOverview onNavigate={(page) => handleNavigate(page, null)} />;
       case 'products':
-        return <ProductsManagement />;
+        return <ProductsManagement initialCategory={navigationParams?.category} />;
       case 'categories':
-        return <CategoriesManagement />;
+        return <CategoriesManagement onNavigateProducts={(cat: string) => handleNavigate('products', { category: cat })} />;
       case 'inventory':
         return <InventoryManagement />;
       case 'orders':
@@ -50,9 +56,9 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-amber-50/20 overflow-hidden">
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+      <Sidebar currentPage={currentPage} onNavigate={(page) => handleNavigate(page, null)} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <TopBar />
+        <TopBar onNavigate={(page) => handleNavigate(page, null)} />
         <main className="flex-1 overflow-y-auto">
           {renderPage()}
         </main>

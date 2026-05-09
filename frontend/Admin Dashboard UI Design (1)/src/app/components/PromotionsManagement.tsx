@@ -22,6 +22,7 @@ export function PromotionsManagement() {
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPromo, setEditingPromo] = useState<Promo | null>(null);
   const [formData, setFormData] = useState({
     code: '',
     type: 'percentage',
@@ -47,7 +48,32 @@ export function PromotionsManagement() {
     loadData();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleOpenModal = (promo: Promo | null = null) => {
+    if (promo) {
+      setEditingPromo(promo);
+      setFormData({
+        code: promo.code,
+        type: promo.type,
+        value: promo.value.toString(),
+        minOrder: promo.minOrder.toString(),
+        limit: promo.limit.toString(),
+        expiry: promo.expiry.split('T')[0]
+      });
+    } else {
+      setEditingPromo(null);
+      setFormData({
+        code: '',
+        type: 'percentage',
+        value: '',
+        minOrder: '0',
+        limit: '100',
+        expiry: ''
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const data = {
@@ -56,7 +82,13 @@ export function PromotionsManagement() {
         minOrder: parseFloat(formData.minOrder),
         limit: parseInt(formData.limit)
       };
-      await adminApi.createPromotion(data);
+      
+      if (editingPromo) {
+        // await adminApi.updatePromotion(editingPromo.id, data);
+        alert('Update functionality coming soon in backend');
+      } else {
+        await adminApi.createPromotion(data);
+      }
       setIsModalOpen(false);
       loadData();
     } catch (err: any) {
@@ -107,7 +139,7 @@ export function PromotionsManagement() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => handleOpenModal()}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1a3a2e] to-[#2a5f4a] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           <Plus className="w-5 h-5" />
@@ -216,7 +248,10 @@ export function PromotionsManagement() {
               </div>
 
               <div className="flex gap-2">
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-gray-200 transition-colors">
+                <button 
+                  onClick={() => handleOpenModal(promo)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-gray-200 transition-colors"
+                >
                   <Edit className="w-4 h-4" />
                   Edit
                 </button>
@@ -250,13 +285,15 @@ export function PromotionsManagement() {
               className="relative bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl"
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">Create Promo Code</h2>
+                <h2 className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">
+                  {editingPromo ? 'Edit Promo Code' : 'Create Promo Code'}
+                </h2>
                 <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                   <X className="w-6 h-6 text-gray-500" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreate} className="space-y-4">
+              <form onSubmit={handleSave} className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Promo Code</label>
                   <input
@@ -339,7 +376,7 @@ export function PromotionsManagement() {
                     type="submit"
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-[#1a3a2e] to-[#2a5f4a] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
-                    Create Promo
+                    {editingPromo ? 'Update Promo' : 'Create Promo'}
                   </button>
                 </div>
               </form>

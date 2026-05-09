@@ -48,6 +48,8 @@ const PORT = process.env.PORT || 5001;
         app.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);
         });
+        // Keep the process alive
+        setInterval(() => {}, 1000 * 60 * 60); 
     } catch (err) {
         console.error('❌ Failed to connect to database:', err.message);
         process.exit(1);

@@ -17,7 +17,6 @@ export function InventoryManagement() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'good' | 'low' | 'critical' | 'out'>('all');
 
-  useEffect(() => {
   const loadData = async () => {
     try {
       setLoading(true);
@@ -101,7 +100,8 @@ export function InventoryManagement() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 border border-emerald-200"
+          onClick={() => setFilter('good')}
+          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 border border-emerald-200 cursor-pointer hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
@@ -124,7 +124,8 @@ export function InventoryManagement() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 border border-amber-200"
+          onClick={() => setFilter('low')}
+          className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 border border-amber-200 cursor-pointer hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
@@ -147,7 +148,8 @@ export function InventoryManagement() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200"
+          onClick={() => setFilter('critical')}
+          className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200 cursor-pointer hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">

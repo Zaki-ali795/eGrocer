@@ -30,7 +30,6 @@ export function OrdersManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
 
-  useEffect(() => {
   const loadData = async () => {
     try {
       setLoading(true);
