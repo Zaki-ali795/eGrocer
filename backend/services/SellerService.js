@@ -69,6 +69,22 @@ class SellerService {
     async getEarnings(sellerId) {
         return await this.sellerRepository.getSellerEarnings(sellerId);
     }
+
+    async deletePromotion(dealId) {
+        return await this.sellerRepository.deletePromotion(dealId);
+    }
+
+    async updateOrderStatus(orderId, status) {
+        return await this.sellerRepository.updateOrderStatus(orderId, status);
+    }
+
+    async updateProfile(sellerId, profileData) {
+        return await this.sellerRepository.updateProfile(sellerId, profileData);
+    }
+
+    async getCategories() {
+        return await this.sellerRepository.getCategories();
+    }
 }
 
 module.exports = SellerService;

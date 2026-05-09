@@ -8,20 +8,24 @@ class SellerController {
     constructor(sellerService) {
         this.sellerService = sellerService;
 
-        this.getProfile     = this.getProfile.bind(this);
+        this.getProfile = this.getProfile.bind(this);
         this.getOpenRequests = this.getOpenRequests.bind(this);
-        this.placeBid       = this.placeBid.bind(this);
-        this.getSellerBids  = this.getSellerBids.bind(this);
-        this.getProducts    = this.getProducts.bind(this);
+        this.placeBid = this.placeBid.bind(this);
+        this.getSellerBids = this.getSellerBids.bind(this);
+        this.getProducts = this.getProducts.bind(this);
         this.updateInventory = this.updateInventory.bind(this);
         this.getDashboardStats = this.getDashboardStats.bind(this);
-        this.getOrders       = this.getOrders.bind(this);
-        this.addProduct      = this.addProduct.bind(this);
-        this.updateProduct   = this.updateProduct.bind(this);
-        this.deleteProduct   = this.deleteProduct.bind(this);
-        this.getPromotions   = this.getPromotions.bind(this);
+        this.getOrders = this.getOrders.bind(this);
+        this.addProduct = this.addProduct.bind(this);
+        this.updateProduct = this.updateProduct.bind(this);
+        this.deleteProduct = this.deleteProduct.bind(this);
+        this.getPromotions = this.getPromotions.bind(this);
         this.createPromotion = this.createPromotion.bind(this);
-        this.getEarnings     = this.getEarnings.bind(this);
+        this.getEarnings = this.getEarnings.bind(this);
+        this.deletePromotion = this.deletePromotion.bind(this);
+        this.updateOrderStatus = this.updateOrderStatus.bind(this);
+        this.updateProfile = this.updateProfile.bind(this);
+        this.getCategories = this.getCategories.bind(this);
     }
 
     async getProfile(req, res, next) {
@@ -158,6 +162,45 @@ class SellerController {
             const sellerId = req.params.sellerId || req.query.sellerId;
             const earnings = await this.sellerService.getEarnings(sellerId);
             res.json({ success: true, data: earnings });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async deletePromotion(req, res, next) {
+        try {
+            const dealId = req.params.dealId;
+            await this.sellerService.deletePromotion(dealId);
+            res.json({ success: true, message: 'Promotion deleted successfully' });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async updateOrderStatus(req, res, next) {
+        try {
+            const { orderId, status } = req.body;
+            await this.sellerService.updateOrderStatus(orderId, status);
+            res.json({ success: true, message: 'Order status updated successfully' });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async updateProfile(req, res, next) {
+        try {
+            const sellerId = req.params.sellerId;
+            await this.sellerService.updateProfile(sellerId, req.body);
+            res.json({ success: true, message: 'Profile updated successfully' });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getCategories(req, res, next) {
+        try {
+            const categories = await this.sellerService.getCategories();
+            res.json({ success: true, data: categories });
         } catch (err) {
             next(err);
         }
