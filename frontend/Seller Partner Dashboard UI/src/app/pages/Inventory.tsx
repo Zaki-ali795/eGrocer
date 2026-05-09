@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AlertTriangle, CheckCircle, XCircle, Plus, Minus, Loader2 } from 'lucide-react';
-import { sellerApi } from '../services/api';
+import { sellerApi, getLoggedInSellerId } from '../services/api';
 
 export default function Inventory() {
   const [products, setProducts] = useState<any[]>([]);
@@ -15,7 +15,8 @@ export default function Inventory() {
   async function loadInventory() {
     try {
       setLoading(true);
-      const response = await sellerApi.getProducts(2); // Hardcoded sellerId
+      const sellerId = getLoggedInSellerId() || 2;
+      const response = await sellerApi.getProducts(sellerId);
       const mappedProducts = response.map((p: any) => ({
         id: p.product_id,
         name: p.product_name,
@@ -34,14 +35,14 @@ export default function Inventory() {
   }
 
   const updateStock = async (id: number, change: number) => {
-    const product = products.find(p => p.id === id);
+    const product = products.find((p: any) => p.id === id);
     if (!product) return;
 
     const newStock = Math.max(0, product.stock + change);
     try {
       await sellerApi.updateInventory(id, newStock);
       setProducts(
-        products.map((p) => {
+        products.map((p: any) => {
           if (p.id === id) {
             const newStatus = newStock === 0 ? 'out-of-stock' : newStock < 20 ? 'low-stock' : 'available';
             return { ...p, stock: newStock, status: newStatus };
@@ -54,13 +55,13 @@ export default function Inventory() {
     }
   };
 
-  const filteredProducts = filter === 'all' ? products : products.filter((p) => p.status === filter);
+  const filteredProducts = filter === 'all' ? products : products.filter((p: any) => p.status === filter);
 
   const stats = {
     total: products.length,
-    available: products.filter((p) => p.status === 'available').length,
-    lowStock: products.filter((p) => p.status === 'low-stock').length,
-    outOfStock: products.filter((p) => p.status === 'out-of-stock').length
+    available: products.filter((p: any) => p.status === 'available').length,
+    lowStock: products.filter((p: any) => p.status === 'low-stock').length,
+    outOfStock: products.filter((p: any) => p.status === 'out-of-stock').length
   };
 
   if (loading) return (
@@ -156,7 +157,7 @@ export default function Inventory() {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map((product) => (
+              {filteredProducts.map((product: any) => (
                 <tr key={product.id} className="border-t border-border hover:bg-sidebar-accent/50 transition-colors">
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Handshake, MapPin, Calendar, DollarSign, Send, CheckCircle, XCircle, Clock, X, Package, Loader2 } from 'lucide-react';
 import { BidRequest } from '../data/mockData';
 import { format } from 'date-fns';
-import { sellerApi } from '../services/api';
+import { sellerApi, getLoggedInSellerId } from '../services/api';
 
 export default function Requests() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -39,14 +39,14 @@ export default function Requests() {
     }
   }
 
-  const filteredRequests = filter === 'all' ? requests : requests.filter((r) => r.status === filter);
+  const filteredRequests = filter === 'all' ? requests : requests.filter((r: any) => r.status === filter);
 
   const submitOffer = async () => {
     if (selectedRequest && offerPrice) {
       try {
         await sellerApi.submitBid({
           requestId: selectedRequest.id,
-          sellerId: 2, // Hardcoded for now, should come from auth
+          sellerId: getLoggedInSellerId() || 2, 
           bidPrice: parseFloat(offerPrice),
           estimatedDeliveryDays: 3, // Could be an input
           notes: offerNotes
@@ -54,7 +54,7 @@ export default function Requests() {
 
         // Update local state to show offered status
         setRequests(
-          requests.map((r) =>
+          requests.map((r: any) =>
             r.id === selectedRequest.id
               ? { ...r, status: 'offered', yourOffer: parseFloat(offerPrice) }
               : r
@@ -71,9 +71,9 @@ export default function Requests() {
 
   const stats = {
     total: requests.length,
-    pending: requests.filter((r) => r.status === 'pending').length,
-    offered: requests.filter((r) => r.status === 'offered').length,
-    accepted: requests.filter((r) => r.status === 'accepted').length
+    pending: requests.filter((r: any) => r.status === 'pending').length,
+    offered: requests.filter((r: any) => r.status === 'offered').length,
+    accepted: requests.filter((r: any) => r.status === 'accepted').length
   };
 
   if (loading) return (
@@ -159,7 +159,7 @@ export default function Requests() {
 
       {/* Requests Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredRequests.map((request) => (
+        {filteredRequests.map((request: any) => (
           <div
             key={request.id}
             className="bg-card rounded-xl border border-border p-6 shadow-sm hover:shadow-lg transition-all duration-300 group"

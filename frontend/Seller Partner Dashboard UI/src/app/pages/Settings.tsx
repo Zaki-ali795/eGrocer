@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User, Store, Bell, CreditCard, Save, Loader2 } from 'lucide-react';
-import { sellerApi } from '../services/api';
+import { sellerApi, getLoggedInSellerId } from '../services/api';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -21,7 +21,8 @@ export default function Settings() {
     async function loadProfile() {
       try {
         setLoading(true);
-        const data = await sellerApi.getProfile(2); // Hardcoded sellerId
+        const sellerId = getLoggedInSellerId() || 2;
+        const data = await sellerApi.getProfile(sellerId);
         setProfileData({
           storeName: data.store_name,
           contactName: `${data.first_name} ${data.last_name}`,
@@ -173,7 +174,7 @@ export default function Settings() {
                       type="button"
                       onClick={async () => {
                         try {
-                          await sellerApi.updateProfile(2, {
+                          await sellerApi.updateProfile(getLoggedInSellerId() || 2, {
                             storeName: profileData.storeName,
                             storeDescription: profileData.description,
                             phone: profileData.phone
@@ -223,8 +224,8 @@ export default function Settings() {
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={value}
-                          onChange={(e) => setNotifications({ ...notifications, [key]: e.target.checked })}
+                          checked={value as boolean}
+                          onChange={(e: any) => setNotifications({ ...notifications, [key]: e.target.checked })}
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>

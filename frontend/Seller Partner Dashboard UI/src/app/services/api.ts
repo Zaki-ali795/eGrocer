@@ -1,6 +1,17 @@
 // src/app/services/api.ts
 const API_BASE_URL = '/api';
 
+export function getLoggedInSellerId(): number | null {
+  const userStr = localStorage.getItem('user');
+  if (!userStr) return null;
+  try {
+    const user = JSON.parse(userStr);
+    return user.user_id || user.id;
+  } catch (e) {
+    return null;
+  }
+}
+
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE_URL.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
   const response = await fetch(url, {

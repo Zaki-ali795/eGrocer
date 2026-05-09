@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Clock, CheckCircle, Download, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
-import { sellerApi } from '../services/api';
+import { sellerApi, getLoggedInSellerId } from '../services/api';
 
 export default function Payments() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -16,7 +16,8 @@ export default function Payments() {
   async function loadEarnings() {
     try {
       setLoading(true);
-      const response = await sellerApi.getEarnings(2); // Hardcoded
+      const sellerId = getLoggedInSellerId() || 2;
+      const response = await sellerApi.getEarnings(sellerId);
       setTransactions(response);
     } catch (err: any) {
       setError(err.message);
@@ -26,12 +27,12 @@ export default function Payments() {
   }
 
   const totalEarnings = transactions
-    .filter((t) => t.type === 'payment' && t.status === 'delivered')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .filter((t: any) => t.type === 'payment' && t.status === 'delivered')
+    .reduce((sum: number, t: any) => sum + t.amount, 0);
 
   const pendingPayments = transactions
-    .filter((t) => t.status === 'pending' || t.status === 'processing')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .filter((t: any) => t.status === 'pending' || t.status === 'processing')
+    .reduce((sum: number, t: any) => sum + t.amount, 0);
 
   const refunds = 0; // Mocked for now as we don't have refunds in schema yet
 
@@ -104,7 +105,7 @@ export default function Payments() {
           </button>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={transactions.slice(0, 7).map(t => ({ date: format(new Date(t.date), 'MM/dd'), sales: t.amount }))}>
+          <BarChart data={transactions.slice(0, 7).map((t: any) => ({ date: format(new Date(t.date), 'MM/dd'), sales: t.amount }))}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
             <XAxis dataKey="date" stroke="#64748B" />
             <YAxis stroke="#64748B" />
@@ -190,7 +191,7 @@ export default function Payments() {
               </tr>
             </thead>
             <tbody>
-              {transactions.map((transaction) => (
+              {transactions.map((transaction: any) => (
                 <tr key={transaction.transaction_id} className="border-t border-border hover:bg-sidebar-accent/50 transition-colors">
                   <td className="py-4 px-6 font-medium text-emerald-900">TXN-{transaction.transaction_id}</td>
                   <td className="py-4 px-6 text-muted-foreground">#{transaction.order_id}</td>

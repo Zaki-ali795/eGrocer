@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Clock, Package, CheckCircle, XCircle, Eye, X, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { sellerApi } from '../services/api';
+import { sellerApi, getLoggedInSellerId } from '../services/api';
 
 export default function Orders() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -17,7 +17,8 @@ export default function Orders() {
   async function loadOrders() {
     try {
       setLoading(true);
-      const data = await sellerApi.getOrders(2); // Hardcoded sellerId
+      const sellerId = getLoggedInSellerId() || 2;
+      const data = await sellerApi.getOrders(sellerId);
       // Group by order_id since the query returns join results
       const groupedOrders: any = {};
       data.forEach((item: any) => {
@@ -55,7 +56,7 @@ export default function Orders() {
 
       await sellerApi.updateOrderStatus(numericId, newStatus);
 
-      setOrders(orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
+      setOrders(orders.map((o: any) => (o.id === orderId ? { ...o, status: newStatus } : o)));
       if (selectedOrder?.id === orderId) {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
       }
@@ -66,13 +67,13 @@ export default function Orders() {
 
   const stats = {
     total: orders.length,
-    pending: orders.filter((o) => o.status === 'pending').length,
-    processing: orders.filter((o) => o.status === 'processing').length,
-    delivered: orders.filter((o) => o.status === 'delivered').length,
-    cancelled: orders.filter((o) => o.status === 'cancelled').length
+    pending: orders.filter((o: any) => o.status === 'pending').length,
+    processing: orders.filter((o: any) => o.status === 'processing').length,
+    delivered: orders.filter((o: any) => o.status === 'delivered').length,
+    cancelled: orders.filter((o: any) => o.status === 'cancelled').length
   };
 
-  const filteredOrders = filter === 'all' ? orders : orders.filter((o) => o.status === filter);
+  const filteredOrders = filter === 'all' ? orders : orders.filter((o: any) => o.status === filter);
 
   if (loading) return (
     <div className="h-full flex items-center justify-center">
@@ -154,7 +155,7 @@ export default function Orders() {
               </tr>
             </thead>
             <tbody>
-              {filteredOrders.map((order) => (
+              {filteredOrders.map((order: any) => (
                 <tr key={order.id} className="border-t border-border hover:bg-sidebar-accent/50 transition-colors">
                   <td className="py-4 px-6 font-medium text-emerald-900">{order.id}</td>
                   <td className="py-4 px-6 text-foreground">{order.customerName}</td>

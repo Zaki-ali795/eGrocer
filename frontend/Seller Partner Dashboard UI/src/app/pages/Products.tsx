@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, X, Loader2 } from 'lucide-react';
-import { sellerApi } from '../services/api';
+import { sellerApi, getLoggedInSellerId } from '../services/api';
 
 export default function Products() {
   const [products, setProducts] = useState<any[]>([]);
@@ -28,8 +28,9 @@ export default function Products() {
   async function loadData() {
     try {
       setLoading(true);
+      const sellerId = getLoggedInSellerId() || 2; // Fallback to 2 for safety during dev
       const [prodData, catData] = await Promise.all([
-        sellerApi.getProducts(2),
+        sellerApi.getProducts(sellerId),
         sellerApi.getCategories()
       ]);
       setCategories(catData);
@@ -56,7 +57,7 @@ export default function Products() {
   }
 
   const filteredProducts = products.filter(
-    (p) =>
+    (p: any) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -95,7 +96,7 @@ export default function Products() {
     if (confirm('Are you sure you want to delete this product?')) {
       try {
         await sellerApi.deleteProduct(id);
-        setProducts(products.filter((p) => p.id !== id));
+        setProducts(products.filter((p: any) => p.id !== id));
       } catch (err: any) {
         alert("Failed to delete product: " + err.message);
       }
@@ -105,7 +106,7 @@ export default function Products() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
-      sellerId: 2, // Hardcoded
+      sellerId: getLoggedInSellerId() || 2, 
       name: formData.name,
       categoryId: parseInt(formData.category),
       brand: formData.brand,
@@ -169,7 +170,7 @@ export default function Products() {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredProducts.map((product) => (
+        {filteredProducts.map((product: any) => (
           <div
             key={product.id}
             className="bg-card rounded-xl border border-border overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
@@ -260,7 +261,7 @@ export default function Products() {
                     className="w-full px-4 py-2.5 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
                   >
                     <option value="">Select Category</option>
-                    {categories.map(cat => (
+                    {categories.map((cat: any) => (
                       <option key={cat.category_id} value={cat.category_id}>{cat.category_name}</option>
                     ))}
                   </select>
