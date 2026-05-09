@@ -193,6 +193,7 @@ class ProductRepository extends BaseRepository {
                     p.description,
                     p.brand,
                     p.seller_id,
+                    s.store_name,
                     p.sku,
                     p.unit,
                     p.base_price,
@@ -206,6 +207,7 @@ class ProductRepository extends BaseRepository {
                     ISNULL(i.quantity_in_stock, 0) AS quantity_in_stock
                 FROM Products p
                 INNER JOIN Categories c ON p.category_id = c.category_id
+                LEFT JOIN Sellers s ON p.seller_id = s.seller_id
                 LEFT JOIN Inventory i ON p.product_id = i.product_id
                 WHERE p.is_active = 1
                   AND p.product_id = @productId

@@ -71,6 +71,7 @@ class SellerController {
     async getProducts(req, res, next) {
         try {
             const sellerId = req.params.sellerId || req.query.sellerId;
+            console.log(`[SellerController] Fetching products for sellerId: ${sellerId}`);
             const products = await this.sellerService.getProducts(sellerId);
             res.json({ success: true, data: products });
         } catch (err) {
