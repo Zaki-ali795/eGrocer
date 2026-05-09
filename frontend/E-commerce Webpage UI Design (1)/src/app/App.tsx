@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { motion } from 'motion/react';
 import { Navbar } from './components/Navbar';
@@ -13,9 +13,8 @@ import { TrackingPage } from './pages/TrackingPage';
 import { FlashDealsPage } from './pages/FlashDealsPage';
 import { PreviousOrdersPage } from './pages/PreviousOrdersPage';
 import { ManageProfilePage } from './pages/ManageProfilePage';
-import { Product } from '../services/api';
-
-
+import WishlistPage from './pages/WishlistPage.tsx';
+import { Product, wishlistApi } from '../services/api';
 
 interface CartItem {
   id: string;
@@ -27,28 +26,54 @@ interface CartItem {
 
 export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
 
-  const handleAddToCart = (product: Product) => {
+  useEffect(() => {
+    // Initial fetch of wishlist
+    wishlistApi.getWishlist()
+      .then(setWishlistItems)
+      .catch(err => {
+        console.warn('Wishlist API not ready:', err.message);
+        setWishlistItems([]); // Fallback to empty wishlist
+      });
+  }, []);
+
+  const handleAddToCart = (product: Product, quantity: number = 1) => {
     const productId = String(product.id);
-    const existingItem = cartItems.find(item => item.id === productId);
+    
+    setCartItems(prevItems => {
+      const existingItem = prevItems.find(item => item.id === productId);
+      if (existingItem) {
+        return prevItems.map(item =>
+          item.id === productId
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      } else {
+        return [
+          ...prevItems,
+          {
+            id: productId,
+            name: product.name,
+            price: product.price,
+            quantity: quantity,
+            image: product.image,
+          }
+        ];
+      }
+    });
+  };
 
-    if (existingItem) {
-      setCartItems(cartItems.map(item =>
-        item.id === productId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      ));
-    } else {
-      setCartItems([
-        ...cartItems,
-        {
-          id: productId,
-          name: product.name,
-          price: product.price,
-          quantity: 1,
-          image: product.image,
-        }
-      ]);
+  const handleWishlistToggle = async (productId: number) => {
+    try {
+      const action = await wishlistApi.toggleWishlist(productId);
+      // Refresh wishlist to keep state in sync
+      const updatedWishlist = await wishlistApi.getWishlist();
+      setWishlistItems(updatedWishlist);
+      return action;
+    } catch (err) {
+      console.error('Wishlist toggle failed:', err);
+      throw err;
     }
   };
 
@@ -70,18 +95,20 @@ export default function App() {
       <div className="min-h-screen bg-[var(--background)]">
         <Navbar
           cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+          wishlistCount={wishlistItems.length}
         />
 
         <Routes>
-          <Route path="/" element={<HomePage onAddToCart={handleAddToCart} />} />
-          <Route path="/categories" element={<CategoryBrowsePage onAddToCart={handleAddToCart} />} />
-          <Route path="/product/:productId" element={<ProductDetailPage onAddToCart={handleAddToCart} />} />
-          <Route path="/search" element={<SearchResultsPage onAddToCart={handleAddToCart} />} />
+          <Route path="/" element={<HomePage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
+          <Route path="/categories" element={<CategoryBrowsePage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
+          <Route path="/product/:productId" element={<ProductDetailPage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} />} />
+          <Route path="/search" element={<SearchResultsPage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
           <Route path="/cart" element={<CartPage items={cartItems} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} onClearCart={handleClearCart} />} />
+          <Route path="/wishlist" element={<WishlistPage onAddToCart={handleAddToCart} onWishlistUpdate={() => wishlistApi.getWishlist().then(setWishlistItems)} />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/tracking" element={<TrackingPage />} />
           <Route path="/profile" element={<ManageProfilePage />} />
-          <Route path="/flash-deals" element={<FlashDealsPage onAddToCart={handleAddToCart} />} />
+          <Route path="/flash-deals" element={<FlashDealsPage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
           <Route path="/previous-orders" element={<PreviousOrdersPage />} />
         </Routes>
 

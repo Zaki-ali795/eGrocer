@@ -6,10 +6,12 @@ import { productApi, Category, Product } from '../../services/api';
 import { ProductCard } from '../components/ProductCard';
 
 interface CategoryBrowsePageProps {
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: Product, quantity?: number) => void;
+  onWishlistToggle: (productId: number) => Promise<'added' | 'removed'>;
+  wishlistItems: Product[];
 }
 
-export function CategoryBrowsePage({ onAddToCart }: CategoryBrowsePageProps) {
+export function CategoryBrowsePage({ onAddToCart, onWishlistToggle, wishlistItems }: CategoryBrowsePageProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -451,6 +453,8 @@ export function CategoryBrowsePage({ onAddToCart }: CategoryBrowsePageProps) {
                           reviews: product.reviews ?? 0,
                         }}
                         onAddToCart={(p) => onAddToCart({ ...product, id: product.id })}
+                        onWishlistToggle={onWishlistToggle}
+                        initialIsWishlisted={wishlistItems.some(item => item.id === product.id)}
                       />
                     </motion.div>
                   ))}

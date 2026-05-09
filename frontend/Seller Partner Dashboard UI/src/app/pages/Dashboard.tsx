@@ -59,7 +59,7 @@ export default function Dashboard() {
       try {
         setLoading(true);
         const response = await sellerApi.getStats(2); // Hardcoded sellerId
-        setStats(response.data);
+        setStats(response);
       } catch (err: any) {
         setError(err.message);
       } finally {

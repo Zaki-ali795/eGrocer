@@ -6,10 +6,12 @@ import { ProductCard } from '../components/ProductCard';
 import { productApi, Product } from '../../services/api';
 
 interface HomePageProps {
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: Product, quantity?: number) => void;
+  onWishlistToggle: (productId: number) => Promise<'added' | 'removed'>;
+  wishlistItems: Product[];
 }
 
-export function HomePage({ onAddToCart }: HomePageProps) {
+export function HomePage({ onAddToCart, onWishlistToggle, wishlistItems }: HomePageProps) {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,6 +85,8 @@ export function HomePage({ onAddToCart }: HomePageProps) {
                     reviews: product.reviews ?? 0,
                   }}
                   onAddToCart={() => onAddToCart(product)}
+                  onWishlistToggle={onWishlistToggle}
+                  initialIsWishlisted={wishlistItems.some(item => item.id === product.id)}
                 />
               ))}
             </div>

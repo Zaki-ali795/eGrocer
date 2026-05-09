@@ -6,13 +6,14 @@ import {
   ShoppingCart, ArrowLeft, Star, Package,
   CheckCircle, XCircle, Tag, Leaf, Zap, Heart,
 } from 'lucide-react';
-import { productApi, Product } from '../../services/api';
+import { productApi, wishlistApi, Product } from '../../services/api';
 
 interface ProductDetailPageProps {
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: Product, quantity?: number) => void;
+  onWishlistToggle: (productId: number) => Promise<'added' | 'removed'>;
 }
 
-export function ProductDetailPage({ onAddToCart }: ProductDetailPageProps) {
+export function ProductDetailPage({ onAddToCart, onWishlistToggle }: ProductDetailPageProps) {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
 
@@ -26,24 +27,46 @@ export function ProductDetailPage({ onAddToCart }: ProductDetailPageProps) {
   useEffect(() => {
     if (!productId) return;
     setLoading(true);
-    productApi.getProductById(Number(productId))
-      .then(setProduct)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+    
+    Promise.allSettled([
+      productApi.getProductById(Number(productId)),
+      wishlistApi.getWishlist()
+    ])
+    .then(([prodRes, wishlistRes]) => {
+      if (prodRes.status === 'fulfilled') {
+        const prod = prodRes.value;
+        setProduct(prod);
+        if (wishlistRes.status === 'fulfilled') {
+          setIsFavorite(wishlistRes.value.some((item: Product) => item.id === prod.id));
+        }
+      } else {
+        setError(prodRes.reason.message);
+      }
+    })
+    .finally(() => setLoading(false));
   }, [productId]);
 
   const handleAddToCart = () => {
     if (!product) return;
-    // Pass quantity by calling onAddToCart `quantity` times
-    for (let i = 0; i < quantity; i++) onAddToCart(product);
+    onAddToCart(product, quantity);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
+  const handleWishlistToggle = async () => {
+    if (!product) return;
+    try {
+      const action = await onWishlistToggle(product.id);
+      setIsFavorite(action === 'added');
+    } catch (err) {
+      console.error('Failed to toggle wishlist:', err);
+    }
+  };
+
   const handleBuyNow = () => {
     if (!product) return;
-    for (let i = 0; i < quantity; i++) onAddToCart(product);
-    navigate('/');          // TODO: navigate to checkout when implemented
+    onAddToCart(product, quantity);
+    navigate('/cart');
   };
 
   /* ── Loading ── */
@@ -136,7 +159,7 @@ export function ProductDetailPage({ onAddToCart }: ProductDetailPageProps) {
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => setIsFavorite(!isFavorite)}
+                onClick={handleWishlistToggle}
                 className={`absolute top-4 right-4 p-3 rounded-full backdrop-blur-md shadow-md transition-colors ${isFavorite ? 'bg-red-500 text-white' : 'bg-white/90 text-gray-600 hover:text-red-500'
                   }`}
               >
@@ -206,6 +229,7 @@ export function ProductDetailPage({ onAddToCart }: ProductDetailPageProps) {
             {/* Meta info */}
             <div className="grid grid-cols-2 gap-3">
               {[
+                { label: 'Sold by', value: product.storeName || 'eGrocer Official', icon: <Package className="w-4 h-4 text-accent" />, color: 'text-accent' },
                 { label: 'Unit', value: product.unit },
                 { label: 'Brand', value: product.brand || 'N/A' },
                 { label: 'SKU', value: product.sku || 'N/A' },

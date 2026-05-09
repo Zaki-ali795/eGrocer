@@ -22,7 +22,7 @@ export default function Requests() {
       setLoading(true);
       const response = await sellerApi.getRequests();
       // Map database fields to UI expectations if necessary
-      const mappedRequests = response.data.map((r: any) => ({
+      const mappedRequests = response.map((r: any) => ({
         id: r.request_id,
         productName: r.product_name,
         customerName: r.customer_name,

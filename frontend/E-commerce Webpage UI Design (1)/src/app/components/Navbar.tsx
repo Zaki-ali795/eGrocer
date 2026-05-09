@@ -6,9 +6,10 @@ import { useNavigate } from 'react-router';
 
 interface NavbarProps {
   cartItemCount: number;
+  wishlistCount: number;
 }
 
-export function Navbar({ cartItemCount }: NavbarProps) {
+export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -93,12 +94,15 @@ export function Navbar({ cartItemCount }: NavbarProps) {
             <motion.button
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.9 }}
+              onClick={() => navigate('/wishlist')}
               className="p-2 hover:bg-[var(--green-primary)]/10 rounded-full transition-colors relative"
             >
               <Heart className="w-6 h-6 text-[var(--green-primary)]" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--terracotta)] text-white text-xs rounded-full flex items-center justify-center">
-                3
-              </span>
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--terracotta)] text-white text-xs rounded-full flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
             </motion.button>
 
             <motion.button

@@ -1,13 +1,13 @@
 // src/services/api.ts
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-async function request<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`);
+const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
+  const res = await fetch(`${BASE_URL}${path}`, options);
   const json = await res.json();
   if (!json.success) throw new Error(json.message || 'API error');
   return json.data as T;
-}
+};
 
 // ─── Types ──────────────────────────────────────────────────────
 export interface Category {
@@ -23,6 +23,7 @@ export interface Product {
   name: string;
   description: string | null;
   brand: string | null;
+  storeName: string | null;
   sku: string | null;
   unit: string;
   price: number;
@@ -270,5 +271,22 @@ export const userApi = {
     if (!json.success) throw new Error(json.message || 'Failed to update profile');
     return json.data as UserProfile;
   },
+};
+
+// ─── Wishlist API calls ────────────────────────────────────────────────────────────
+export const wishlistApi = {
+  getWishlist: () => request<Product[]>('/wishlist'),
+  toggleWishlist: async (productId: number) => {
+    const res = await fetch(`${BASE_URL}/wishlist/toggle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId }),
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message || 'Failed to toggle wishlist');
+    return json.action as 'added' | 'removed';
+  },
+  removeFromWishlist: (productId: number) =>
+    request<void>(`/wishlist/${productId}`, { method: 'DELETE' } as any),
 };
 

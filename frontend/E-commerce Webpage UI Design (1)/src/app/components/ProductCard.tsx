@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { ShoppingCart, Heart, Star, Info, RotateCcw } from 'lucide-react';
@@ -20,13 +20,30 @@ interface Product {
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: any) => void;
+  onWishlistToggle: (productId: number) => Promise<'added' | 'removed'>;
+  initialIsWishlisted?: boolean;
 }
 
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export function ProductCard({ product, onAddToCart, onWishlistToggle, initialIsWishlisted = false }: ProductCardProps) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(initialIsWishlisted);
+  
+  // Keep local state in sync with prop from parent
+  useEffect(() => {
+    setIsFavorite(initialIsWishlisted);
+  }, [initialIsWishlisted]);
+
+  const handleWishlistClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const action = await onWishlistToggle(Number(product.id));
+      setIsFavorite(action === 'added');
+    } catch (err) {
+      console.error('Failed to toggle wishlist:', err);
+    }
+  };
 
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -82,7 +99,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           <motion.button
             whileHover={{ scale: 1.1, rotate: 10 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => setIsFavorite(!isFavorite)}
+            onClick={handleWishlistClick}
             className={`p-2 rounded-full backdrop-blur-md ${isFavorite
                 ? 'bg-red-500 text-white'
                 : 'bg-white/90 text-gray-700 hover:text-red-500'

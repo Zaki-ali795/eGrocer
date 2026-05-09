@@ -17,7 +17,7 @@ export default function Payments() {
     try {
       setLoading(true);
       const response = await sellerApi.getEarnings(2); // Hardcoded
-      setTransactions(response.data);
+      setTransactions(response);
     } catch (err: any) {
       setError(err.message);
     } finally {
