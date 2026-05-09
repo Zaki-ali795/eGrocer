@@ -25,4 +25,13 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
 
 export const adminApi = {
   getDashboardOverview: () => fetchApi('/admin/dashboard/overview'),
+  getUsers: () => fetchApi('/admin/users'),
+  getCategories: () => fetchApi('/admin/categories'),
+  getProducts: () => fetchApi('/admin/products'),
+  getOrders: () => fetchApi('/admin/orders'),
+  getFlashDeals: () => fetchApi('/admin/flash-deals'),
+  getInventory: () => fetchApi('/admin/inventory'),
+  getPromotions: () => fetchApi('/admin/promotions'),
+  getPayments: () => fetchApi('/admin/payments'),
+  getProductRequests: () => fetchApi('/admin/product-requests'),
 };

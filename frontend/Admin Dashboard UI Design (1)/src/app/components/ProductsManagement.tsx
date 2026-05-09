@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Eye, MoreVertical } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Search, Filter, Edit, Trash2, Eye, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { adminApi } from '../services/api';
 
 interface Product {
   id: string;
@@ -13,26 +14,48 @@ interface Product {
   image: string;
 }
 
-const mockProducts: Product[] = [
-  { id: 'P001', name: 'Organic Bananas', category: 'Fruits', brand: 'Fresh Farms', price: 399, stock: 250, status: 'active', image: '🍌' },
-  { id: 'P002', name: 'Whole Milk (1L)', category: 'Dairy', brand: 'Pure Dairy Co.', price: 450, stock: 180, status: 'active', image: '🥛' },
-  { id: 'P003', name: 'Sourdough Bread', category: 'Bakery', brand: 'Artisan Bakes', price: 599, stock: 45, status: 'active', image: '🍞' },
-  { id: 'P004', name: 'Roma Tomatoes', category: 'Vegetables', brand: 'Garden Fresh', price: 299, stock: 320, status: 'active', image: '🍅' },
-  { id: 'P005', name: 'Free Range Eggs', category: 'Dairy', brand: 'Happy Hens', price: 649, stock: 120, status: 'active', image: '🥚' },
-  { id: 'P006', name: 'Organic Spinach', category: 'Vegetables', brand: 'Green Fields', price: 349, stock: 15, status: 'active', image: '🥬' },
-  { id: 'P007', name: 'Grass-Fed Beef', category: 'Meat', brand: 'Premium Meats', price: 1899, stock: 60, status: 'active', image: '🥩' },
-  { id: 'P008', name: 'Blueberries', category: 'Fruits', brand: 'Berry Best', price: 799, stock: 0, status: 'inactive', image: '🫐' },
-];
-
 export function ProductsManagement() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const filteredProducts = mockProducts.filter(product => {
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const data = await adminApi.getProducts();
+        setProducts(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const categories = Array.from(new Set(products.map(p => p.category)));
+
+  if (loading) return (
+    <div className="h-full flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
+      <p className="text-red-600 font-semibold text-lg">Failed to load products</p>
+      <p className="text-red-500 text-sm mt-1">{error}</p>
+    </div>
+  );
 
   return (
     <div className="p-8 space-y-6">
@@ -78,11 +101,9 @@ export function ProductsManagement() {
             className="px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
           >
             <option value="all">All Categories</option>
-            <option value="Fruits">Fruits</option>
-            <option value="Vegetables">Vegetables</option>
-            <option value="Dairy">Dairy</option>
-            <option value="Bakery">Bakery</option>
-            <option value="Meat">Meat</option>
+            {categories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
           </select>
           <button className="flex items-center gap-2 px-6 py-3 bg-gray-50 rounded-2xl font-['Manrope'] font-medium text-gray-700 hover:bg-gray-100 transition-all">
             <Filter className="w-5 h-5" />
@@ -114,8 +135,12 @@ export function ProductsManagement() {
                 >
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center text-2xl">
-                        {product.image}
+                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center text-2xl overflow-hidden">
+                        {product.image ? (
+                          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                        ) : (
+                          '📦'
+                        )}
                       </div>
                       <div>
                         <p className="font-['Manrope'] font-semibold text-gray-900">{product.name}</p>
@@ -171,7 +196,7 @@ export function ProductsManagement() {
 
         <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-100">
           <p className="font-['Manrope'] text-sm text-gray-600">
-            Showing {filteredProducts.length} of {mockProducts.length} products
+            Showing {filteredProducts.length} of {products.length} products
           </p>
           <div className="flex gap-2">
             <button className="px-4 py-2 bg-gray-100 rounded-xl font-['Manrope'] text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">

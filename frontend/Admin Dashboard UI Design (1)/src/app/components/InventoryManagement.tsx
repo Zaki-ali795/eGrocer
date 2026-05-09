@@ -1,40 +1,72 @@
-import { useState } from 'react';
-import { AlertTriangle, CheckCircle, Package, TrendingDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { AlertTriangle, CheckCircle, Package, TrendingDown, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { adminApi } from '../services/api';
 
 interface InventoryItem {
   id: string;
   name: string;
-  category: string;
   stock: number;
-  reorderPoint: number;
-  status: 'good' | 'low' | 'critical' | 'out';
+  reorderLevel: number;
+  status: string;
 }
 
-const mockInventory: InventoryItem[] = [
-  { id: 'INV-001', name: 'Organic Bananas', category: 'Fruits', stock: 250, reorderPoint: 100, status: 'good' },
-  { id: 'INV-002', name: 'Whole Milk (1L)', category: 'Dairy', stock: 180, reorderPoint: 80, status: 'good' },
-  { id: 'INV-003', name: 'Organic Spinach', category: 'Vegetables', stock: 15, reorderPoint: 50, status: 'critical' },
-  { id: 'INV-004', name: 'Sourdough Bread', category: 'Bakery', stock: 45, reorderPoint: 60, status: 'low' },
-  { id: 'INV-005', name: 'Free Range Eggs', category: 'Dairy', stock: 120, reorderPoint: 80, status: 'good' },
-  { id: 'INV-006', name: 'Blueberries', category: 'Fruits', stock: 0, reorderPoint: 30, status: 'out' },
-  { id: 'INV-007', name: 'Roma Tomatoes', category: 'Vegetables', stock: 320, reorderPoint: 150, status: 'good' },
-  { id: 'INV-008', name: 'Cheddar Cheese', category: 'Dairy', stock: 25, reorderPoint: 40, status: 'low' },
-];
-
 export function InventoryManagement() {
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'good' | 'low' | 'critical' | 'out'>('all');
 
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const data = await adminApi.getInventory();
+        setInventory(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const getStatus = (item: InventoryItem) => {
+    if (item.stock <= 0) return 'out';
+    if (item.stock <= item.reorderLevel * 0.5) return 'critical';
+    if (item.stock <= item.reorderLevel) return 'low';
+    return 'good';
+  };
+
+  const inventoryWithStatus = inventory.map(item => ({
+    ...item,
+    calculatedStatus: getStatus(item)
+  }));
+
   const filteredInventory = filter === 'all'
-    ? mockInventory
-    : mockInventory.filter(item => item.status === filter);
+    ? inventoryWithStatus
+    : inventoryWithStatus.filter(item => item.calculatedStatus === filter);
 
   const stats = {
-    good: mockInventory.filter(i => i.status === 'good').length,
-    low: mockInventory.filter(i => i.status === 'low').length,
-    critical: mockInventory.filter(i => i.status === 'critical').length,
-    out: mockInventory.filter(i => i.status === 'out').length,
+    good: inventoryWithStatus.filter(i => i.calculatedStatus === 'good').length,
+    low: inventoryWithStatus.filter(i => i.calculatedStatus === 'low').length,
+    critical: inventoryWithStatus.filter(i => i.calculatedStatus === 'critical').length,
+    out: inventoryWithStatus.filter(i => i.calculatedStatus === 'out').length,
   };
+
+  if (loading) return (
+    <div className="h-full flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
+      <p className="text-red-600 font-semibold text-lg">Failed to load inventory</p>
+      <p className="text-red-500 text-sm mt-1">{error}</p>
+    </div>
+  );
 
   return (
     <div className="p-8 space-y-6">
@@ -165,7 +197,6 @@ export function InventoryManagement() {
             <thead>
               <tr className="border-b-2 border-gray-100">
                 <th className="text-left py-4 px-4 font-['Manrope'] font-semibold text-sm text-gray-600">Product</th>
-                <th className="text-left py-4 px-4 font-['Manrope'] font-semibold text-sm text-gray-600">Category</th>
                 <th className="text-left py-4 px-4 font-['Manrope'] font-semibold text-sm text-gray-600">Current Stock</th>
                 <th className="text-left py-4 px-4 font-['Manrope'] font-semibold text-sm text-gray-600">Reorder Point</th>
                 <th className="text-left py-4 px-4 font-['Manrope'] font-semibold text-sm text-gray-600">Status</th>
@@ -188,31 +219,28 @@ export function InventoryManagement() {
                     </div>
                   </td>
                   <td className="py-4 px-4">
-                    <span className="font-['Manrope'] text-sm text-gray-700">{item.category}</span>
-                  </td>
-                  <td className="py-4 px-4">
                     <span className={`font-['Manrope'] font-bold text-lg ${
-                      item.status === 'out' ? 'text-red-600' :
-                      item.status === 'critical' ? 'text-orange-600' :
-                      item.status === 'low' ? 'text-amber-600' :
+                      item.calculatedStatus === 'out' ? 'text-red-600' :
+                      item.calculatedStatus === 'critical' ? 'text-orange-600' :
+                      item.calculatedStatus === 'low' ? 'text-amber-600' :
                       'text-emerald-600'
                     }`}>
                       {item.stock}
                     </span>
                   </td>
                   <td className="py-4 px-4">
-                    <span className="font-['Manrope'] text-sm text-gray-600">{item.reorderPoint}</span>
+                    <span className="font-['Manrope'] text-sm text-gray-600">{item.reorderLevel}</span>
                   </td>
                   <td className="py-4 px-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-['Manrope'] font-semibold ${
-                      item.status === 'good' ? 'bg-emerald-100 text-emerald-700' :
-                      item.status === 'low' ? 'bg-amber-100 text-amber-700' :
-                      item.status === 'critical' ? 'bg-orange-100 text-orange-700' :
+                      item.calculatedStatus === 'good' ? 'bg-emerald-100 text-emerald-700' :
+                      item.calculatedStatus === 'low' ? 'bg-amber-100 text-amber-700' :
+                      item.calculatedStatus === 'critical' ? 'bg-orange-100 text-orange-700' :
                       'bg-red-100 text-red-700'
                     }`}>
-                      {item.status === 'good' ? 'Well Stocked' :
-                       item.status === 'low' ? 'Low Stock' :
-                       item.status === 'critical' ? 'Critical' :
+                      {item.calculatedStatus === 'good' ? 'Well Stocked' :
+                       item.calculatedStatus === 'low' ? 'Low Stock' :
+                       item.calculatedStatus === 'critical' ? 'Critical' :
                        'Out of Stock'}
                     </span>
                   </td>

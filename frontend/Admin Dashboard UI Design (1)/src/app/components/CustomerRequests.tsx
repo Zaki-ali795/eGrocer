@@ -1,39 +1,61 @@
-import { useState } from 'react';
-import { MessageSquare, Eye, Trash2, DollarSign, Clock, Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MessageSquare, Eye, Trash2, DollarSign, Clock, Users, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { adminApi } from '../services/api';
 
 interface Request {
   id: string;
   customer: string;
   product: string;
   description: string;
-  budget: number;
-  offers: number;
-  bestOffer: number;
-  status: 'open' | 'active' | 'closed';
+  budget: string;
+  status: string;
   posted: string;
 }
 
-const mockRequests: Request[] = [
-  { id: 'REQ-001', customer: 'Sarah Johnson', product: 'Organic Tomatoes (Bulk)', description: 'Need 50kg of organic tomatoes for restaurant', budget: 15000, offers: 7, bestOffer: 12800, status: 'active', posted: '2026-04-14' },
-  { id: 'REQ-002', customer: 'Michael Chen', product: 'Fresh Salmon Fillet', description: 'Looking for fresh wild-caught salmon, 10kg', budget: 20000, offers: 4, bestOffer: 18500, status: 'active', posted: '2026-04-13' },
-  { id: 'REQ-003', customer: 'Emma Wilson', product: 'Artisan Bread Wholesale', description: 'Weekly supply of sourdough and rye bread', budget: 30000, offers: 12, bestOffer: 26500, status: 'active', posted: '2026-04-13' },
-  { id: 'REQ-004', customer: 'James Brown', product: 'Free Range Eggs', description: 'Need 20 dozen eggs weekly', budget: 8000, offers: 0, bestOffer: 0, status: 'open', posted: '2026-04-14' },
-  { id: 'REQ-005', customer: 'Olivia Davis', product: 'Seasonal Vegetables Mix', description: 'Mixed vegetables for catering business', budget: 25000, offers: 15, bestOffer: 22000, status: 'closed', posted: '2026-04-10' },
-];
-
 export function CustomerRequests() {
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'open' | 'active' | 'closed'>('all');
 
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const data = await adminApi.getProductRequests();
+        setRequests(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
   const filteredRequests = filter === 'all'
-    ? mockRequests
-    : mockRequests.filter(req => req.status === filter);
+    ? requests
+    : requests.filter(req => req.status.toLowerCase() === filter);
 
   const stats = {
-    open: mockRequests.filter(r => r.status === 'open').length,
-    active: mockRequests.filter(r => r.status === 'active').length,
-    closed: mockRequests.filter(r => r.status === 'closed').length,
+    open: requests.filter(r => r.status.toLowerCase() === 'open').length,
+    active: requests.filter(r => r.status.toLowerCase() === 'active').length,
+    closed: requests.filter(r => r.status.toLowerCase() === 'closed').length,
   };
+
+  if (loading) return (
+    <div className="h-full flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
+      <p className="text-red-600 font-semibold text-lg">Failed to load customer requests</p>
+      <p className="text-red-500 text-sm mt-1">{error}</p>
+    </div>
+  );
 
   return (
     <div className="p-8 space-y-6">
@@ -131,11 +153,11 @@ export function CustomerRequests() {
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">{request.product}</h3>
                   <span className={`px-3 py-1 rounded-full text-xs font-['Manrope'] font-semibold ${
-                    request.status === 'open' ? 'bg-blue-100 text-blue-700' :
-                    request.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                    request.status.toLowerCase() === 'open' ? 'bg-blue-100 text-blue-700' :
+                    request.status.toLowerCase() === 'active' ? 'bg-emerald-100 text-emerald-700' :
                     'bg-gray-100 text-gray-600'
                   }`}>
-                    {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                    {request.status}
                   </span>
                 </div>
                 <p className="font-['Manrope'] text-sm text-gray-600 mb-3">{request.id} • Posted by {request.customer}</p>
@@ -146,27 +168,9 @@ export function CustomerRequests() {
                     <DollarSign className="w-5 h-5 text-gray-500" />
                     <div>
                       <p className="font-['Manrope'] text-xs text-gray-500">Customer Budget</p>
-                      <p className="font-['Manrope'] font-bold text-gray-900">Rs {request.budget.toLocaleString()}</p>
+                      <p className="font-['Manrope'] font-bold text-gray-900">{request.budget}</p>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-gray-500" />
-                    <div>
-                      <p className="font-['Manrope'] text-xs text-gray-500">Offers Received</p>
-                      <p className="font-['Manrope'] font-bold text-gray-900">{request.offers}</p>
-                    </div>
-                  </div>
-
-                  {request.bestOffer > 0 && (
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-5 h-5 text-emerald-600" />
-                      <div>
-                        <p className="font-['Manrope'] text-xs text-gray-500">Best Offer</p>
-                        <p className="font-['Manrope'] font-bold text-emerald-600">Rs {request.bestOffer.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  )}
 
                   <div className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-gray-500" />
@@ -189,14 +193,6 @@ export function CustomerRequests() {
                 </button>
               </div>
             </div>
-
-            {request.status === 'active' && request.offers > 0 && (
-              <div className="pt-4 border-t border-gray-100">
-                <button className="font-['Manrope'] text-sm text-[#1a3a2e] hover:text-[#2a5f4a] font-semibold">
-                  View {request.offers} seller offers →
-                </button>
-              </div>
-            )}
           </motion.div>
         ))}
       </div>

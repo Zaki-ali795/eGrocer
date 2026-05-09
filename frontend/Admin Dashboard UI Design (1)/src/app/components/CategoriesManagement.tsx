@@ -1,27 +1,50 @@
-import { useState } from 'react';
-import { FolderTree, Plus, Edit, Trash2, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FolderTree, Plus, Edit, Trash2, ChevronRight, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { adminApi } from '../services/api';
 
 interface Category {
   id: string;
   name: string;
   parent?: string;
   productCount: number;
-  icon: string;
+  image?: string;
+  status: string;
 }
 
-const mockCategories: Category[] = [
-  { id: 'CAT-001', name: 'Fruits', productCount: 84, icon: '🍎' },
-  { id: 'CAT-002', name: 'Vegetables', productCount: 67, icon: '🥕' },
-  { id: 'CAT-003', name: 'Dairy', productCount: 52, icon: '🥛' },
-  { id: 'CAT-004', name: 'Bakery', productCount: 39, icon: '🍞' },
-  { id: 'CAT-005', name: 'Meat & Seafood', productCount: 45, icon: '🥩' },
-  { id: 'CAT-006', name: 'Beverages', productCount: 73, icon: '🧃' },
-  { id: 'CAT-007', name: 'Snacks', productCount: 91, icon: '🍿' },
-  { id: 'CAT-008', name: 'Frozen Foods', productCount: 56, icon: '🧊' },
-];
-
 export function CategoriesManagement() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const data = await adminApi.getCategories();
+        setCategories(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (loading) return (
+    <div className="h-full flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
+      <p className="text-red-600 font-semibold text-lg">Failed to load categories</p>
+      <p className="text-red-500 text-sm mt-1">{error}</p>
+    </div>
+  );
+
   return (
     <div className="p-8 space-y-6">
       <motion.div
@@ -51,11 +74,11 @@ export function CategoriesManagement() {
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">All Categories</h2>
-          <p className="font-['Manrope'] text-sm text-gray-600">{mockCategories.length} total categories</p>
+          <p className="font-['Manrope'] text-sm text-gray-600">{categories.length} total categories</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {mockCategories.map((category, index) => (
+          {categories.map((category, index) => (
             <motion.div
               key={category.id}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -64,8 +87,12 @@ export function CategoriesManagement() {
               className="group bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-2xl p-5 hover:border-[#1a3a2e]/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300">
-                  {category.icon}
+                <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300 overflow-hidden">
+                  {category.image ? (
+                    <img src={category.image} alt={category.name} className="w-full h-full object-cover" />
+                  ) : (
+                    '📁'
+                  )}
                 </div>
                 <div className="flex gap-1">
                   <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
@@ -83,6 +110,9 @@ export function CategoriesManagement() {
               <div className="flex items-center justify-between">
                 <span className="font-['Manrope'] text-sm text-gray-700">
                   <span className="font-bold text-[#1a3a2e]">{category.productCount}</span> products
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${category.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                  {category.status}
                 </span>
                 <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#1a3a2e] group-hover:translate-x-1 transition-all" />
               </div>

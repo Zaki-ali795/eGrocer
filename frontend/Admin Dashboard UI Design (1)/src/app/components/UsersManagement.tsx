@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Users, Search, UserCheck, Store, Eye, Ban } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Search, UserCheck, Store, Eye, Ban, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { adminApi } from '../services/api';
 
 interface User {
   id: string;
@@ -13,31 +14,49 @@ interface User {
   revenue?: number;
 }
 
-const mockUsers: User[] = [
-  { id: 'U001', name: 'Sarah Johnson', email: 'sarah.j@email.com', type: 'customer', status: 'active', joined: '2025-01-15', orders: 47 },
-  { id: 'U002', name: 'Fresh Farms Co.', email: 'contact@freshfarms.com', type: 'seller', status: 'active', joined: '2024-08-20', revenue: 4523000 },
-  { id: 'U003', name: 'Michael Chen', email: 'mchen@email.com', type: 'customer', status: 'active', joined: '2025-11-03', orders: 23 },
-  { id: 'U004', name: 'Garden Fresh Ltd.', email: 'info@gardenfresh.com', type: 'seller', status: 'active', joined: '2024-05-12', revenue: 6789000 },
-  { id: 'U005', name: 'Emma Wilson', email: 'emma.w@email.com', type: 'customer', status: 'active', joined: '2026-02-28', orders: 89 },
-  { id: 'U006', name: 'Organic Harvest', email: 'sales@organicharvest.com', type: 'seller', status: 'inactive', joined: '2023-12-01', revenue: 1234000 },
-];
-
 export function UsersManagement() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [stats, setStats] = useState({ customers: 0, sellers: 0, active: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'customer' | 'seller'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredUsers = mockUsers.filter(user => {
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const data = await adminApi.getUsers();
+        setUsers(data.users);
+        setStats(data.stats);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const filteredUsers = users.filter(user => {
     const matchesFilter = filter === 'all' || user.type === filter;
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
-  const stats = {
-    customers: mockUsers.filter(u => u.type === 'customer').length,
-    sellers: mockUsers.filter(u => u.type === 'seller').length,
-    active: mockUsers.filter(u => u.status === 'active').length,
-  };
+  if (loading) return (
+    <div className="h-full flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
+      <p className="text-red-600 font-semibold text-lg">Failed to load users data</p>
+      <p className="text-red-500 text-sm mt-1">{error}</p>
+    </div>
+  );
 
   return (
     <div className="p-8 space-y-6">

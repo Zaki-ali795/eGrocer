@@ -1,33 +1,49 @@
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Download, Calendar } from 'lucide-react';
+import { TrendingUp, Download, Calendar, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
-
-const salesByCategory = [
-  { name: 'Fruits', value: 12500 },
-  { name: 'Vegetables', value: 9800 },
-  { name: 'Dairy', value: 15200 },
-  { name: 'Bakery', value: 8900 },
-  { name: 'Meat', value: 11300 },
-  { name: 'Beverages', value: 13400 },
-];
-
-const monthlyGrowth = [
-  { month: 'Oct', sales: 45000, orders: 320, customers: 156 },
-  { month: 'Nov', sales: 52000, orders: 380, customers: 189 },
-  { month: 'Dec', sales: 48000, orders: 350, customers: 201 },
-  { month: 'Jan', sales: 61000, orders: 430, customers: 234 },
-  { month: 'Feb', sales: 55000, orders: 390, customers: 267 },
-  { month: 'Mar', sales: 67000, orders: 480, customers: 298 },
-];
-
-const customerSegment = [
-  { name: 'Returning', value: 68 },
-  { name: 'New', value: 32 },
-];
+import { adminApi } from '../services/api';
 
 const COLORS = ['#1a3a2e', '#2a5f4a', '#ff6b35', '#ffa500', '#4a90e2', '#9b59b6'];
 
 export function ReportsAnalytics() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const overview = await adminApi.getDashboardOverview();
+        setData(overview);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (loading) return (
+    <div className="h-full flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
+      <p className="text-red-600 font-semibold text-lg">Failed to load analytics</p>
+      <p className="text-red-500 text-sm mt-1">{error}</p>
+    </div>
+  );
+
+  const customerSegment = [
+    { name: 'Active', value: 85 },
+    { name: 'New', value: 15 },
+  ];
+
   return (
     <div className="p-8 space-y-6">
       <motion.div
@@ -60,7 +76,7 @@ export function ReportsAnalytics() {
         >
           <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900 mb-6">Sales by Category</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={salesByCategory}>
+            <BarChart data={data?.topCategories || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="name" stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
               <YAxis stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
@@ -97,7 +113,7 @@ export function ReportsAnalytics() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {customerSegment.map((entry, index) => (
+                  {customerSegment.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -129,11 +145,11 @@ export function ReportsAnalytics() {
         transition={{ delay: 0.2 }}
         className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100"
       >
-        <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900 mb-6">6-Month Performance Overview</h2>
+        <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900 mb-6">Revenue Growth</h2>
         <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={monthlyGrowth}>
+          <LineChart data={data?.revenueHistory || []}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
+            <XAxis dataKey="date" stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
             <YAxis stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
             <Tooltip
               contentStyle={{
@@ -144,9 +160,7 @@ export function ReportsAnalytics() {
               }}
             />
             <Legend wrapperStyle={{ fontFamily: 'Manrope' }} />
-            <Line type="monotone" dataKey="sales" stroke="#1a3a2e" strokeWidth={3} name="Sales (Rupees)" />
-            <Line type="monotone" dataKey="orders" stroke="#ff6b35" strokeWidth={3} name="Orders" />
-            <Line type="monotone" dataKey="customers" stroke="#4a90e2" strokeWidth={3} name="New Customers" />
+            <Line type="monotone" dataKey="amount" stroke="#1a3a2e" strokeWidth={3} name="Revenue (Rupees)" />
           </LineChart>
         </ResponsiveContainer>
       </motion.div>
@@ -163,11 +177,11 @@ export function ReportsAnalytics() {
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-['Manrope'] text-xs text-emerald-700">Avg Order Value</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">Rs 40,000</p>
+              <p className="font-['Manrope'] text-xs text-emerald-700">Total Sales</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">Rs {data?.stats.totalRevenue.toLocaleString()}</p>
             </div>
           </div>
-          <p className="font-['Manrope'] text-sm text-emerald-700">+8.4% from last month</p>
+          <p className="font-['Manrope'] text-sm text-emerald-700">Live platform stats</p>
         </motion.div>
 
         <motion.div
@@ -181,11 +195,11 @@ export function ReportsAnalytics() {
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-['Manrope'] text-xs text-blue-700">Customer Retention</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-blue-900">68%</p>
+              <p className="font-['Manrope'] text-xs text-blue-700">Orders</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-blue-900">{data?.stats.totalOrders}</p>
             </div>
           </div>
-          <p className="font-['Manrope'] text-sm text-blue-700">Returning customers</p>
+          <p className="font-['Manrope'] text-sm text-blue-700">Total orders processed</p>
         </motion.div>
 
         <motion.div
@@ -199,11 +213,11 @@ export function ReportsAnalytics() {
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-['Manrope'] text-xs text-purple-700">Conversion Rate</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-purple-900">3.8%</p>
+              <p className="font-['Manrope'] text-xs text-purple-700">Active Sellers</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-purple-900">{data?.stats.totalSellers}</p>
             </div>
           </div>
-          <p className="font-['Manrope'] text-sm text-purple-700">+0.6% improvement</p>
+          <p className="font-['Manrope'] text-sm text-purple-700">Platform scale</p>
         </motion.div>
       </div>
     </div>

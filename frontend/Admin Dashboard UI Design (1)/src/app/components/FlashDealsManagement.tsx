@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Zap, Plus, Clock, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Zap, Plus, Clock, TrendingUp, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { adminApi } from '../services/api';
 
 interface FlashDeal {
   id: string;
@@ -9,21 +10,33 @@ interface FlashDeal {
   originalPrice: number;
   startTime: string;
   endTime: string;
-  active: boolean;
-  sales: number;
+  status: 'active' | 'inactive';
+  sold: number;
+  max: number;
 }
 
-const mockDeals: FlashDeal[] = [
-  { id: 'FD-001', product: 'Organic Bananas', discount: 25, originalPrice: 399, startTime: '2026-04-14 08:00', endTime: '2026-04-14 20:00', active: true, sales: 87 },
-  { id: 'FD-002', product: 'Premium Salmon', discount: 30, originalPrice: 2499, startTime: '2026-04-14 10:00', endTime: '2026-04-14 22:00', active: true, sales: 34 },
-  { id: 'FD-003', product: 'Artisan Bread Bundle', discount: 20, originalPrice: 1299, startTime: '2026-04-14 06:00', endTime: '2026-04-14 18:00', active: true, sales: 156 },
-  { id: 'FD-004', product: 'Mixed Berries Pack', discount: 35, originalPrice: 1599, startTime: '2026-04-15 08:00', endTime: '2026-04-15 20:00', active: false, sales: 0 },
-];
-
 export function FlashDealsManagement() {
+  const [deals, setDeals] = useState<FlashDeal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showActive, setShowActive] = useState(true);
 
-  const filteredDeals = mockDeals.filter(deal => showActive ? deal.active : !deal.active);
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const data = await adminApi.getFlashDeals();
+        setDeals(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const filteredDeals = deals.filter(deal => showActive ? deal.status === 'active' : deal.status === 'inactive');
 
   const calculateTimeLeft = (endTime: string) => {
     const end = new Date(endTime);
@@ -37,6 +50,19 @@ export function FlashDealsManagement() {
 
     return `${hours}h ${minutes}m left`;
   };
+
+  if (loading) return (
+    <div className="h-full flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
+      <p className="text-red-600 font-semibold text-lg">Failed to load flash deals</p>
+      <p className="text-red-500 text-sm mt-1">{error}</p>
+    </div>
+  );
 
   return (
     <div className="p-8 space-y-6">
@@ -68,7 +94,7 @@ export function FlashDealsManagement() {
               : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
           }`}
         >
-          Active Deals ({mockDeals.filter(d => d.active).length})
+          Active Deals ({deals.filter(d => d.status === 'active').length})
         </button>
         <button
           onClick={() => setShowActive(false)}
@@ -78,7 +104,7 @@ export function FlashDealsManagement() {
               : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
           }`}
         >
-          Scheduled ({mockDeals.filter(d => !d.active).length})
+          Inactive/Ended ({deals.filter(d => d.status !== 'active').length})
         </button>
       </div>
 
@@ -91,7 +117,7 @@ export function FlashDealsManagement() {
             transition={{ delay: 0.1 + index * 0.05 }}
             className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100 overflow-hidden relative"
           >
-            {deal.active && (
+            {deal.status === 'active' && (
               <div className="absolute top-4 right-4">
                 <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-[#ff6b35] to-[#ff8c42] text-white rounded-full text-xs font-['Manrope'] font-semibold">
                   <Zap className="w-3 h-3" />
@@ -118,33 +144,42 @@ export function FlashDealsManagement() {
                 </span>
               </div>
 
-              {deal.active && (
+              {deal.status === 'active' && (
                 <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-3 mb-4 border border-orange-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Clock className="w-4 h-4 text-orange-600" />
-                    <span className="font-['Manrope'] text-sm font-semibold text-orange-900">
-                      {calculateTimeLeft(deal.endTime)}
-                    </span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-orange-600" />
+                      <span className="font-['Manrope'] text-sm font-semibold text-orange-900">
+                        {calculateTimeLeft(deal.endTime)}
+                      </span>
+                    </div>
                   </div>
-                  <p className="font-['Manrope'] text-xs text-orange-700">
-                    Ends at {new Date(deal.endTime).toLocaleTimeString()}
-                  </p>
+                  <div className="w-full bg-orange-200 rounded-full h-2 mb-1">
+                    <div 
+                      className="bg-[#ff6b35] h-2 rounded-full transition-all" 
+                      style={{ width: `${(deal.sold / deal.max) * 100}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] font-['Manrope'] text-orange-700 font-semibold">
+                    <span>{deal.sold} sold</span>
+                    <span>{deal.max} total</span>
+                  </div>
                 </div>
               )}
 
-              {!deal.active && (
+              {deal.status !== 'active' && (
                 <div className="bg-gray-50 rounded-xl p-3 mb-4 border border-gray-200">
-                  <p className="font-['Manrope'] text-xs text-gray-600 mb-1">Scheduled</p>
+                  <p className="font-['Manrope'] text-xs text-gray-600 mb-1">Scheduled / Ended</p>
                   <p className="font-['Manrope'] text-sm font-semibold text-gray-900">
-                    {new Date(deal.startTime).toLocaleDateString()} at {new Date(deal.startTime).toLocaleTimeString()}
+                    {new Date(deal.startTime).toLocaleDateString()} - {new Date(deal.endTime).toLocaleDateString()}
                   </p>
                 </div>
               )}
 
-              {deal.active && (
+              {deal.status === 'active' && (
                 <div className="flex items-center gap-2 text-emerald-700">
                   <TrendingUp className="w-4 h-4" />
-                  <span className="font-['Manrope'] text-sm font-semibold">{deal.sales} sales today</span>
+                  <span className="font-['Manrope'] text-sm font-semibold">{deal.sold} items claimed</span>
                 </div>
               )}
             </div>
@@ -154,7 +189,7 @@ export function FlashDealsManagement() {
                 Edit
               </button>
               <button className="flex-1 px-4 py-2 bg-red-50 text-red-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-red-100 transition-colors">
-                {deal.active ? 'End Early' : 'Cancel'}
+                {deal.status === 'active' ? 'End Early' : 'Delete'}
               </button>
             </div>
           </motion.div>

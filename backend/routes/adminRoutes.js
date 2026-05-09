@@ -13,6 +13,15 @@ const AdminController = require('../controllers/AdminController');
     const controller = new AdminController(service);
 
     router.get('/dashboard/overview', controller.getDashboardOverview);
+    router.get('/users', controller.getUsers);
+    router.get('/categories', controller.getCategories);
+    router.get('/products', controller.getProducts);
+    router.get('/orders', controller.getOrders);
+    router.get('/flash-deals', controller.getFlashDeals);
+    router.get('/inventory', controller.getInventory);
+    router.get('/promotions', controller.getPromotions);
+    router.get('/payments', controller.getPayments);
+    router.get('/product-requests', controller.getProductRequests);
 })();
 
 module.exports = router;
