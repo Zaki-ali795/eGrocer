@@ -4,6 +4,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { salesData, categoryData, mockOrders } from '../data/mockData';
 import { Link } from 'react-router';
 import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const StatCard = ({
   title,
@@ -21,7 +22,7 @@ const StatCard = ({
   color: string;
 }) => {
   const colorClasses = {
-    blue: 'bg-blue-500',
+    indigo: 'bg-indigo-500',
     green: 'bg-emerald-500',
     orange: 'bg-orange-500',
     red: 'bg-red-500'
@@ -47,19 +48,21 @@ const StatCard = ({
   );
 };
 
-const COLORS = ['#10B981', '#F59E0B', '#FBBF24', '#3B82F6', '#EF4444'];
+const COLORS = ['#10B981', '#6366F1', '#F59E0B', '#FBBF24', '#EF4444'];
 
 export default function Dashboard() {
+  const { sellerId } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadStats() {
+      if (!sellerId) return;
       try {
         setLoading(true);
-        const response = await sellerApi.getStats(2); // Hardcoded sellerId
-        setStats(response.data);
+        const data = await sellerApi.getStats(sellerId);
+        setStats(data);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -67,7 +70,7 @@ export default function Dashboard() {
       }
     }
     loadStats();
-  }, []);
+  }, [sellerId]);
 
   if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
@@ -87,7 +90,7 @@ export default function Dashboard() {
           change="+0%"
           icon={DollarSign}
           trend="up"
-          color="blue"
+          color="indigo"
         />
         <StatCard
           title="Total Orders"

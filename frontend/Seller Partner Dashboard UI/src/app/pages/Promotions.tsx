@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Tag, Plus, X, Calendar, Percent, Clock, Loader2 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Promotions() {
+  const { sellerId } = useAuth();
   const [promotions, setPromotions] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,14 +20,15 @@ export default function Promotions() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [sellerId]);
 
   async function loadData() {
+    if (!sellerId) return;
     try {
       setLoading(true);
       const [promoData, prodData] = await Promise.all([
-        sellerApi.getPromotions(2),
-        sellerApi.getProducts(2)
+        sellerApi.getPromotions(sellerId),
+        sellerApi.getProducts(sellerId)
       ]);
 
       const mappedPromos = promoData.map((p: any) => ({

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { User, Store, Bell, CreditCard, Save, Loader2 } from 'lucide-react';
 import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Settings() {
+  const { sellerId } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,9 +21,10 @@ export default function Settings() {
 
   useEffect(() => {
     async function loadProfile() {
+      if (!sellerId) return;
       try {
         setLoading(true);
-        const data = await sellerApi.getProfile(2); // Hardcoded sellerId
+        const data = await sellerApi.getProfile(sellerId);
         setProfileData({
           storeName: data.store_name,
           contactName: `${data.first_name} ${data.last_name}`,
@@ -39,7 +42,7 @@ export default function Settings() {
       }
     }
     loadProfile();
-  }, []);
+  }, [sellerId]);
 
   const [notifications, setNotifications] = useState({
     newOrders: true,
@@ -172,8 +175,9 @@ export default function Settings() {
                     <button
                       type="button"
                       onClick={async () => {
+                        if (!sellerId) return;
                         try {
-                          await sellerApi.updateProfile(2, {
+                          await sellerApi.updateProfile(sellerId, {
                             storeName: profileData.storeName,
                             storeDescription: profileData.description,
                             phone: profileData.phone

@@ -3,21 +3,24 @@ import { DollarSign, TrendingUp, Clock, CheckCircle, Download, Loader2 } from 'l
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Payments() {
+  const { sellerId } = useAuth();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadEarnings();
-  }, []);
+  }, [sellerId]);
 
   async function loadEarnings() {
+    if (!sellerId) return;
     try {
       setLoading(true);
-      const response = await sellerApi.getEarnings(2); // Hardcoded
-      setTransactions(response.data);
+      const data = await sellerApi.getEarnings(sellerId);
+      setTransactions(data);
     } catch (err: any) {
       setError(err.message);
     } finally {

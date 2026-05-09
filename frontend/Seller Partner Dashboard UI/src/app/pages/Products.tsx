@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, X, Loader2 } from 'lucide-react';
+import { Package, Plus, Search, Edit2, Trash2, X, Eye, Loader2 } from 'lucide-react';
 import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Products() {
+  const { sellerId } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,13 +25,14 @@ export default function Products() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [sellerId]);
 
   async function loadData() {
+    if (!sellerId) return;
     try {
       setLoading(true);
       const [prodData, catData] = await Promise.all([
-        sellerApi.getProducts(2),
+        sellerApi.getProducts(sellerId),
         sellerApi.getCategories()
       ]);
       setCategories(catData);
@@ -104,15 +107,17 @@ export default function Products() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!sellerId) return;
     const payload = {
-      sellerId: 2, // Hardcoded
+      sellerId,
       name: formData.name,
       categoryId: parseInt(formData.category),
       brand: formData.brand,
       basePrice: parseFloat(formData.price),
       salePrice: formData.discount ? parseFloat(formData.price) * (1 - parseFloat(formData.discount) / 100) : null,
       description: formData.description,
-      imageUrl: formData.image
+      imageUrl: formData.image,
+      stockQuantity: parseInt(formData.stock) || 0
     };
 
     try {
@@ -186,8 +191,8 @@ export default function Products() {
                 </div>
               )}
               <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium ${product.status === 'available' ? 'bg-primary/90 text-primary-foreground' :
-                  product.status === 'low-stock' ? 'bg-chart-3/90 text-white' :
-                    'bg-destructive/90 text-destructive-foreground'
+                product.status === 'low-stock' ? 'bg-chart-3/90 text-white' :
+                  'bg-destructive/90 text-destructive-foreground'
                 }`}>
                 {product.status === 'available' ? 'In Stock' :
                   product.status === 'low-stock' ? 'Low Stock' : 'Out of Stock'}
@@ -209,7 +214,7 @@ export default function Products() {
                   onClick={() => handleEditProduct(product)}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-emerald-200 text-emerald-800 rounded-lg hover:bg-emerald-300 transition-colors font-medium"
                 >
-                  <Edit className="w-4 h-4" />
+                  <Edit2 className="w-4 h-4" />
                   Edit
                 </button>
                 <button
