@@ -23,6 +23,7 @@ export default function Inventory() {
         id: p.product_id,
         name: p.product_name,
         category: p.category_name,
+        brand: p.brand || 'No Brand',
         stock: p.inventory,
         image: p.image_url || 'https://via.placeholder.com/150',
         status: p.inventory === 0 ? 'out-of-stock' : p.inventory < 20 ? 'low-stock' : 'available'

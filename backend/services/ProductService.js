@@ -142,6 +142,7 @@ class ProductService {
             name: p.product_name,
             description: p.description,
             brand: p.brand,
+            storeName: p.store_name,
             sku: p.sku,
             unit: p.unit,
             price: effectivePrice,

@@ -7,10 +7,12 @@ import { productApi, Product } from '../../services/api';
 import { ProductCard } from '../components/ProductCard';
 
 interface SearchResultsPageProps {
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: Product, quantity?: number) => void;
+  onWishlistToggle: (productId: number) => Promise<'added' | 'removed'>;
+  wishlistItems: Product[];
 }
 
-export function SearchResultsPage({ onAddToCart }: SearchResultsPageProps) {
+export function SearchResultsPage({ onAddToCart, onWishlistToggle, wishlistItems }: SearchResultsPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -313,6 +315,8 @@ export function SearchResultsPage({ onAddToCart }: SearchResultsPageProps) {
                   reviews: product.reviews ?? 0,
                 }}
                 onAddToCart={() => onAddToCart(product)}
+                onWishlistToggle={onWishlistToggle}
+                initialIsWishlisted={wishlistItems.some(item => item.id === product.id)}
               />
             ))}
           </motion.div>

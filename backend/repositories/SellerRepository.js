@@ -97,6 +97,7 @@ class SellerRepository extends BaseRepository {
                 SELECT 
                     p.product_id,
                     p.product_name,
+                    p.brand,
                     p.base_price,
                     p.sale_price,
                     p.image_url,

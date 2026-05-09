@@ -13,6 +13,10 @@ app.use(cors({
     credentials: true,
 }));
 app.use(express.json());
+app.use((req, res, next) => {
+    console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+    next();
+});
 
 // ── Health check ────────────────────────────────────────────────
 app.get('/', (req, res) => res.json({ message: '✅ eGrocer API is running.' }));
@@ -23,7 +27,13 @@ app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/sellers', require('./routes/sellerRoutes'));
 // app.use('/api/flash-deals', require('./routes/flashDealRoutes'));
+app.use('/api/wishlist', require('./routes/wishlistRoutes'));
 app.use('/api/bids',     require('./routes/bidRoutes'));
+
+// ── 404 Handler ────────────────────────────────────────────────
+app.use((req, res) => {
+    res.status(404).json({ success: false, message: `Route ${req.method} ${req.url} not found` });
+});
 
 // ── Global error handler ────────────────────────────────────────
 app.use(errorHandler);
