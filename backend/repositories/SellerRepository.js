@@ -342,6 +342,59 @@ class SellerRepository extends BaseRepository {
     }
 
     /**
+     * Delete a flash deal.
+     */
+    async deletePromotion(dealId) {
+        await this.pool
+            .request()
+            .input('dealId', dealId)
+            .query(`DELETE FROM FlashDeals WHERE deal_id = @dealId`);
+    }
+
+    /**
+     * Update order status.
+     */
+    async updateOrderStatus(orderId, status) {
+        await this.pool
+            .request()
+            .input('orderId', orderId)
+            .input('status', status)
+            .query(`UPDATE Orders SET order_status = @status WHERE order_id = @orderId`);
+    }
+
+    /**
+     * Update seller profile.
+     */
+    async updateProfile(sellerId, profileData) {
+        const { storeName, storeDescription, phone } = profileData;
+        await this.pool
+            .request()
+            .input('sellerId', sellerId)
+            .input('storeName', storeName)
+            .input('storeDescription', storeDescription)
+            .input('phone', phone)
+            .query(`
+                UPDATE Sellers 
+                SET store_name = @storeName, 
+                    store_description = @storeDescription,
+                    updated_at = GETDATE()
+                WHERE seller_id = @sellerId;
+
+                UPDATE Users
+                SET phone = @phone
+                WHERE user_id = @sellerId;
+            `);
+    }
+
+    /**
+     * Get all categories.
+     */
+    async getCategories() {
+        const result = await this.pool.request().query(`SELECT category_id, category_name FROM Categories`);
+        return result.recordset;
+    }
+
+    /**
      * Fetch earnings history for the seller.
      */
     async getSellerEarnings(sellerId) {
