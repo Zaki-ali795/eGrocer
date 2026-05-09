@@ -13,7 +13,8 @@ export default function Settings() {
     phone: '',
     address: '',
     rating: 0,
-    status: ''
+    status: '',
+    description: ''
   });
 
   useEffect(() => {
@@ -28,7 +29,8 @@ export default function Settings() {
           phone: data.phone || 'Not provided',
           address: 'Main Warehouse', // Placeholder if address not in Sellers table
           rating: data.store_rating,
-          status: data.verification_status
+          status: data.verification_status,
+          description: data.store_description || ''
         });
       } catch (err: any) {
         setError(err.message);
@@ -77,11 +79,10 @@ export default function Settings() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                  activeTab === tab.id
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${activeTab === tab.id
                     ? 'bg-primary text-primary-foreground shadow-md'
                     : 'text-muted-foreground hover:bg-emerald-500 hover:text-white'
-                }`}
+                  }`}
               >
                 <tab.icon className="w-5 h-5" />
                 <span className="font-medium">{tab.label}</span>
@@ -170,6 +171,18 @@ export default function Settings() {
                     </button>
                     <button
                       type="button"
+                      onClick={async () => {
+                        try {
+                          await sellerApi.updateProfile(2, {
+                            storeName: profileData.storeName,
+                            storeDescription: profileData.description,
+                            phone: profileData.phone
+                          });
+                          alert("Profile updated successfully!");
+                        } catch (err: any) {
+                          alert("Failed to update profile: " + err.message);
+                        }
+                      }}
                       className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-all shadow-md"
                     >
                       <Save className="w-4 h-4" />

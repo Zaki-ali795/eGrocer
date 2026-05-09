@@ -4,6 +4,7 @@ import { sellerApi } from '../services/api';
 
 export default function Products() {
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,14 +22,19 @@ export default function Products() {
   });
 
   useEffect(() => {
-    loadProducts();
+    loadData();
   }, []);
 
-  async function loadProducts() {
+  async function loadData() {
     try {
       setLoading(true);
-      const response = await sellerApi.getProducts(2); // Hardcoded sellerId for now
-      const mappedProducts = response.data.map((p: any) => ({
+      const [prodData, catData] = await Promise.all([
+        sellerApi.getProducts(2),
+        sellerApi.getCategories()
+      ]);
+      setCategories(catData);
+      const data = prodData; // For compatibility with existing mapping logic
+      const mappedProducts = data.map((p: any) => ({
         id: p.product_id,
         name: p.product_name,
         category: p.category_name,
@@ -101,7 +107,7 @@ export default function Products() {
     const payload = {
       sellerId: 2, // Hardcoded
       name: formData.name,
-      categoryId: 1, // Need a category selector really, hardcoding for now
+      categoryId: parseInt(formData.category),
       brand: formData.brand,
       basePrice: parseFloat(formData.price),
       salePrice: formData.discount ? parseFloat(formData.price) * (1 - parseFloat(formData.discount) / 100) : null,
@@ -116,7 +122,7 @@ export default function Products() {
         await sellerApi.addProduct(payload);
       }
       setShowModal(false);
-      loadProducts(); // Refresh list
+      loadData(); // Refresh list
     } catch (err: any) {
       alert("Failed to save product: " + err.message);
     }
@@ -179,13 +185,12 @@ export default function Products() {
                   -{product.discount}%
                 </div>
               )}
-              <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium ${
-                product.status === 'available' ? 'bg-primary/90 text-primary-foreground' :
-                product.status === 'low-stock' ? 'bg-chart-3/90 text-white' :
-                'bg-destructive/90 text-destructive-foreground'
-              }`}>
+              <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium ${product.status === 'available' ? 'bg-primary/90 text-primary-foreground' :
+                  product.status === 'low-stock' ? 'bg-chart-3/90 text-white' :
+                    'bg-destructive/90 text-destructive-foreground'
+                }`}>
                 {product.status === 'available' ? 'In Stock' :
-                 product.status === 'low-stock' ? 'Low Stock' : 'Out of Stock'}
+                  product.status === 'low-stock' ? 'Low Stock' : 'Out of Stock'}
               </div>
             </div>
             <div className="p-5">
@@ -248,13 +253,17 @@ export default function Products() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Category</label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-4 py-2.5 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  />
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map(cat => (
+                      <option key={cat.category_id} value={cat.category_id}>{cat.category_name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Brand</label>

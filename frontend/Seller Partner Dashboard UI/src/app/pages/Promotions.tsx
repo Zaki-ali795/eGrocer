@@ -23,12 +23,12 @@ export default function Promotions() {
   async function loadData() {
     try {
       setLoading(true);
-      const [promoRes, prodRes] = await Promise.all([
+      const [promoData, prodData] = await Promise.all([
         sellerApi.getPromotions(2),
         sellerApi.getProducts(2)
       ]);
-      
-      const mappedPromos = promoRes.data.map((p: any) => ({
+
+      const mappedPromos = promoData.map((p: any) => ({
         id: p.deal_id,
         productName: p.product_name,
         discount: p.discount_percentage,
@@ -37,7 +37,7 @@ export default function Promotions() {
         isActive: p.is_active && new Date(p.start_datetime) <= new Date() && new Date(p.end_datetime) >= new Date()
       }));
 
-      const mappedProds = prodRes.data.map((p: any) => ({
+      const mappedProds = prodData.map((p: any) => ({
         id: p.product_id,
         name: p.product_name
       }));
@@ -53,8 +53,12 @@ export default function Promotions() {
 
   const deletePromotion = async (id: number) => {
     if (confirm('Are you sure you want to delete this promotion?')) {
-      // Need a delete promotion endpoint
-      setPromotions(promotions.filter((p) => p.id !== id));
+      try {
+        await sellerApi.deletePromotion(id);
+        setPromotions(promotions.filter((p) => p.id !== id));
+      } catch (err: any) {
+        alert("Failed to delete promotion: " + err.message);
+      }
     }
   };
 
@@ -199,9 +203,8 @@ export default function Promotions() {
                   <td className="py-4 px-6 text-muted-foreground">{format(new Date(promo.startDate), 'MMM dd, yyyy')}</td>
                   <td className="py-4 px-6 text-muted-foreground">{format(new Date(promo.endDate), 'MMM dd, yyyy')}</td>
                   <td className="py-4 px-6">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      promo.isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${promo.isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                      }`}>
                       {promo.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>

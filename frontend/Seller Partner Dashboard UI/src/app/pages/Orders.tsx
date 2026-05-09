@@ -17,10 +17,10 @@ export default function Orders() {
   async function loadOrders() {
     try {
       setLoading(true);
-      const response = await sellerApi.getOrders(2); // Hardcoded sellerId
+      const data = await sellerApi.getOrders(2); // Hardcoded sellerId
       // Group by order_id since the query returns join results
       const groupedOrders: any = {};
-      response.data.forEach((item: any) => {
+      data.forEach((item: any) => {
         if (!groupedOrders[item.order_id]) {
           groupedOrders[item.order_id] = {
             id: item.order_number || `#ORD-${item.order_id}`,
@@ -47,11 +47,20 @@ export default function Orders() {
   }
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
-    // Note: status update needs a backend endpoint we haven't added yet
-    // For now we'll update UI
-    setOrders(orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder({ ...selectedOrder, status: newStatus });
+    try {
+      // Extract numeric ID if it's in #ORD-ID format
+      const numericId = typeof orderId === 'string' && orderId.includes('-')
+        ? parseInt(orderId.split('-')[1])
+        : parseInt(orderId);
+
+      await sellerApi.updateOrderStatus(numericId, newStatus);
+
+      setOrders(orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, status: newStatus });
+      }
+    } catch (err: any) {
+      alert("Failed to update order status: " + err.message);
     }
   };
 
@@ -85,9 +94,8 @@ export default function Orders() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div
           onClick={() => setFilter('all')}
-          className={`bg-card rounded-xl p-4 border ${
-            filter === 'all' ? 'border-primary ring-2 ring-primary/20' : 'border-border'
-          } cursor-pointer hover:shadow-md transition-all`}
+          className={`bg-card rounded-xl p-4 border ${filter === 'all' ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+            } cursor-pointer hover:shadow-md transition-all`}
         >
           <p className="text-sm text-muted-foreground mb-1">All Orders</p>
           <p className="text-2xl font-semibold text-foreground">{stats.total}</p>
@@ -95,9 +103,8 @@ export default function Orders() {
 
         <div
           onClick={() => setFilter('pending')}
-          className={`bg-card rounded-xl p-4 border ${
-            filter === 'pending' ? 'border-chart-4 ring-2 ring-chart-4/20' : 'border-border'
-          } cursor-pointer hover:shadow-md transition-all`}
+          className={`bg-card rounded-xl p-4 border ${filter === 'pending' ? 'border-chart-4 ring-2 ring-chart-4/20' : 'border-border'
+            } cursor-pointer hover:shadow-md transition-all`}
         >
           <p className="text-sm text-muted-foreground mb-1">Pending</p>
           <p className="text-2xl font-semibold text-chart-4">{stats.pending}</p>
@@ -105,9 +112,8 @@ export default function Orders() {
 
         <div
           onClick={() => setFilter('processing')}
-          className={`bg-card rounded-xl p-4 border ${
-            filter === 'processing' ? 'border-accent ring-2 ring-accent/20' : 'border-border'
-          } cursor-pointer hover:shadow-md transition-all`}
+          className={`bg-card rounded-xl p-4 border ${filter === 'processing' ? 'border-accent ring-2 ring-accent/20' : 'border-border'
+            } cursor-pointer hover:shadow-md transition-all`}
         >
           <p className="text-sm text-muted-foreground mb-1">Processing</p>
           <p className="text-2xl font-semibold text-accent">{stats.processing}</p>
@@ -115,9 +121,8 @@ export default function Orders() {
 
         <div
           onClick={() => setFilter('delivered')}
-          className={`bg-card rounded-xl p-4 border ${
-            filter === 'delivered' ? 'border-primary ring-2 ring-primary/20' : 'border-border'
-          } cursor-pointer hover:shadow-md transition-all`}
+          className={`bg-card rounded-xl p-4 border ${filter === 'delivered' ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+            } cursor-pointer hover:shadow-md transition-all`}
         >
           <p className="text-sm text-muted-foreground mb-1">Delivered</p>
           <p className="text-2xl font-semibold text-primary">{stats.delivered}</p>
@@ -125,9 +130,8 @@ export default function Orders() {
 
         <div
           onClick={() => setFilter('cancelled')}
-          className={`bg-card rounded-xl p-4 border ${
-            filter === 'cancelled' ? 'border-destructive ring-2 ring-destructive/20' : 'border-border'
-          } cursor-pointer hover:shadow-md transition-all`}
+          className={`bg-card rounded-xl p-4 border ${filter === 'cancelled' ? 'border-destructive ring-2 ring-destructive/20' : 'border-border'
+            } cursor-pointer hover:shadow-md transition-all`}
         >
           <p className="text-sm text-muted-foreground mb-1">Cancelled</p>
           <p className="text-2xl font-semibold text-destructive">{stats.cancelled}</p>
@@ -160,16 +164,15 @@ export default function Orders() {
                   <td className="py-4 px-6 text-muted-foreground">{order.items.length} items</td>
                   <td className="py-4 px-6 font-medium text-emerald-900">Rs.{order.totalPrice.toFixed(2)}</td>
                   <td className="py-4 px-6">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1.5 ${
-                      order.status === 'delivered' ? 'bg-primary/10 text-primary' :
-                      order.status === 'processing' ? 'bg-accent/10 text-accent' :
-                      order.status === 'pending' ? 'bg-chart-4/10 text-chart-4' :
-                      'bg-destructive/10 text-destructive'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1.5 ${order.status === 'delivered' ? 'bg-primary/10 text-primary' :
+                        order.status === 'processing' ? 'bg-accent/10 text-accent' :
+                          order.status === 'pending' ? 'bg-chart-4/10 text-chart-4' :
+                            'bg-destructive/10 text-destructive'
+                      }`}>
                       {order.status === 'delivered' ? <CheckCircle className="w-3.5 h-3.5" /> :
-                       order.status === 'processing' ? <Package className="w-3.5 h-3.5" /> :
-                       order.status === 'pending' ? <Clock className="w-3.5 h-3.5" /> :
-                       <XCircle className="w-3.5 h-3.5" />}
+                        order.status === 'processing' ? <Package className="w-3.5 h-3.5" /> :
+                          order.status === 'pending' ? <Clock className="w-3.5 h-3.5" /> :
+                            <XCircle className="w-3.5 h-3.5" />}
                       {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                     </span>
                   </td>
@@ -254,41 +257,37 @@ export default function Orders() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => updateOrderStatus(selectedOrder.id, 'pending')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
-                      selectedOrder.status === 'pending'
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'pending'
                         ? 'bg-chart-4 text-white'
                         : 'bg-emerald-800 text-white hover:bg-emerald-500'
-                    }`}
+                      }`}
                   >
                     Pending
                   </button>
                   <button
                     onClick={() => updateOrderStatus(selectedOrder.id, 'processing')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
-                      selectedOrder.status === 'processing'
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'processing'
                         ? 'bg-accent text-accent-foreground'
                         : 'bg-emerald-800 text-white hover:bg-emerald-500'
-                    }`}
+                      }`}
                   >
                     Processing
                   </button>
                   <button
                     onClick={() => updateOrderStatus(selectedOrder.id, 'delivered')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
-                      selectedOrder.status === 'delivered'
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'delivered'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-emerald-800 text-white hover:bg-emerald-500'
-                    }`}
+                      }`}
                   >
                     Delivered
                   </button>
                   <button
                     onClick={() => updateOrderStatus(selectedOrder.id, 'cancelled')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
-                      selectedOrder.status === 'cancelled'
+                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'cancelled'
                         ? 'bg-destructive text-destructive-foreground'
                         : 'bg-emerald-800 text-white hover:bg-emerald-500'
-                    }`}
+                      }`}
                   >
                     Cancelled
                   </button>

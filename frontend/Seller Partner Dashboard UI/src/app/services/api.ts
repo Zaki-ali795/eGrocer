@@ -16,7 +16,11 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
     throw new Error(error.message || 'Something went wrong');
   }
 
-  return response.json();
+  const result = await response.json();
+  if (result.success && result.data !== undefined) {
+    return result.data;
+  }
+  return result;
 }
 
 export const sellerApi = {
@@ -50,5 +54,17 @@ export const sellerApi = {
     method: 'POST',
     body: JSON.stringify(promoData),
   }),
+  deletePromotion: (dealId: number) => fetchApi(`/sellers/promotions/${dealId}`, {
+    method: 'DELETE'
+  }),
+  updateOrderStatus: (orderId: number, status: string) => fetchApi('/sellers/orders/status', {
+    method: 'PATCH',
+    body: JSON.stringify({ orderId, status })
+  }),
+  updateProfile: (sellerId: number, profileData: any) => fetchApi(`/sellers/profile/${sellerId}`, {
+    method: 'PUT',
+    body: JSON.stringify(profileData)
+  }),
+  getCategories: () => fetchApi('/sellers/categories'),
   getEarnings: (sellerId: number) => fetchApi(`/sellers/earnings/${sellerId}`),
 };
