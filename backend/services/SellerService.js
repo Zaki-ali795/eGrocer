@@ -42,6 +42,10 @@ class SellerService {
         return await this.sellerRepository.getDashboardStats(sellerId);
     }
 
+    async getSalesHistory(sellerId) {
+        return await this.sellerRepository.getSalesHistory(sellerId);
+    }
+
     async getOrders(sellerId) {
         return await this.sellerRepository.getSellerOrders(sellerId);
     }

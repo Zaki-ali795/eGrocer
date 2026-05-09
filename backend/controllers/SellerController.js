@@ -15,6 +15,7 @@ class SellerController {
         this.getProducts = this.getProducts.bind(this);
         this.updateInventory = this.updateInventory.bind(this);
         this.getDashboardStats = this.getDashboardStats.bind(this);
+        this.getSalesHistory = this.getSalesHistory.bind(this);
         this.getOrders = this.getOrders.bind(this);
         this.addProduct = this.addProduct.bind(this);
         this.updateProduct = this.updateProduct.bind(this);
@@ -93,6 +94,16 @@ class SellerController {
             const sellerId = req.params.sellerId || req.query.sellerId;
             const stats = await this.sellerService.getDashboardStats(sellerId);
             res.json({ success: true, data: stats });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getSalesHistory(req, res, next) {
+        try {
+            const sellerId = req.params.sellerId || req.query.sellerId;
+            const history = await this.sellerService.getSalesHistory(sellerId);
+            res.json({ success: true, data: history });
         } catch (err) {
             next(err);
         }
