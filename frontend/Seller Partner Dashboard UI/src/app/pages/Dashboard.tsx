@@ -53,6 +53,7 @@ const COLORS = ['#10B981', '#6366F1', '#F59E0B', '#FBBF24', '#EF4444'];
 export default function Dashboard() {
   const { sellerId } = useAuth();
   const [stats, setStats] = useState<any>(null);
+  const [salesHistory, setSalesHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,8 +62,15 @@ export default function Dashboard() {
       if (!sellerId) return;
       try {
         setLoading(true);
-        const data = await sellerApi.getStats(sellerId);
-        setStats(data);
+        const [statsData, historyData] = await Promise.all([
+          sellerApi.getStats(sellerId),
+          sellerApi.getSalesHistory(sellerId)
+        ]);
+        setStats(statsData);
+        setSalesHistory(historyData.map((h: any) => ({
+          ...h,
+          date: new Date(h.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        })));
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -155,7 +163,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 bg-card rounded-xl p-6 border border-border shadow-sm">
           <h3 className="text-lg font-semibold text-foreground mb-4">Sales Analytics</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={salesData}>
+            <LineChart data={salesHistory.length > 0 ? salesHistory : salesData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
               <XAxis dataKey="date" stroke="#64748B" />
               <YAxis stroke="#64748B" />
@@ -171,6 +179,7 @@ export default function Dashboard() {
               <Line
                 type="monotone"
                 dataKey="sales"
+                name="Revenue (Rs.)"
                 stroke="#10B981"
                 strokeWidth={3}
                 dot={{ fill: '#10B981', r: 4 }}
@@ -179,6 +188,7 @@ export default function Dashboard() {
               <Line
                 type="monotone"
                 dataKey="orders"
+                name="Orders Count"
                 stroke="#F59E0B"
                 strokeWidth={3}
                 dot={{ fill: '#F59E0B', r: 4 }}

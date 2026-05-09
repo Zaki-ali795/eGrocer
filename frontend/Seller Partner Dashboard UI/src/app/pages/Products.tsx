@@ -41,6 +41,7 @@ export default function Products() {
         id: p.product_id,
         name: p.product_name,
         category: p.category_name,
+        categoryId: p.category_id,
         brand: p.brand || 'No Brand',
         price: p.sale_price || p.base_price,
         originalPrice: p.base_price,
@@ -83,12 +84,12 @@ export default function Products() {
     setEditingProduct(product);
     setFormData({
       name: product.name,
-      category: product.category,
+      category: product.categoryId.toString(),
       brand: product.brand,
       price: product.originalPrice.toString(),
       discount: product.discount?.toString() || '',
       stock: product.stock.toString(),
-      description: product.description,
+      description: product.description || '',
       image: product.image
     });
     setShowModal(true);
