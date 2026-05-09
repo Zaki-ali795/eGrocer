@@ -3,7 +3,7 @@ import { ArrowUp, ArrowDown, DollarSign, ShoppingBag, AlertCircle, Package, Load
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { salesData, categoryData, mockOrders } from '../data/mockData';
 import { Link } from 'react-router';
-import { sellerApi } from '../services/api';
+import { sellerApi, getLoggedInSellerId } from '../services/api';
 
 const StatCard = ({
   title,
@@ -58,7 +58,8 @@ export default function Dashboard() {
     async function loadStats() {
       try {
         setLoading(true);
-        const response = await sellerApi.getStats(2); // Hardcoded sellerId
+        const sellerId = getLoggedInSellerId() || 2;
+        const response = await sellerApi.getStats(sellerId);
         setStats(response);
       } catch (err: any) {
         setError(err.message);
@@ -195,7 +196,7 @@ export default function Dashboard() {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }: { name: string; percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
