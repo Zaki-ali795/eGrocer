@@ -12,6 +12,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+import logo from "../../logo.png";
+
 export default function EGrocerAuthUI() {
   const [mode, setMode] = useState("login");
   const [role, setRole] = useState("customer");
@@ -113,13 +115,20 @@ export default function EGrocerAuthUI() {
         <div className="absolute inset-0 bg-black/45" />
 
         <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-green-500 flex items-center justify-center">
-              <ShoppingCart className="w-7 h-7" />
+          <div className="flex items-center gap-4 mb-8">
+            <div className="relative group">
+              {/* Subtle Glow Effect */}
+              <div className="absolute -inset-1 bg-green-400 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+              
+              <img 
+                src={logo} 
+                alt="eGrocer Logo" 
+                className="relative w-16 h-16 object-contain rounded-2xl shadow-xl" 
+              />
             </div>
             <div>
-              <h1 className="text-4xl font-bold">eGrocer</h1>
-              <p className="text-white/80">Fresh groceries delivered fast</p>
+              <h1 className="text-5xl font-extrabold tracking-tight">eGrocer</h1>
+              <p className="text-white/70 text-lg">Fresh groceries delivered fast</p>
             </div>
           </div>
 
