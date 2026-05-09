@@ -9,7 +9,7 @@ const app = express();
 
 // ── Middleware ──────────────────────────────────────────────────
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: true,
     credentials: true,
 }));
 app.use(express.json());
@@ -20,8 +20,8 @@ app.get('/', (req, res) => res.json({ message: '✅ eGrocer API is running.' }))
 // app.use('/api/auth',        require('./routes/authRoutes'));
 app.use('/api/users',       require('./routes/userRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
-// app.use('/api/cart',        require('./routes/cartRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
+app.use('/api/sellers', require('./routes/sellerRoutes'));
 // app.use('/api/flash-deals', require('./routes/flashDealRoutes'));
 app.use('/api/bids',     require('./routes/bidRoutes'));
 
