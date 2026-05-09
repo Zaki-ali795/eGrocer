@@ -12,7 +12,7 @@ import {
   User
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { sellerApi } from '../services/api';
+import { sellerApi, getLoggedInSellerId } from '../services/api';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -32,9 +32,10 @@ export default function Layout() {
   useEffect(() => {
     async function loadLayoutData() {
       try {
+        const sellerId = getLoggedInSellerId() || 2;
         const [stats, prof] = await Promise.all([
-          sellerApi.getStats(2),
-          sellerApi.getProfile(2)
+          sellerApi.getStats(sellerId),
+          sellerApi.getProfile(sellerId)
         ]);
         setRequestCount(stats.pending_requests);
         setProfile(prof);
@@ -70,7 +71,7 @@ export default function Layout() {
                 <NavLink
                   to={item.path}
                   end={item.path === '/'}
-                  className={({ isActive }) =>
+                  className={({ isActive }: { isActive: boolean }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                       isActive
                         ? 'bg-primary text-primary-foreground shadow-md'
