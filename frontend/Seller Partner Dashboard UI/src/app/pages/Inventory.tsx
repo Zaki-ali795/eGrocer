@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { AlertTriangle, CheckCircle, XCircle, Plus, Minus, Loader2 } from 'lucide-react';
-import { sellerApi, getLoggedInSellerId } from '../services/api';
+import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Inventory() {
+  const { sellerId } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -10,14 +12,14 @@ export default function Inventory() {
 
   useEffect(() => {
     loadInventory();
-  }, []);
+  }, [sellerId]);
 
   async function loadInventory() {
+    if (!sellerId) return;
     try {
       setLoading(true);
-      const sellerId = getLoggedInSellerId() || 2;
-      const response = await sellerApi.getProducts(sellerId);
-      const mappedProducts = response.map((p: any) => ({
+      const data = await sellerApi.getProducts(sellerId);
+      const mappedProducts = data.map((p: any) => ({
         id: p.product_id,
         name: p.product_name,
         category: p.category_name,

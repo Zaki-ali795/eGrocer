@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Handshake, MapPin, Calendar, DollarSign, Send, CheckCircle, XCircle, Clock, X, Package, Loader2 } from 'lucide-react';
-import { BidRequest } from '../data/mockData';
 import { format } from 'date-fns';
-import { sellerApi, getLoggedInSellerId } from '../services/api';
+import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Requests() {
+  const { sellerId } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,14 +16,15 @@ export default function Requests() {
 
   useEffect(() => {
     loadRequests();
-  }, []);
+  }, [sellerId]);
 
   async function loadRequests() {
+    if (!sellerId) return;
     try {
       setLoading(true);
-      const response = await sellerApi.getRequests();
+      const data = await sellerApi.getRequests();
       // Map database fields to UI expectations if necessary
-      const mappedRequests = response.map((r: any) => ({
+      const mappedRequests = data.map((r: any) => ({
         id: r.request_id,
         productName: r.product_name,
         customerName: r.customer_name,
@@ -42,14 +44,15 @@ export default function Requests() {
   const filteredRequests = filter === 'all' ? requests : requests.filter((r: any) => r.status === filter);
 
   const submitOffer = async () => {
+    if (!sellerId) return;
     if (selectedRequest && offerPrice) {
       try {
         await sellerApi.submitBid({
           requestId: selectedRequest.id,
-          sellerId: getLoggedInSellerId() || 2, 
+          sellerId: sellerId,
+          productId: null, // Optional in DB
           bidPrice: parseFloat(offerPrice),
           estimatedDeliveryDays: 3, // Could be an input
-          notes: offerNotes
         });
 
         // Update local state to show offered status

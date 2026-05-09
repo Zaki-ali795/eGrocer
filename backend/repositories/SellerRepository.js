@@ -1,18 +1,11 @@
 // repositories/SellerRepository.js
 const BaseRepository = require('./BaseRepository');
 
-/**
- * Handles all DB queries related to Sellers, Store Profiles, and Bidding.
- * SRP: Only responsible for data access for the Seller domain.
- */
 class SellerRepository extends BaseRepository {
     constructor(pool) {
         super(pool);
     }
 
-    /**
-     * Fetch a seller's profile by their user_id.
-     */
     async getSellerProfile(sellerId) {
         const result = await this.pool
             .request()
@@ -36,10 +29,6 @@ class SellerRepository extends BaseRepository {
         return result.recordset[0] || null;
     }
 
-    /**
-     * Fetch all open product requests from customers.
-     * This is used by sellers to find opportunities to bid.
-     */
     async getAllProductRequests() {
         const result = await this.pool.request().query(`
             SELECT 
@@ -62,9 +51,6 @@ class SellerRepository extends BaseRepository {
         return result.recordset;
     }
 
-    /**
-     * Submit a bid on a product request.
-     */
     async submitBid({ requestId, sellerId, productId, bidPrice, estimatedDeliveryDays }) {
         const result = await this.pool
             .request()
@@ -75,29 +61,14 @@ class SellerRepository extends BaseRepository {
             .input('deliveryDays', estimatedDeliveryDays)
             .query(`
                 INSERT INTO ProductRequestBids (
-                    request_id, 
-                    seller_id, 
-                    product_id, 
-                    bid_price, 
-                    estimated_delivery_days, 
-                    bid_status
+                    request_id, seller_id, product_id, bid_price, estimated_delivery_days, bid_status
                 )
-                VALUES (
-                    @requestId, 
-                    @sellerId, 
-                    @productId, 
-                    @bidPrice, 
-                    @deliveryDays, 
-                    'pending'
-                );
+                VALUES (@requestId, @sellerId, @productId, @bidPrice, @deliveryDays, 'pending');
                 SELECT SCOPE_IDENTITY() AS bid_id;
             `);
         return result.recordset[0].bid_id;
     }
 
-    /**
-     * Fetch all bids submitted by a specific seller.
-     */
     async getSellerBids(sellerId) {
         const result = await this.pool
             .request()
@@ -118,9 +89,6 @@ class SellerRepository extends BaseRepository {
         return result.recordset;
     }
 
-    /**
-     * Fetch all products belonging to a specific seller.
-     */
     async getSellerProducts(sellerId) {
         const result = await this.pool
             .request()
@@ -134,20 +102,18 @@ class SellerRepository extends BaseRepository {
                     p.sale_price,
                     p.image_url,
                     p.is_active,
+                    p.category_id,
                     c.category_name,
                     ISNULL(i.quantity_in_stock, 0) AS inventory
                 FROM Products p
                 INNER JOIN Categories c ON p.category_id = c.category_id
                 LEFT JOIN Inventory i ON p.product_id = i.product_id
-                WHERE p.seller_id = @sellerId
+                WHERE p.seller_id = @sellerId AND p.is_active = 1
                 ORDER BY p.created_at DESC
             `);
         return result.recordset;
     }
 
-    /**
-     * Update stock level for a seller's product.
-     */
     async updateInventory(productId, quantity) {
         await this.pool
             .request()
@@ -156,14 +122,12 @@ class SellerRepository extends BaseRepository {
             .query(`
                 UPDATE Inventory
                 SET quantity_in_stock = @quantity,
+                    last_restocked_date = CASE WHEN (SELECT quantity_in_stock FROM Inventory WHERE product_id = @productId) = 0 AND @quantity > 0 THEN GETDATE() ELSE last_restocked_date END,
                     updated_at = GETDATE()
                 WHERE product_id = @productId
             `);
     }
 
-    /**
-     * Fetch orders containing products from this seller.
-     */
     async getSellerOrders(sellerId) {
         const result = await this.pool
             .request()
@@ -188,9 +152,6 @@ class SellerRepository extends BaseRepository {
         return result.recordset;
     }
 
-    /**
-     * Fetch summary stats for the dashboard.
-     */
     async getDashboardStats(sellerId) {
         const statsResult = await this.pool
             .request()
@@ -200,9 +161,9 @@ class SellerRepository extends BaseRepository {
                     ISNULL((SELECT SUM(quantity * unit_price) FROM OrderItems WHERE seller_id = @sellerId), 0) AS total_revenue,
                     (SELECT COUNT(DISTINCT order_id) FROM OrderItems WHERE seller_id = @sellerId) AS total_orders,
                     (SELECT COUNT(*) FROM ProductRequests WHERE request_status = 'open') AS pending_requests,
-                    (SELECT COUNT(*) FROM Inventory i INNER JOIN Products p ON i.product_id = p.product_id WHERE p.seller_id = @sellerId AND i.quantity_in_stock < 20) AS low_stock_count
+                    (SELECT COUNT(*) FROM Inventory i INNER JOIN Products p ON i.product_id = p.product_id WHERE p.seller_id = @sellerId AND p.is_active = 1 AND i.quantity_in_stock < 20) AS low_stock_count
             `);
-        
+
         const recentOrdersResult = await this.pool
             .request()
             .input('sellerId', sellerId)
@@ -227,12 +188,28 @@ class SellerRepository extends BaseRepository {
         };
     }
 
-    /**
-     * Add a new product to the store.
-     */
+    async getSalesHistory(sellerId) {
+        const result = await this.pool
+            .request()
+            .input('sellerId', sellerId)
+            .query(`
+                SELECT 
+                    CAST(o.created_at AS DATE) as date,
+                    SUM(oi.quantity * oi.unit_price) as sales,
+                    COUNT(DISTINCT o.order_id) as orders
+                FROM OrderItems oi
+                INNER JOIN Orders o ON oi.order_id = o.order_id
+                WHERE oi.seller_id = @sellerId 
+                  AND o.created_at >= DATEADD(day, -30, GETDATE())
+                GROUP BY CAST(o.created_at AS DATE)
+                ORDER BY date ASC
+            `);
+        return result.recordset;
+    }
+
     async addProduct(sellerId, productData) {
-        const { name, categoryId, brand, basePrice, salePrice, unit, description, imageUrl, nutritionalInfo, isPerishable } = productData;
-        
+        const { name, categoryId, brand, basePrice, salePrice, unit, description, imageUrl, nutritionalInfo, isPerishable, stockQuantity } = productData;
+
         const result = await this.pool
             .request()
             .input('sellerId', sellerId)
@@ -246,23 +223,27 @@ class SellerRepository extends BaseRepository {
             .input('imageUrl', imageUrl)
             .input('nutritionalInfo', nutritionalInfo)
             .input('isPerishable', isPerishable || 0)
+            .input('initialStock', stockQuantity || 0)
             .query(`
-                INSERT INTO Products (product_name, description, category_id, brand, seller_id, unit, base_price, sale_price, image_url, nutritional_info, is_perishable)
-                VALUES (@name, @description, @categoryId, @brand, @sellerId, @unit, @basePrice, @salePrice, @imageUrl, @nutritionalInfo, @isPerishable);
-                
-                DECLARE @newId INT = SCOPE_IDENTITY();
-                
-                INSERT INTO Inventory (product_id, quantity_in_stock)
-                VALUES (@newId, 0);
-                
-                SELECT @newId AS product_id;
+                BEGIN TRANSACTION;
+                BEGIN TRY
+                    DECLARE @InsertedID TABLE (ID INT);
+                    INSERT INTO Products (product_name, description, category_id, brand, seller_id, unit, base_price, sale_price, image_url, nutritional_info, is_perishable, sku)
+                    OUTPUT INSERTED.product_id INTO @InsertedID
+                    VALUES (@name, @description, @categoryId, @brand, @sellerId, @unit, @basePrice, @salePrice, @imageUrl, @nutritionalInfo, @isPerishable, 'SKU-' + CAST(ABS(CHECKSUM(NEWID())) AS VARCHAR(20)));
+                    DECLARE @newId INT = (SELECT ID FROM @InsertedID);
+                    INSERT INTO Inventory (product_id, quantity_in_stock) VALUES (@newId, @initialStock);
+                    SELECT @newId AS product_id;
+                    COMMIT TRANSACTION;
+                END TRY
+                BEGIN CATCH
+                    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+                    THROW;
+                END CATCH
             `);
         return result.recordset[0].product_id;
     }
 
-    /**
-     * Update an existing product.
-     */
     async updateProduct(productId, productData) {
         const { name, categoryId, brand, basePrice, salePrice, description, imageUrl } = productData;
         await this.pool
@@ -289,9 +270,6 @@ class SellerRepository extends BaseRepository {
             `);
     }
 
-    /**
-     * Delete (soft delete or hard delete) a product.
-     */
     async deleteProduct(productId) {
         await this.pool
             .request()
@@ -302,9 +280,6 @@ class SellerRepository extends BaseRepository {
             `);
     }
 
-    /**
-     * Fetch active flash deals/promotions for this seller.
-     */
     async getSellerPromotions(sellerId) {
         const result = await this.pool
             .request()
@@ -320,31 +295,30 @@ class SellerRepository extends BaseRepository {
                     p.image_url
                 FROM FlashDeals fd
                 INNER JOIN Products p ON fd.product_id = p.product_id
-                WHERE p.seller_id = @sellerId
+                WHERE p.seller_id = @sellerId AND p.is_active = 1
                 ORDER BY fd.start_datetime DESC
             `);
         return result.recordset;
     }
 
-    /**
-     * Create a new flash deal for a product.
-     */
-    async createPromotion({ productId, discountPercentage, startDatetime, endDatetime }) {
+    async createPromotion({ productId, discountPercentage, startDatetime, endDatetime, maxQuantity }) {
         await this.pool
             .request()
             .input('productId', productId)
             .input('discount', discountPercentage)
             .input('start', startDatetime)
             .input('end', endDatetime)
+            .input('maxQty', maxQuantity || 100)
             .query(`
-                INSERT INTO FlashDeals (product_id, discount_percentage, start_datetime, end_datetime, is_active)
-                VALUES (@productId, @discount, @start, @end, 1);
+                INSERT INTO FlashDeals (deal_name, product_id, discount_percentage, start_datetime, end_datetime, max_quantity, is_active, created_by)
+                VALUES (
+                    (SELECT product_name FROM Products WHERE product_id = @productId) + ' - ' + CAST(@discount AS VARCHAR) + '% Off',
+                    @productId, @discount, @start, @end, @maxQty, 1,
+                    (SELECT TOP 1 admin_id FROM Admins)
+                );
             `);
     }
 
-    /**
-     * Delete a flash deal.
-     */
     async deletePromotion(dealId) {
         await this.pool
             .request()
@@ -352,9 +326,6 @@ class SellerRepository extends BaseRepository {
             .query(`DELETE FROM FlashDeals WHERE deal_id = @dealId`);
     }
 
-    /**
-     * Update order status.
-     */
     async updateOrderStatus(orderId, status) {
         await this.pool
             .request()
@@ -363,9 +334,6 @@ class SellerRepository extends BaseRepository {
             .query(`UPDATE Orders SET order_status = @status WHERE order_id = @orderId`);
     }
 
-    /**
-     * Update seller profile.
-     */
     async updateProfile(sellerId, profileData) {
         const { storeName, storeDescription, phone } = profileData;
         await this.pool
@@ -380,24 +348,15 @@ class SellerRepository extends BaseRepository {
                     store_description = @storeDescription,
                     updated_at = GETDATE()
                 WHERE seller_id = @sellerId;
-
-                UPDATE Users
-                SET phone = @phone
-                WHERE user_id = @sellerId;
+                UPDATE Users SET phone = @phone WHERE user_id = @sellerId;
             `);
     }
 
-    /**
-     * Get all categories.
-     */
     async getCategories() {
         const result = await this.pool.request().query(`SELECT category_id, category_name FROM Categories`);
         return result.recordset;
     }
 
-    /**
-     * Fetch earnings history for the seller.
-     */
     async getSellerEarnings(sellerId) {
         const result = await this.pool
             .request()

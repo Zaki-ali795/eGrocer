@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Clock, Package, CheckCircle, XCircle, Eye, X, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { sellerApi, getLoggedInSellerId } from '../services/api';
+import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Orders() {
+  const { sellerId } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -11,13 +13,16 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    if (sellerId) {
+      loadOrders();
+    }
+  }, [sellerId]);
 
   async function loadOrders() {
+    if (!sellerId) return;
     try {
       setLoading(true);
-      const sellerId = getLoggedInSellerId() || 2;
+
       const data = await sellerApi.getOrders(sellerId);
       // Group by order_id since the query returns join results
       const groupedOrders: any = {};

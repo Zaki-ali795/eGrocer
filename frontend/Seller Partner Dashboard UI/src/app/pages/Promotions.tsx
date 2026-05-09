@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Tag, Plus, X, Calendar, Percent, Clock, Loader2 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
-import { sellerApi, getLoggedInSellerId } from '../services/api';
+import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Promotions() {
+  const { sellerId } = useAuth();
   const [promotions, setPromotions] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,12 +20,12 @@ export default function Promotions() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [sellerId]);
 
   async function loadData() {
+    if (!sellerId) return;
     try {
       setLoading(true);
-      const sellerId = getLoggedInSellerId() || 2;
       const [promoData, prodData] = await Promise.all([
         sellerApi.getPromotions(sellerId),
         sellerApi.getProducts(sellerId)
