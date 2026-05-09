@@ -17,12 +17,13 @@ app.use(express.json());
 // ── Health check ────────────────────────────────────────────────
 app.get('/', (req, res) => res.json({ message: '✅ eGrocer API is running.' }));
 
-// ── Routes (add here as features are implemented) ───────────────
 // app.use('/api/auth',        require('./routes/authRoutes'));
+app.use('/api/users',       require('./routes/userRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 // app.use('/api/cart',        require('./routes/cartRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 // app.use('/api/flash-deals', require('./routes/flashDealRoutes'));
+app.use('/api/bids',     require('./routes/bidRoutes'));
 
 // ── Global error handler ────────────────────────────────────────
 app.use(errorHandler);
