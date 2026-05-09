@@ -1,35 +1,45 @@
-import { Users, ShoppingCart, DollarSign, Zap, Package, TrendingUp, TrendingDown, Clock } from 'lucide-react';
+import { Users, ShoppingCart, DollarSign, Zap, Package, TrendingUp, TrendingDown, Clock, Loader2 } from 'lucide-react';
 import { KPICard } from './KPICard';
 import { motion } from 'motion/react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
-
-const revenueData = [
-  { name: 'Jan', revenue: 45000, orders: 320 },
-  { name: 'Feb', revenue: 52000, orders: 380 },
-  { name: 'Mar', revenue: 48000, orders: 350 },
-  { name: 'Apr', revenue: 61000, orders: 430 },
-  { name: 'May', revenue: 55000, orders: 390 },
-  { name: 'Jun', revenue: 67000, orders: 480 },
-  { name: 'Jul', revenue: 72000, orders: 520 },
-];
-
-const categoryData = [
-  { name: 'Fruits', sales: 12500 },
-  { name: 'Vegetables', sales: 9800 },
-  { name: 'Dairy', sales: 15200 },
-  { name: 'Bakery', sales: 8900 },
-  { name: 'Meat', sales: 11300 },
-];
-
-const recentActivities = [
-  { id: 1, type: 'order', message: 'New order #12847 received', time: '2 min ago', icon: ShoppingCart },
-  { id: 2, type: 'refund', message: 'Refund processed for order #12839', time: '15 min ago', icon: DollarSign },
-  { id: 3, type: 'user', message: 'New seller registration: Fresh Farms Co.', time: '1 hour ago', icon: Users },
-  { id: 4, type: 'inventory', message: 'Low stock alert: Organic Bananas', time: '2 hours ago', icon: Package },
-  { id: 5, type: 'order', message: 'Order #12845 marked as delivered', time: '3 hours ago', icon: ShoppingCart },
-];
+import { useState, useEffect } from 'react';
+import { adminApi } from '../services/api';
 
 export function DashboardOverview() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const overview = await adminApi.getDashboardOverview();
+        setData(overview);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (loading) return (
+    <div className="h-full flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
+      <p className="text-red-600 font-semibold text-lg">Failed to load platform data</p>
+      <p className="text-red-500 text-sm mt-1">{error}</p>
+    </div>
+  );
+
+  const { stats, revenueHistory, topCategories, recentActivity } = data;
+
   return (
     <div className="p-8 space-y-8">
       <motion.div
@@ -44,43 +54,43 @@ export function DashboardOverview() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
           title="Total Users"
-          value="24,583"
-          change="+12.5%"
+          value={(stats.customer_count + stats.seller_count).toLocaleString()}
+          change="+0%"
           changeType="positive"
           icon={Users}
           gradient="bg-gradient-to-br from-blue-400 to-blue-600"
           delay={0.1}
-          subtitle={<span>18,234 customers • 6,349 sellers</span>}
+          subtitle={<span>{stats.customer_count.toLocaleString()} customers • {stats.seller_count.toLocaleString()} sellers</span>}
         />
         <KPICard
           title="Today's Orders"
-          value="847"
-          change="+8.2%"
+          value={stats.today_orders.toLocaleString()}
+          change="+0%"
           changeType="positive"
           icon={ShoppingCart}
           gradient="bg-gradient-to-br from-emerald-400 to-emerald-600"
           delay={0.2}
-          subtitle={<span>673 processing • 174 delivered</span>}
+          subtitle={<span>{stats.today_processing} processing • {stats.today_delivered} delivered</span>}
         />
         <KPICard
           title="Revenue (Monthly)"
-          value="Rs 72,400"
-          change="+15.3%"
+          value={`Rs ${stats.monthly_revenue.toLocaleString()}`}
+          change="+0%"
           changeType="positive"
           icon={DollarSign}
           gradient="bg-gradient-to-br from-amber-400 to-amber-600"
           delay={0.3}
-          subtitle={<span>Rs 2,413 avg order value</span>}
+          subtitle={<span>Rs {(stats.monthly_revenue / (stats.today_orders || 1)).toFixed(0)} avg order value</span>}
         />
         <KPICard
           title="Active Flash Deals"
-          value="12"
-          change="3 ending soon"
+          value={stats.active_flash_deals.toString()}
+          change="Live now"
           changeType="neutral"
           icon={Zap}
           gradient="bg-gradient-to-br from-orange-400 to-orange-600"
           delay={0.4}
-          subtitle={<span>89% avg engagement rate</span>}
+          subtitle={<span>Across all categories</span>}
         />
       </div>
 
@@ -94,7 +104,7 @@ export function DashboardOverview() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">Revenue Overview</h2>
-              <p className="font-['Manrope'] text-sm text-gray-500">Last 7 months performance</p>
+              <p className="font-['Manrope'] text-sm text-gray-500">Platform performance</p>
             </div>
             <div className="flex gap-4">
               <div className="flex items-center gap-2">
@@ -108,7 +118,7 @@ export function DashboardOverview() {
             </div>
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={revenueData}>
+            <AreaChart data={revenueHistory}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#1a3a2e" stopOpacity={0.3}/>
@@ -145,7 +155,7 @@ export function DashboardOverview() {
           <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900 mb-2">Top Categories</h2>
           <p className="font-['Manrope'] text-sm text-gray-500 mb-6">By sales volume</p>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={categoryData}>
+            <BarChart data={topCategories}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="name" stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 11 }} angle={-45} textAnchor="end" height={80} />
               <YAxis stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
@@ -177,11 +187,11 @@ export function DashboardOverview() {
           <button className="font-['Manrope'] text-sm text-[#1a3a2e] hover:text-[#2a5f4a] font-semibold">View All</button>
         </div>
         <div className="space-y-4">
-          {recentActivities.map((activity, index) => {
-            const Icon = activity.icon;
+          {recentActivity.map((activity: any, index: number) => {
+            const Icon = activity.type === 'order' ? ShoppingCart : activity.type === 'user' ? Users : Package;
             return (
               <motion.div
-                key={activity.id}
+                key={index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.8 + index * 0.1, duration: 0.4 }}
@@ -194,7 +204,7 @@ export function DashboardOverview() {
                   <p className="font-['Manrope'] text-sm text-gray-900">{activity.message}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <Clock className="w-3 h-3 text-gray-400" />
-                    <span className="font-['Manrope'] text-xs text-gray-500">{activity.time}</span>
+                    <span className="font-['Manrope'] text-xs text-gray-500">{new Date(activity.time).toLocaleString()}</span>
                   </div>
                 </div>
               </motion.div>
@@ -216,10 +226,10 @@ export function DashboardOverview() {
             </div>
             <div>
               <p className="font-['Manrope'] text-xs text-emerald-700">Inventory Health</p>
-              <p className="font-['Crimson_Pro'] text-2xl font-bold text-emerald-900">92%</p>
+              <p className="font-['Crimson_Pro'] text-2xl font-bold text-emerald-900">Good</p>
             </div>
           </div>
-          <p className="font-['Manrope'] text-sm text-emerald-700">347 products well-stocked</p>
+          <p className="font-['Manrope'] text-sm text-emerald-700">{stats.low_stock_count} products need attention</p>
         </motion.div>
 
         <motion.div
@@ -234,10 +244,10 @@ export function DashboardOverview() {
             </div>
             <div>
               <p className="font-['Manrope'] text-xs text-orange-700">Low Stock Alert</p>
-              <p className="font-['Crimson_Pro'] text-2xl font-bold text-orange-900">23</p>
+              <p className="font-['Crimson_Pro'] text-2xl font-bold text-orange-900">{stats.low_stock_count}</p>
             </div>
           </div>
-          <p className="font-['Manrope'] text-sm text-orange-700">Products need restocking</p>
+          <p className="font-['Manrope'] text-sm text-orange-700">Restock recommended soon</p>
         </motion.div>
 
         <motion.div
@@ -251,11 +261,11 @@ export function DashboardOverview() {
               <TrendingDown className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-['Manrope'] text-xs text-red-700">Pending Refunds</p>
-              <p className="font-['Crimson_Pro'] text-2xl font-bold text-red-900">Rs 3,240</p>
+              <p className="font-['Manrope'] text-xs text-red-700">Pending Requests</p>
+              <p className="font-['Crimson_Pro'] text-2xl font-bold text-red-900">{stats.pending_refunds_count}</p>
             </div>
           </div>
-          <p className="font-['Manrope'] text-sm text-red-700">8 refund requests awaiting</p>
+          <p className="font-['Manrope'] text-sm text-red-700">Awaiting administrative action</p>
         </motion.div>
       </div>
     </div>
