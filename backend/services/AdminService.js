@@ -60,6 +60,64 @@ class AdminService {
     async getProductRequests() {
         return await this.adminRepository.getAllProductRequests();
     }
+
+    // --- WRITE OPERATIONS ---
+
+    async createProduct(data) {
+        return await this.adminRepository.createProduct(data);
+    }
+
+    async updateProduct(id, data) {
+        return await this.adminRepository.updateProduct(id, data);
+    }
+
+    async deleteProduct(id) {
+        return await this.adminRepository.deleteProduct(id);
+    }
+
+    async createCategory(data) {
+        return await this.adminRepository.createCategory(data);
+    }
+
+    async updateCategory(id, data) {
+        return await this.adminRepository.updateCategory(id, data);
+    }
+
+    async deleteCategory(id) {
+        return await this.adminRepository.deleteCategory(id);
+    }
+
+    async updateOrderStatus(id, status) {
+        return await this.adminRepository.updateOrderStatus(id, status);
+    }
+
+    async adjustStock(productId, quantity) {
+        return await this.adminRepository.adjustStock(productId, quantity);
+    }
+
+    async createFlashDeal(data) {
+        return await this.adminRepository.createFlashDeal(data);
+    }
+
+    async endFlashDeal(id) {
+        return await this.adminRepository.endFlashDeal(id);
+    }
+
+    async createPromotion(data) {
+        return await this.adminRepository.createPromotion(data);
+    }
+
+    async deletePromotion(id) {
+        return await this.adminRepository.deletePromotion(id);
+    }
+
+    async toggleUserStatus(id, isActive) {
+        return await this.adminRepository.toggleUserStatus(id, isActive);
+    }
+
+    async updateSettings(data) {
+        return await this.adminRepository.updateSettings(data);
+    }
 }
 
 module.exports = AdminService;

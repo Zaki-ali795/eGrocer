@@ -18,19 +18,36 @@ export function InventoryManagement() {
   const [filter, setFilter] = useState<'all' | 'good' | 'low' | 'critical' | 'out'>('all');
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const data = await adminApi.getInventory();
-        setInventory(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const data = await adminApi.getInventory();
+      setInventory(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
+
+  const handleAdjustStock = async (id: string) => {
+    const amount = window.prompt('Enter amount to add (positive) or subtract (negative):');
+    if (amount) {
+      const quantity = parseInt(amount);
+      if (!isNaN(quantity)) {
+        try {
+          await adminApi.adjustStock(id, quantity);
+          loadData();
+        } catch (err: any) {
+          alert(err.message);
+        }
+      }
+    }
+  };
 
   const getStatus = (item: InventoryItem) => {
     if (item.stock <= 0) return 'out';
@@ -65,6 +82,7 @@ export function InventoryManagement() {
     <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
       <p className="text-red-600 font-semibold text-lg">Failed to load inventory</p>
       <p className="text-red-500 text-sm mt-1">{error}</p>
+      <button onClick={loadData} className="mt-4 text-emerald-600 font-bold underline">Try Again</button>
     </div>
   );
 
@@ -245,7 +263,10 @@ export function InventoryManagement() {
                     </span>
                   </td>
                   <td className="py-4 px-4">
-                    <button className="px-4 py-2 bg-[#1a3a2e] text-white rounded-xl font-['Manrope'] text-sm font-medium hover:bg-[#234d3e] transition-colors">
+                    <button 
+                      onClick={() => handleAdjustStock(item.id)}
+                      className="px-4 py-2 bg-[#1a3a2e] text-white rounded-xl font-['Manrope'] text-sm font-medium hover:bg-[#234d3e] transition-colors"
+                    >
                       Adjust Stock
                     </button>
                   </td>

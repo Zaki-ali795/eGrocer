@@ -1,40 +1,140 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Eye, Loader2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Plus, Search, Filter, Edit, Trash2, Eye, Loader2, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { adminApi } from '../services/api';
 
 interface Product {
   id: string;
   name: string;
   category: string;
+  category_id?: number;
   brand: string;
   price: number;
   stock: number;
-  status: 'active' | 'inactive';
+  status: string;
   image: string;
+  description?: string;
+  sku?: string;
+  unit?: string;
+  nutritional_info?: string;
+  is_perishable?: boolean;
 }
 
 export function ProductsManagement() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    categoryId: '',
+    brand: '',
+    sku: '',
+    unit: 'piece',
+    basePrice: '',
+    salePrice: '',
+    imageUrl: '',
+    nutritionalInfo: '',
+    isPerishable: false,
+    stock: ''
+  });
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [productsData, categoriesData] = await Promise.all([
+        adminApi.getProducts(),
+        adminApi.getCategories()
+      ]);
+      setProducts(productsData);
+      setCategories(categoriesData);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const data = await adminApi.getProducts();
-        setProducts(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadData();
   }, []);
+
+  const handleOpenModal = (product: Product | null = null) => {
+    if (product) {
+      setEditingProduct(product);
+      setFormData({
+        name: product.name,
+        description: product.description || '',
+        categoryId: product.category_id?.toString() || '',
+        brand: product.brand,
+        sku: product.sku || '',
+        unit: product.unit || 'piece',
+        basePrice: product.price.toString(),
+        salePrice: '',
+        imageUrl: product.image,
+        nutritionalInfo: product.nutritional_info || '',
+        isPerishable: product.is_perishable || false,
+        stock: product.stock.toString()
+      });
+    } else {
+      setEditingProduct(null);
+      setFormData({
+        name: '',
+        description: '',
+        categoryId: '',
+        brand: '',
+        sku: `SKU-${Math.floor(Math.random() * 10000)}`,
+        unit: 'piece',
+        basePrice: '',
+        salePrice: '',
+        imageUrl: '',
+        nutritionalInfo: '',
+        isPerishable: false,
+        stock: '0'
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = {
+        ...formData,
+        categoryId: parseInt(formData.categoryId),
+        basePrice: parseFloat(formData.basePrice),
+        salePrice: formData.salePrice ? parseFloat(formData.salePrice) : null,
+        stock: parseInt(formData.stock)
+      };
+
+      if (editingProduct) {
+        await adminApi.updateProduct(editingProduct.id, data);
+      } else {
+        await adminApi.createProduct(data);
+      }
+      setIsModalOpen(false);
+      loadData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      try {
+        await adminApi.deleteProduct(id);
+        loadData();
+      } catch (err: any) {
+        alert(err.message);
+      }
+    }
+  };
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -42,7 +142,7 @@ export function ProductsManagement() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = Array.from(new Set(products.map(p => p.category)));
+  const categoryList = Array.from(new Set(products.map(p => p.category)));
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">
@@ -54,6 +154,7 @@ export function ProductsManagement() {
     <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
       <p className="text-red-600 font-semibold text-lg">Failed to load products</p>
       <p className="text-red-500 text-sm mt-1">{error}</p>
+      <button onClick={loadData} className="mt-4 text-emerald-600 font-bold underline">Try Again</button>
     </div>
   );
 
@@ -71,6 +172,7 @@ export function ProductsManagement() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          onClick={() => handleOpenModal()}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1a3a2e] to-[#2a5f4a] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           <Plus className="w-5 h-5" />
@@ -101,7 +203,7 @@ export function ProductsManagement() {
             className="px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
           >
             <option value="all">All Categories</option>
-            {categories.map(cat => (
+            {categoryList.map(cat => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
@@ -180,10 +282,18 @@ export function ProductsManagement() {
                       <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="View">
                         <Eye className="w-4 h-4 text-gray-600" />
                       </button>
-                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Edit">
+                      <button 
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors" 
+                        title="Edit"
+                        onClick={() => handleOpenModal(product)}
+                      >
                         <Edit className="w-4 h-4 text-gray-600" />
                       </button>
-                      <button className="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                      <button 
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors" 
+                        title="Delete"
+                        onClick={() => handleDelete(product.id)}
+                      >
                         <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
                     </div>
@@ -193,21 +303,166 @@ export function ProductsManagement() {
             </tbody>
           </table>
         </div>
-
-        <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-100">
-          <p className="font-['Manrope'] text-sm text-gray-600">
-            Showing {filteredProducts.length} of {products.length} products
-          </p>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 bg-gray-100 rounded-xl font-['Manrope'] text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
-              Previous
-            </button>
-            <button className="px-4 py-2 bg-[#1a3a2e] text-white rounded-xl font-['Manrope'] text-sm font-medium hover:bg-[#234d3e] transition-colors">
-              Next
-            </button>
-          </div>
-        </div>
       </motion.div>
+
+      {/* Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">
+                  {editingProduct ? 'Edit Product' : 'Add New Product'}
+                </h2>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSave} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Product Name</label>
+                    <input
+                      required
+                      type="text"
+                      value={formData.name}
+                      onChange={e => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Category</label>
+                    <select
+                      required
+                      value={formData.categoryId}
+                      onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((cat: any) => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={e => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none h-24"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Brand</label>
+                    <input
+                      type="text"
+                      value={formData.brand}
+                      onChange={e => setFormData({ ...formData, brand: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">SKU</label>
+                    <input
+                      required
+                      type="text"
+                      value={formData.sku}
+                      onChange={e => setFormData({ ...formData, sku: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Price (Rs)</label>
+                    <input
+                      required
+                      type="number"
+                      value={formData.basePrice}
+                      onChange={e => setFormData({ ...formData, basePrice: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Stock</label>
+                    <input
+                      required
+                      type="number"
+                      value={formData.stock}
+                      onChange={e => setFormData({ ...formData, stock: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Unit</label>
+                    <input
+                      type="text"
+                      value={formData.unit}
+                      onChange={e => setFormData({ ...formData, unit: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Image URL</label>
+                  <input
+                    type="url"
+                    value={formData.imageUrl}
+                    onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <input
+                    type="checkbox"
+                    id="isPerishable"
+                    checked={formData.isPerishable}
+                    onChange={e => setFormData({ ...formData, isPerishable: e.target.checked })}
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <label htmlFor="isPerishable" className="text-sm font-medium text-gray-700">Perishable Item</label>
+                </div>
+
+                <div className="flex gap-4 pt-6">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#1a3a2e] to-[#2a5f4a] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    {editingProduct ? 'Update Product' : 'Create Product'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

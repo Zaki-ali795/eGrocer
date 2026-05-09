@@ -13,6 +13,22 @@ class AdminController {
         this.getPromotions = this.getPromotions.bind(this);
         this.getPayments = this.getPayments.bind(this);
         this.getProductRequests = this.getProductRequests.bind(this);
+
+        // Bind write methods
+        this.createProduct = this.createProduct.bind(this);
+        this.updateProduct = this.updateProduct.bind(this);
+        this.deleteProduct = this.deleteProduct.bind(this);
+        this.createCategory = this.createCategory.bind(this);
+        this.updateCategory = this.updateCategory.bind(this);
+        this.deleteCategory = this.deleteCategory.bind(this);
+        this.updateOrderStatus = this.updateOrderStatus.bind(this);
+        this.adjustStock = this.adjustStock.bind(this);
+        this.createFlashDeal = this.createFlashDeal.bind(this);
+        this.endFlashDeal = this.endFlashDeal.bind(this);
+        this.createPromotion = this.createPromotion.bind(this);
+        this.deletePromotion = this.deletePromotion.bind(this);
+        this.toggleUserStatus = this.toggleUserStatus.bind(this);
+        this.updateSettings = this.updateSettings.bind(this);
     }
 
     async getDashboardOverview(req, res, next) {
@@ -100,6 +116,134 @@ class AdminController {
         try {
             const data = await this.adminService.getProductRequests();
             res.json({ success: true, data });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    // --- WRITE OPERATIONS ---
+
+    async createProduct(req, res, next) {
+        try {
+            const result = await this.adminService.createProduct(req.body);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async updateProduct(req, res, next) {
+        try {
+            const result = await this.adminService.updateProduct(req.params.id, req.body);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async deleteProduct(req, res, next) {
+        try {
+            const result = await this.adminService.deleteProduct(req.params.id);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async createCategory(req, res, next) {
+        try {
+            const result = await this.adminService.createCategory(req.body);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async updateCategory(req, res, next) {
+        try {
+            const result = await this.adminService.updateCategory(req.params.id, req.body);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async deleteCategory(req, res, next) {
+        try {
+            const result = await this.adminService.deleteCategory(req.params.id);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async updateOrderStatus(req, res, next) {
+        try {
+            const result = await this.adminService.updateOrderStatus(req.params.id, req.body.status);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async adjustStock(req, res, next) {
+        try {
+            const result = await this.adminService.adjustStock(req.params.id, req.body.quantity);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async createFlashDeal(req, res, next) {
+        try {
+            const result = await this.adminService.createFlashDeal(req.body);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async endFlashDeal(req, res, next) {
+        try {
+            const result = await this.adminService.endFlashDeal(req.params.id);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async createPromotion(req, res, next) {
+        try {
+            const result = await this.adminService.createPromotion(req.body);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async deletePromotion(req, res, next) {
+        try {
+            const result = await this.adminService.deletePromotion(req.params.id);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async toggleUserStatus(req, res, next) {
+        try {
+            const result = await this.adminService.toggleUserStatus(req.params.id, req.body.isActive);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async updateSettings(req, res, next) {
+        try {
+            const result = await this.adminService.updateSettings(req.body);
+            res.json({ success: true, data: result });
         } catch (err) {
             next(err);
         }

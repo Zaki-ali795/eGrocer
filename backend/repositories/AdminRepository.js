@@ -264,6 +264,197 @@ class AdminRepository extends BaseRepository {
         `);
         return result.recordset;
     }
+
+    // --- WRITE OPERATIONS ---
+
+    async createProduct(data) {
+        const transaction = new this.sql.Transaction(this.pool);
+        try {
+            await transaction.begin();
+            const result = await transaction.request()
+                .input('name', this.sql.VarChar, data.name)
+                .input('description', this.sql.VarChar, data.description)
+                .input('categoryId', this.sql.Int, data.categoryId)
+                .input('brand', this.sql.VarChar, data.brand)
+                .input('sku', this.sql.VarChar, data.sku)
+                .input('unit', this.sql.VarChar, data.unit)
+                .input('basePrice', this.sql.Decimal(10, 2), data.basePrice)
+                .input('salePrice', this.sql.Decimal(10, 2), data.salePrice)
+                .input('imageUrl', this.sql.VarChar, data.imageUrl)
+                .input('nutritionalInfo', this.sql.VarChar, data.nutritionalInfo)
+                .input('isPerishable', this.sql.Bit, data.isPerishable ? 1 : 0)
+                .query(`
+                    INSERT INTO Products (product_name, description, category_id, brand, sku, unit, base_price, sale_price, image_url, nutritional_info, is_perishable)
+                    OUTPUT INSERTED.product_id
+                    VALUES (@name, @description, @categoryId, @brand, @sku, @unit, @basePrice, @salePrice, @imageUrl, @nutritionalInfo, @isPerishable)
+                `);
+            
+            const productId = result.recordset[0].product_id;
+
+            // Initialize inventory
+            await transaction.request()
+                .input('productId', this.sql.Int, productId)
+                .input('quantity', this.sql.Int, data.stock || 0)
+                .input('reorderLevel', this.sql.Int, 10)
+                .query(`
+                    INSERT INTO Inventory (product_id, quantity_in_stock, reorder_level, last_restocked_date)
+                    VALUES (@productId, @quantity, @reorderLevel, GETDATE())
+                `);
+
+            await transaction.commit();
+            return { success: true, productId };
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
+    }
+
+    async updateProduct(id, data) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, id)
+            .input('name', this.sql.VarChar, data.name)
+            .input('description', this.sql.VarChar, data.description)
+            .input('categoryId', this.sql.Int, data.categoryId)
+            .input('brand', this.sql.VarChar, data.brand)
+            .input('basePrice', this.sql.Decimal(10, 2), data.basePrice)
+            .input('salePrice', this.sql.Decimal(10, 2), data.salePrice)
+            .input('imageUrl', this.sql.VarChar, data.imageUrl)
+            .input('isActive', this.sql.Bit, data.isActive ? 1 : 0)
+            .query(`
+                UPDATE Products 
+                SET product_name = @name, description = @description, category_id = @categoryId, 
+                    brand = @brand, base_price = @basePrice, sale_price = @salePrice, 
+                    image_url = @imageUrl, is_active = @isActive, updated_at = GETDATE()
+                WHERE product_id = @id
+            `);
+        return result.rowsAffected[0] > 0;
+    }
+
+    async deleteProduct(id) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, id)
+            .query('DELETE FROM Products WHERE product_id = @id');
+        return result.rowsAffected[0] > 0;
+    }
+
+    async createCategory(data) {
+        const result = await this.pool.request()
+            .input('name', this.sql.VarChar, data.name)
+            .input('description', this.sql.VarChar, data.description)
+            .input('imageUrl', this.sql.VarChar, data.imageUrl)
+            .input('parentId', this.sql.Int, data.parentId || null)
+            .query(`
+                INSERT INTO Categories (category_name, description, image_url, parent_category_id)
+                VALUES (@name, @description, @imageUrl, @parentId)
+            `);
+        return result.rowsAffected[0] > 0;
+    }
+
+    async updateCategory(id, data) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, id)
+            .input('name', this.sql.VarChar, data.name)
+            .input('description', this.sql.VarChar, data.description)
+            .input('imageUrl', this.sql.VarChar, data.imageUrl)
+            .input('isActive', this.sql.Bit, data.isActive ? 1 : 0)
+            .query(`
+                UPDATE Categories 
+                SET category_name = @name, description = @description, image_url = @imageUrl, is_active = @isActive
+                WHERE category_id = @id
+            `);
+        return result.rowsAffected[0] > 0;
+    }
+
+    async deleteCategory(id) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, id)
+            .query('DELETE FROM Categories WHERE category_id = @id');
+        return result.rowsAffected[0] > 0;
+    }
+
+    async updateOrderStatus(id, status) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, id)
+            .input('status', this.sql.VarChar, status)
+            .query('UPDATE Orders SET order_status = @status, updated_at = GETDATE() WHERE order_id = @id');
+        return result.rowsAffected[0] > 0;
+    }
+
+    async adjustStock(productId, quantity) {
+        const result = await this.pool.request()
+            .input('productId', this.sql.Int, productId)
+            .input('quantity', this.sql.Int, quantity)
+            .query(`
+                UPDATE Inventory 
+                SET quantity_in_stock = quantity_in_stock + @quantity, 
+                    last_restocked_date = CASE WHEN @quantity > 0 THEN GETDATE() ELSE last_restocked_date END,
+                    updated_at = GETDATE()
+                WHERE product_id = @productId
+            `);
+        return result.rowsAffected[0] > 0;
+    }
+
+    async createFlashDeal(data) {
+        const result = await this.pool.request()
+            .input('name', this.sql.VarChar, data.name)
+            .input('description', this.sql.VarChar, data.description)
+            .input('productId', this.sql.Int, data.productId)
+            .input('discount', this.sql.Decimal(5, 2), data.discount)
+            .input('price', this.sql.Decimal(10, 2), data.price)
+            .input('start', this.sql.DateTime, data.start)
+            .input('end', this.sql.DateTime, data.end)
+            .input('max', this.sql.Int, data.max)
+            .input('adminId', this.sql.Int, data.adminId)
+            .query(`
+                INSERT INTO FlashDeals (deal_name, description, product_id, discount_percentage, deal_price, start_datetime, end_datetime, max_quantity, created_by)
+                VALUES (@name, @description, @productId, @discount, @price, @start, @end, @max, @adminId)
+            `);
+        return result.rowsAffected[0] > 0;
+    }
+
+    async endFlashDeal(id) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, id)
+            .query('UPDATE FlashDeals SET is_active = 0, end_datetime = GETDATE() WHERE deal_id = @id');
+        return result.rowsAffected[0] > 0;
+    }
+
+    async createPromotion(data) {
+        const result = await this.pool.request()
+            .input('code', this.sql.VarChar, data.code)
+            .input('description', this.sql.VarChar, data.description)
+            .input('type', this.sql.VarChar, data.type)
+            .input('value', this.sql.Decimal(10, 2), data.value)
+            .input('minOrder', this.sql.Decimal(10, 2), data.minOrder)
+            .input('limit', this.sql.Int, data.limit)
+            .input('start', this.sql.DateTime, data.start)
+            .input('end', this.sql.DateTime, data.end)
+            .input('adminId', this.sql.Int, data.adminId)
+            .query(`
+                INSERT INTO PromoCodes (code, description, discount_type, discount_value, minimum_order_amount, usage_limit, valid_from, valid_until, created_by)
+                VALUES (@code, @description, @type, @value, @minOrder, @limit, @start, @end, @adminId)
+            `);
+        return result.rowsAffected[0] > 0;
+    }
+
+    async deletePromotion(id) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, id)
+            .query('DELETE FROM PromoCodes WHERE promo_id = @id');
+        return result.rowsAffected[0] > 0;
+    }
+
+    async toggleUserStatus(id, isActive) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, id)
+            .input('isActive', this.sql.Bit, isActive ? 1 : 0)
+            .query('UPDATE Users SET is_active = @isActive, updated_at = GETDATE() WHERE user_id = @id');
+        return result.rowsAffected[0] > 0;
+    }
+
+    async updateSettings(data) {
+        return true;
+    }
 }
 
 module.exports = AdminRepository;

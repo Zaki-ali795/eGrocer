@@ -1,42 +1,91 @@
 import { useState, useEffect } from 'react';
-import { Zap, Plus, Clock, TrendingUp, Loader2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Zap, Plus, Clock, TrendingUp, Loader2, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { adminApi } from '../services/api';
 
 interface FlashDeal {
   id: string;
   product: string;
+  product_id?: number;
   discount: number;
   originalPrice: number;
   startTime: string;
   endTime: string;
-  status: 'active' | 'inactive';
+  status: string;
   sold: number;
   max: number;
 }
 
 export function FlashDealsManagement() {
   const [deals, setDeals] = useState<FlashDeal[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showActive, setShowActive] = useState(true);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const data = await adminApi.getFlashDeals();
-        setDeals(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    productId: '',
+    discount: '10',
+    price: '',
+    start: '',
+    end: '',
+    max: '50'
+  });
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [dealsData, productsData] = await Promise.all([
+        adminApi.getFlashDeals(),
+        adminApi.getProducts()
+      ]);
+      setDeals(dealsData);
+      setProducts(productsData);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
 
-  const filteredDeals = deals.filter(deal => showActive ? deal.status === 'active' : deal.status === 'inactive');
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = {
+        ...formData,
+        productId: parseInt(formData.productId),
+        discount: parseFloat(formData.discount),
+        price: parseFloat(formData.price),
+        max: parseInt(formData.max),
+        adminId: 1 // Default admin ID
+      };
+      await adminApi.createFlashDeal(data);
+      setIsModalOpen(false);
+      loadData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleEndEarly = async (id: string) => {
+    if (window.confirm('Are you sure you want to end this flash deal early?')) {
+      try {
+        await adminApi.endFlashDeal(id);
+        loadData();
+      } catch (err: any) {
+        alert(err.message);
+      }
+    }
+  };
+
+  const filteredDeals = deals.filter(deal => showActive ? deal.status === 'active' : deal.status !== 'active');
 
   const calculateTimeLeft = (endTime: string) => {
     const end = new Date(endTime);
@@ -61,6 +110,7 @@ export function FlashDealsManagement() {
     <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
       <p className="text-red-600 font-semibold text-lg">Failed to load flash deals</p>
       <p className="text-red-500 text-sm mt-1">{error}</p>
+      <button onClick={loadData} className="mt-4 text-[#ff6b35] font-bold underline">Try Again</button>
     </div>
   );
 
@@ -78,6 +128,7 @@ export function FlashDealsManagement() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#ff6b35] to-[#ff8c42] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           <Plus className="w-5 h-5" />
@@ -188,13 +239,152 @@ export function FlashDealsManagement() {
               <button className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-gray-200 transition-colors">
                 Edit
               </button>
-              <button className="flex-1 px-4 py-2 bg-red-50 text-red-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-red-100 transition-colors">
+              <button 
+                onClick={() => handleEndEarly(deal.id)}
+                className="flex-1 px-4 py-2 bg-red-50 text-red-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-red-100 transition-colors"
+              >
                 {deal.status === 'active' ? 'End Early' : 'Delete'}
               </button>
             </div>
           </motion.div>
         ))}
       </div>
+
+      {/* Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">Create Flash Deal</h2>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Deal Name</label>
+                  <input
+                    required
+                    type="text"
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#ff6b35]/20 focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Product</label>
+                  <select
+                    required
+                    value={formData.productId}
+                    onChange={e => {
+                      const prod = products.find(p => p.id === e.target.value);
+                      setFormData({ 
+                        ...formData, 
+                        productId: e.target.value,
+                        price: prod ? (prod.price * (1 - parseFloat(formData.discount) / 100)).toString() : ''
+                      });
+                    }}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#ff6b35]/20 focus:outline-none"
+                  >
+                    <option value="">Select Product</option>
+                    {products.map(prod => (
+                      <option key={prod.id} value={prod.id}>{prod.name} (Rs {prod.price})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Discount (%)</label>
+                    <input
+                      required
+                      type="number"
+                      value={formData.discount}
+                      onChange={e => setFormData({ ...formData, discount: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#ff6b35]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Deal Price</label>
+                    <input
+                      required
+                      type="number"
+                      value={formData.price}
+                      onChange={e => setFormData({ ...formData, price: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#ff6b35]/20 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Start Time</label>
+                    <input
+                      required
+                      type="datetime-local"
+                      value={formData.start}
+                      onChange={e => setFormData({ ...formData, start: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#ff6b35]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">End Time</label>
+                    <input
+                      required
+                      type="datetime-local"
+                      value={formData.end}
+                      onChange={e => setFormData({ ...formData, end: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#ff6b35]/20 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Max Quantity</label>
+                  <input
+                    required
+                    type="number"
+                    value={formData.max}
+                    onChange={e => setFormData({ ...formData, max: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#ff6b35]/20 focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex gap-4 pt-6">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#ff6b35] to-[#ff8c42] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    Create Deal
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

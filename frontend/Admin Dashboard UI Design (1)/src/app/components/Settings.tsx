@@ -1,7 +1,25 @@
+import { useState } from 'react';
 import { Settings as SettingsIcon, Shield, CreditCard, Percent, Bell, Globe } from 'lucide-react';
 import { motion } from 'motion/react';
+import { adminApi } from '../services/api';
 
 export function Settings() {
+  const [taxRate, setTaxRate] = useState('8.5');
+  const [taxId, setTaxId] = useState('US-TAX-123456');
+  const [saving, setSaving] = useState(false);
+
+  const handleSaveSettings = async () => {
+    try {
+      setSaving(true);
+      await adminApi.updateSettings({ taxRate, taxId });
+      alert('Settings saved successfully!');
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="p-8 space-y-6">
       <motion.div
@@ -34,7 +52,8 @@ export function Settings() {
               <label className="font-['Manrope'] text-sm font-semibold text-gray-700 mb-2 block">Default Tax Rate (%)</label>
               <input
                 type="number"
-                defaultValue="8.5"
+                value={taxRate}
+                onChange={(e) => setTaxRate(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
               />
             </div>
@@ -42,12 +61,17 @@ export function Settings() {
               <label className="font-['Manrope'] text-sm font-semibold text-gray-700 mb-2 block">Tax ID</label>
               <input
                 type="text"
-                defaultValue="US-TAX-123456"
+                value={taxId}
+                onChange={(e) => setTaxId(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
               />
             </div>
-            <button className="w-full px-6 py-3 bg-[#1a3a2e] text-white rounded-xl font-['Manrope'] font-semibold hover:bg-[#234d3e] transition-colors">
-              Save Tax Settings
+            <button 
+              onClick={handleSaveSettings}
+              disabled={saving}
+              className="w-full px-6 py-3 bg-[#1a3a2e] text-white rounded-xl font-['Manrope'] font-semibold hover:bg-[#234d3e] transition-colors disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save Tax Settings'}
             </button>
           </div>
         </motion.div>

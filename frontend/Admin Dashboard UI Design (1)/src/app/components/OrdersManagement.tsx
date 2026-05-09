@@ -31,19 +31,30 @@ export function OrdersManagement() {
   const [selectedStatus, setSelectedStatus] = useState('all');
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const data = await adminApi.getOrders();
-        setOrders(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const data = await adminApi.getOrders();
+      setOrders(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
+
+  const handleStatusUpdate = async (id: string, newStatus: string) => {
+    try {
+      await adminApi.updateOrderStatus(id, newStatus);
+      loadData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -62,6 +73,7 @@ export function OrdersManagement() {
     <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
       <p className="text-red-600 font-semibold text-lg">Failed to load orders</p>
       <p className="text-red-500 text-sm mt-1">{error}</p>
+      <button onClick={loadData} className="mt-4 text-emerald-600 font-bold underline">Try Again</button>
     </div>
   );
 
@@ -175,10 +187,15 @@ export function OrdersManagement() {
                       <span className="font-['Manrope'] font-semibold text-gray-900">Rs {order.total.toLocaleString()}</span>
                     </td>
                     <td className="py-4 px-4">
-                      <span className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-['Manrope'] font-semibold ${statusInfo.color} w-fit`}>
-                        <StatusIcon className="w-3 h-3" />
-                        {statusInfo.label}
-                      </span>
+                      <select
+                        value={order.status}
+                        onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                        className={`px-3 py-1 rounded-full text-xs font-['Manrope'] font-semibold ${statusInfo.color} border-none focus:ring-0 cursor-pointer`}
+                      >
+                        {Object.keys(statusConfig).map(statusKey => (
+                          <option key={statusKey} value={statusKey}>{statusConfig[statusKey].label}</option>
+                        ))}
+                      </select>
                     </td>
                     <td className="py-4 px-4">
                       <span className="font-['Manrope'] text-sm text-gray-600">{new Date(order.date).toLocaleDateString()}</span>
@@ -193,20 +210,6 @@ export function OrdersManagement() {
               })}
             </tbody>
           </table>
-        </div>
-
-        <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-100">
-          <p className="font-['Manrope'] text-sm text-gray-600">
-            Showing {filteredOrders.length} of {orders.length} orders
-          </p>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 bg-gray-100 rounded-xl font-['Manrope'] text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
-              Previous
-            </button>
-            <button className="px-4 py-2 bg-[#1a3a2e] text-white rounded-xl font-['Manrope'] text-sm font-medium hover:bg-[#234d3e] transition-colors">
-              Next
-            </button>
-          </div>
         </div>
       </motion.div>
     </div>

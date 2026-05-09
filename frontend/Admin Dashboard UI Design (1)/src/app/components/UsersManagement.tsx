@@ -23,20 +23,35 @@ export function UsersManagement() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const data = await adminApi.getUsers();
-        setUsers(data.users);
-        setStats(data.stats);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const data = await adminApi.getUsers();
+      setUsers(data.users);
+      setStats(data.stats);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
+
+  const handleToggleStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? false : true;
+    const action = currentStatus === 'active' ? 'disable' : 'enable';
+    if (window.confirm(`Are you sure you want to ${action} this user?`)) {
+      try {
+        await adminApi.toggleUserStatus(id, newStatus);
+        loadData();
+      } catch (err: any) {
+        alert(err.message);
+      }
+    }
+  };
 
   const filteredUsers = users.filter(user => {
     const matchesFilter = filter === 'all' || user.type === filter;
@@ -55,6 +70,7 @@ export function UsersManagement() {
     <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
       <p className="text-red-600 font-semibold text-lg">Failed to load users data</p>
       <p className="text-red-500 text-sm mt-1">{error}</p>
+      <button onClick={loadData} className="mt-4 text-emerald-600 font-bold underline">Try Again</button>
     </div>
   );
 
@@ -224,8 +240,12 @@ export function UsersManagement() {
                       <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="View Profile">
                         <Eye className="w-4 h-4 text-gray-600" />
                       </button>
-                      <button className="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Disable Account">
-                        <Ban className="w-4 h-4 text-red-600" />
+                      <button 
+                        onClick={() => handleToggleStatus(user.id, user.status)}
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors" 
+                        title={user.status === 'active' ? 'Disable Account' : 'Enable Account'}
+                      >
+                        <Ban className={`w-4 h-4 ${user.status === 'active' ? 'text-red-600' : 'text-emerald-600'}`} />
                       </button>
                     </div>
                   </td>
