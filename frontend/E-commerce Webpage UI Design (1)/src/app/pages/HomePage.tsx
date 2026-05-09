@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import { Hero } from '../components/Hero';
 import { ProductCard } from '../components/ProductCard';
@@ -9,6 +10,7 @@ interface HomePageProps {
 }
 
 export function HomePage({ onAddToCart }: HomePageProps) {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,9 +28,13 @@ export function HomePage({ onAddToCart }: HomePageProps) {
     }
   };
 
+  const handleHowBiddingWorks = () => {
+    navigate('/requests');
+  };
+
   return (
     <>
-      <Hero onStartShopping={handleStartShopping} />
+      <Hero onStartShopping={handleStartShopping} onHowBiddingWorks={handleHowBiddingWorks} />
 
       {/* Featured Products Section */}
       <section id="products-section" className="py-16 bg-gradient-to-br from-white via-[var(--cream)]/30 to-[var(--beige)]/50">

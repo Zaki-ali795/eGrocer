@@ -3,9 +3,10 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 
 interface HeroProps {
   onStartShopping?: () => void;
+  onHowBiddingWorks?: () => void;
 }
 
-export function Hero({ onStartShopping }: HeroProps) {
+export function Hero({ onStartShopping, onHowBiddingWorks }: HeroProps) {
   return (
     <section className="relative h-[600px] overflow-hidden bg-gradient-to-br from-[var(--green-light)]/20 via-[var(--cream)] to-[var(--beige)]">
       {/* Background Image with Overlay */}
@@ -74,6 +75,7 @@ export function Hero({ onStartShopping }: HeroProps) {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={onHowBiddingWorks}
               className="px-8 py-4 bg-white text-[var(--green-primary)] rounded-full border-2 border-[var(--green-primary)] hover:bg-[var(--green-primary)]/5 transition-colors"
             >
               How Bidding Works

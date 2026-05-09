@@ -205,7 +205,7 @@ export function FlashDeals({ onAddToCart }: FlashDealsProps) {
                         price: deal.price,
                         image: deal.image,
                         category: '',
-                      });
+                      } as Product);
                       toast.success(`Added ${deal.productName} to cart!`);
                     }}
                     className="w-full py-3 bg-gradient-to-r from-[var(--terracotta)] to-orange-500 text-white rounded-2xl shadow-lg shadow-[var(--terracotta)]/30 hover:shadow-xl transition-shadow flex items-center justify-center gap-2 font-medium"

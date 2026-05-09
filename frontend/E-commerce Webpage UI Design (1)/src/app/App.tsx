@@ -12,6 +12,7 @@ import { RequestsPage } from './pages/RequestsPage';
 import { TrackingPage } from './pages/TrackingPage';
 import { FlashDealsPage } from './pages/FlashDealsPage';
 import { PreviousOrdersPage } from './pages/PreviousOrdersPage';
+import { ManageProfilePage } from './pages/ManageProfilePage';
 import { Product } from '../services/api';
 
 
@@ -79,6 +80,7 @@ export default function App() {
           <Route path="/cart" element={<CartPage items={cartItems} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} onClearCart={handleClearCart} />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/tracking" element={<TrackingPage />} />
+          <Route path="/profile" element={<ManageProfilePage />} />
           <Route path="/flash-deals" element={<FlashDealsPage onAddToCart={handleAddToCart} />} />
           <Route path="/previous-orders" element={<PreviousOrdersPage />} />
         </Routes>

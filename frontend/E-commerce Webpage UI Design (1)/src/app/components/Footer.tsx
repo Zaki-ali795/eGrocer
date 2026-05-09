@@ -109,10 +109,12 @@ export function Footer() {
               className="mb-6"
             >
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="text-[var(--green-primary)] text-xl">eG</span>
-                </div>
-                <span className="text-2xl text-white">eGrocer</span>
+                <img
+                  src="/src/imports/logo.png"
+                  alt="eGrocer logo"
+                  className="w-12 h-12 rounded-2xl shadow-lg object-cover bg-white"
+                />
+                <span className="text-2xl text-white font-bold">eGrocer</span>
               </div>
               <p className="text-white/80 text-sm mb-4">
                 Fresh groceries from farm to your doorstep. Quality you can trust.

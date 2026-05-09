@@ -175,3 +175,100 @@ export const orderApi = {
   getPreviousOrders: () => request<Order[]>('/orders/me'),
   getTrackingData: () => request<TrackingOrder[]>('/orders/tracking'),
 };
+
+// ─── Bid / Product Request Types ─────────────────────────────────────────────
+export interface ProductRequest {
+  id: number;
+  productName: string;
+  description: string;
+  category: string;
+  quantity: number;
+  maxBudget: number | null;
+  status: string;
+  createdAt: string;
+  timeAgo: string;
+  customerName: string;
+  bidCount: number;
+  bids: BidOffer[];
+}
+
+export interface BidOffer {
+  id: number;
+  storeName: string;
+  storeRating: number;
+  bidPrice: number;
+  estimatedDeliveryDays: number | null;
+  status: string;
+  createdAt: string;
+  linkedProductName: string | null;
+  linkedProductImage: string | null;
+}
+
+export interface SubmitRequestPayload {
+  productName: string;
+  description?: string;
+  categoryId?: number;
+  quantity?: number;
+  maxBudget?: number;
+}
+
+// ─── Bid API calls ────────────────────────────────────────────────────────────
+export const bidApi = {
+  /** Fetch all open product requests (displayed on homepage & requests page) */
+  getOpenRequests: () => request<ProductRequest[]>('/bids/requests'),
+
+  /** Fetch a single request with all its bids */
+  getRequestWithBids: (requestId: number) =>
+    request<ProductRequest>(`/bids/requests/${requestId}`),
+
+  /** Customer submits a new product request */
+  submitRequest: async (payload: SubmitRequestPayload) => {
+    const res = await fetch(`${BASE_URL}/bids/requests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message || 'Failed to submit request');
+    return json.data;
+  },
+
+  /** Accept a bid on a request (customer action) */
+  acceptBid: async (requestId: number, bidId: number) => {
+    const res = await fetch(`${BASE_URL}/bids/requests/${requestId}/bids/${bidId}/accept`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message || 'Failed to accept bid');
+    return json.data;
+  },
+};
+
+// ─── User Profile API calls ────────────────────────────────────────────────────────────
+export interface UserProfile {
+  id?: number;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+}
+
+export const userApi = {
+  getProfile: () => request<UserProfile>('/users/me'),
+  updateProfile: async (profileData: UserProfile) => {
+    const res = await fetch(`${BASE_URL}/users/me`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profileData),
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message || 'Failed to update profile');
+    return json.data as UserProfile;
+  },
+};
+

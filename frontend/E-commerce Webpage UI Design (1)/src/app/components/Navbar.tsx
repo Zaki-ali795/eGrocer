@@ -122,6 +122,7 @@ export function Navbar({ cartItemCount }: NavbarProps) {
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              onClick={() => navigate('/profile')}
               className="hidden sm:flex p-2 hover:bg-[var(--green-primary)]/10 rounded-full transition-colors"
             >
               <User className="w-6 h-6 text-[var(--green-primary)]" />
@@ -170,15 +171,25 @@ export function Navbar({ cartItemCount }: NavbarProps) {
             className="lg:hidden border-t border-[var(--green-primary)]/10 overflow-hidden bg-white"
           >
             <div className="px-4 py-4 space-y-2">
-              <button
-                onClick={() => {
-                  navigate('/categories');
-                  setIsMenuOpen(false);
-                }}
-                className="w-full text-center px-4 py-3 bg-gradient-to-r from-[var(--green-primary)]/10 to-[var(--green-secondary)]/10 text-[var(--green-dark)] border border-[var(--green-primary)]/20 rounded-xl font-semibold hover:from-[var(--green-primary)] hover:to-[var(--green-secondary)] hover:text-white transition-all shadow-sm"
-              >
-                Categories
-              </button>
+                <button
+                  onClick={() => {
+                    navigate('/categories');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full text-center px-4 py-3 bg-gradient-to-r from-[var(--green-primary)]/10 to-[var(--green-secondary)]/10 text-[var(--green-dark)] border border-[var(--green-primary)]/20 rounded-xl font-semibold hover:from-[var(--green-primary)] hover:to-[var(--green-secondary)] hover:text-white transition-all shadow-sm"
+                >
+                  Categories
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/profile');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full text-center px-4 py-3 bg-gradient-to-r from-[var(--green-primary)]/10 to-[var(--green-secondary)]/10 text-[var(--green-dark)] border border-[var(--green-primary)]/20 rounded-xl font-semibold hover:from-[var(--green-primary)] hover:to-[var(--green-secondary)] hover:text-white transition-all shadow-sm flex items-center justify-center gap-2"
+                >
+                  <User className="w-4 h-4" />
+                  My Profile
+                </button>
             </div>
           </motion.div>
         )}
