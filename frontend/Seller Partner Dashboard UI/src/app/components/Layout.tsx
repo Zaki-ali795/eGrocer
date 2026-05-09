@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,15 +27,17 @@ const navItems = [
 ];
 
 export default function Layout() {
+  const { sellerId } = useAuth();
   const [requestCount, setRequestCount] = useState(0);
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     async function loadLayoutData() {
+      if (!sellerId) return;
       try {
         const [stats, prof] = await Promise.all([
-          sellerApi.getStats(2),
-          sellerApi.getProfile(2)
+          sellerApi.getStats(sellerId),
+          sellerApi.getProfile(sellerId)
         ]);
         setRequestCount(stats.pending_requests);
         setProfile(prof);
@@ -73,8 +76,8 @@ export default function Layout() {
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                       isActive
-                        ? 'bg-primary text-primary-foreground shadow-md'
-                        : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+                        ? 'bg-primary text-primary-foreground shadow-lg'
+                        : 'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-primary hover:shadow-sm'
                     }`
                   }
                 >

@@ -4,6 +4,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { salesData, categoryData, mockOrders } from '../data/mockData';
 import { Link } from 'react-router';
 import { sellerApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const StatCard = ({
   title,
@@ -21,7 +22,7 @@ const StatCard = ({
   color: string;
 }) => {
   const colorClasses = {
-    blue: 'bg-blue-500',
+    indigo: 'bg-indigo-500',
     green: 'bg-emerald-500',
     orange: 'bg-orange-500',
     red: 'bg-red-500'
@@ -47,19 +48,29 @@ const StatCard = ({
   );
 };
 
-const COLORS = ['#10B981', '#F59E0B', '#FBBF24', '#3B82F6', '#EF4444'];
+const COLORS = ['#10B981', '#6366F1', '#F59E0B', '#FBBF24', '#EF4444'];
 
 export default function Dashboard() {
+  const { sellerId } = useAuth();
   const [stats, setStats] = useState<any>(null);
+  const [salesHistory, setSalesHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadStats() {
+      if (!sellerId) return;
       try {
         setLoading(true);
-        const response = await sellerApi.getStats(2); // Hardcoded sellerId
-        setStats(response);
+        const [statsData, historyData] = await Promise.all([
+          sellerApi.getStats(sellerId),
+          sellerApi.getSalesHistory(sellerId)
+        ]);
+        setStats(statsData);
+        setSalesHistory(historyData.map((h: any) => ({
+          ...h,
+          date: new Date(h.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        })));
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -67,7 +78,7 @@ export default function Dashboard() {
       }
     }
     loadStats();
-  }, []);
+  }, [sellerId]);
 
   if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
@@ -87,7 +98,7 @@ export default function Dashboard() {
           change="+0%"
           icon={DollarSign}
           trend="up"
-          color="blue"
+          color="indigo"
         />
         <StatCard
           title="Total Orders"
@@ -152,7 +163,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 bg-card rounded-xl p-6 border border-border shadow-sm">
           <h3 className="text-lg font-semibold text-foreground mb-4">Sales Analytics</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={salesData}>
+            <LineChart data={salesHistory.length > 0 ? salesHistory : salesData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
               <XAxis dataKey="date" stroke="#64748B" />
               <YAxis stroke="#64748B" />
@@ -168,6 +179,7 @@ export default function Dashboard() {
               <Line
                 type="monotone"
                 dataKey="sales"
+                name="Revenue (Rs.)"
                 stroke="#10B981"
                 strokeWidth={3}
                 dot={{ fill: '#10B981', r: 4 }}
@@ -176,6 +188,7 @@ export default function Dashboard() {
               <Line
                 type="monotone"
                 dataKey="orders"
+                name="Orders Count"
                 stroke="#F59E0B"
                 strokeWidth={3}
                 dot={{ fill: '#F59E0B', r: 4 }}

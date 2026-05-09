@@ -37,6 +37,7 @@ export const sellerApi = {
     body: JSON.stringify({ productId, quantity }),
   }),
   getStats: (sellerId: number) => fetchApi(`/sellers/stats/${sellerId}`),
+  getSalesHistory: (sellerId: number) => fetchApi(`/sellers/stats/history/${sellerId}`),
   getOrders: (sellerId: number) => fetchApi(`/sellers/orders/${sellerId}`),
   addProduct: (productData: any) => fetchApi('/sellers/products', {
     method: 'POST',

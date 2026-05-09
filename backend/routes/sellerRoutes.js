@@ -21,6 +21,7 @@ const SellerController = require('../controllers/SellerController');
     router.get('/products/:sellerId', controller.getProducts);
     router.patch('/inventory', controller.updateInventory);
     router.get('/stats/:sellerId', controller.getDashboardStats);
+    router.get('/stats/history/:sellerId', controller.getSalesHistory);
     router.get('/orders/:sellerId', controller.getOrders);
     router.post('/products', controller.addProduct);
     router.put('/products/:productId', controller.updateProduct);
