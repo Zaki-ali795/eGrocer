@@ -29,6 +29,7 @@ app.use('/api/sellers', require('./routes/sellerRoutes'));
 // app.use('/api/flash-deals', require('./routes/flashDealRoutes'));
 app.use('/api/wishlist', require('./routes/wishlistRoutes'));
 app.use('/api/bids',     require('./routes/bidRoutes'));
+app.use('/api/admin',    require('./routes/adminRoutes'));
 
 // ── 404 Handler ────────────────────────────────────────────────
 app.use((req, res) => {
