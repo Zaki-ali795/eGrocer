@@ -30,7 +30,6 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'all');
   
   useEffect(() => {
@@ -154,7 +153,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
   };
 
   const filteredProducts = products.filter(product => {
-    const combinedSearch = (searchTerm + ' ' + searchQuery).trim().toLowerCase();
+    const combinedSearch = searchQuery.trim().toLowerCase();
     const matchesSearch = product.name.toLowerCase().includes(combinedSearch);
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -205,16 +204,6 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
         className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100"
       >
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
-            />
-          </div>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}

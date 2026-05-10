@@ -27,7 +27,6 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
 
   const loadData = async () => {
@@ -56,7 +55,7 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
   };
 
   const filteredOrders = orders.filter(order => {
-    const combinedSearch = (searchTerm + ' ' + searchQuery).trim().toLowerCase();
+    const combinedSearch = searchQuery.trim().toLowerCase();
     const matchesSearch = order.orderNumber.toLowerCase().includes(combinedSearch) ||
                          order.customer.toLowerCase().includes(combinedSearch);
     const matchesStatus = selectedStatus === 'all' || order.status === selectedStatus;
@@ -132,16 +131,6 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
         className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100"
       >
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search orders or customers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
-            />
-          </div>
           <button className="flex items-center gap-2 px-6 py-3 bg-gray-50 rounded-2xl font-['Manrope'] font-medium text-gray-700 hover:bg-gray-100 transition-all">
             <Filter className="w-5 h-5" />
             Filters

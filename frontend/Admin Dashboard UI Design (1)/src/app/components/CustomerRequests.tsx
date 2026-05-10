@@ -13,7 +13,7 @@ interface Request {
   posted: string;
 }
 
-export function CustomerRequests() {
+export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string }) {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,9 +34,12 @@ export function CustomerRequests() {
     loadData();
   }, []);
 
-  const filteredRequests = filter === 'all'
-    ? requests
-    : requests.filter(req => req.status.toLowerCase() === filter);
+  const filteredRequests = requests.filter(req => {
+    const matchesFilter = filter === 'all' || req.status.toLowerCase() === filter;
+    const matchesSearch = req.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         req.product.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   const stats = {
     open: requests.filter(r => r.status.toLowerCase() === 'open').length,

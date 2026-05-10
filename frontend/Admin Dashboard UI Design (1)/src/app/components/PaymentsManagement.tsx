@@ -14,7 +14,7 @@ interface Transaction {
   date: string;
 }
 
-export function PaymentsManagement() {
+export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [overview, setOverview] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -40,9 +40,12 @@ export function PaymentsManagement() {
     loadData();
   }, []);
 
-  const filteredTransactions = filter === 'all'
-    ? transactions
-    : transactions.filter(txn => txn.status.toLowerCase() === filter);
+  const filteredTransactions = transactions.filter(txn => {
+    const matchesFilter = filter === 'all' || txn.status.toLowerCase() === filter;
+    const matchesSearch = txn.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         txn.orderId.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   const totalRevenue = transactions.filter(t => t.status === 'completed' || t.status === 'Success').reduce((sum, t) => sum + t.amount, 0);
   const pendingAmount = transactions.filter(t => t.status === 'pending').reduce((sum, t) => sum + t.amount, 0);

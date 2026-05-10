@@ -20,7 +20,6 @@ export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'customer' | 'seller'>('all');
-  const [searchTerm, setSearchTerm] = useState('');
 
   const loadData = async () => {
     try {
@@ -53,7 +52,7 @@ export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) 
   };
 
   const filteredUsers = users.filter(user => {
-    const combinedSearch = (searchTerm + ' ' + searchQuery).trim().toLowerCase();
+    const combinedSearch = searchQuery.trim().toLowerCase();
     const matchesFilter = filter === 'all' || user.type === filter;
     const matchesSearch = user.name.toLowerCase().includes(combinedSearch) ||
                          user.email.toLowerCase().includes(combinedSearch);
@@ -153,16 +152,6 @@ export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) 
         className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100"
       >
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
-            />
-          </div>
           <div className="flex gap-2">
             {(['all', 'customer', 'seller'] as const).map(type => (
               <button

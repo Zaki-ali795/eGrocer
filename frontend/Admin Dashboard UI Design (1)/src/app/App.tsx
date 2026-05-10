@@ -22,8 +22,7 @@ export default function App() {
   const handleNavigate = (page: string, params: any = null) => {
     setCurrentPage(page);
     setNavigationParams(params);
-    // Optional: Clear search when navigating to a new page
-    // setSearchQuery('');
+    setSearchQuery(''); // Clear search on navigation for a fresh start
   };
 
   const renderPage = () => {
@@ -64,6 +63,7 @@ export default function App() {
         <TopBar 
           onNavigate={(page) => handleNavigate(page, null)} 
           onSearch={setSearchQuery}
+          currentPage={currentPage}
         />
         <main className="flex-1 overflow-y-auto">
           {renderPage()}

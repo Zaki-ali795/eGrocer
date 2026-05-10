@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Bell, User, ChevronDown, LogOut, Settings, Shield } from 'lucide-react';
+import { Search, Bell, User, ChevronDown, LogOut, Settings, Shield, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { adminApi } from '../services/api';
 
@@ -12,11 +12,20 @@ interface Notification {
   time: string;
 }
 
-export function TopBar({ onNavigate, onSearch }: { onNavigate?: (page: string) => void, onSearch?: (query: string) => void }) {
+export function TopBar({ onNavigate, onSearch, currentPage }: { 
+  onNavigate?: (page: string) => void, 
+  onSearch?: (query: string) => void,
+  currentPage?: string
+}) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [localSearch, setLocalSearch] = useState('');
+
+  useEffect(() => {
+    // Sync local state if parent clears it (on navigation)
+    setLocalSearch('');
+  }, [currentPage]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -55,6 +64,21 @@ export function TopBar({ onNavigate, onSearch }: { onNavigate?: (page: string) =
     window.location.reload(); 
   };
 
+  const getPlaceholder = () => {
+    switch (currentPage) {
+      case 'products': return 'Search products...';
+      case 'users': return 'Search users by name or email...';
+      case 'orders': return 'Search orders by ID or customer...';
+      case 'categories': return 'Search categories...';
+      case 'inventory': return 'Search inventory items...';
+      case 'requests': return 'Search customer requests...';
+      case 'promotions': return 'Search promo codes...';
+      case 'flash-deals': return 'Search flash deals...';
+      case 'payments': return 'Search transactions...';
+      default: return 'Search the portal...';
+    }
+  };
+
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
@@ -68,11 +92,19 @@ export function TopBar({ onNavigate, onSearch }: { onNavigate?: (page: string) =
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 transition-colors group-focus-within:text-[#1a3a2e]" />
             <input
               type="text"
-              placeholder="Search products, orders, users..."
+              placeholder={getPlaceholder()}
               value={localSearch}
               onChange={handleSearchChange}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all duration-300"
+              className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none focus:ring-4 focus:ring-[#1a3a2e]/5 transition-all duration-300"
             />
+            {localSearch && (
+              <button
+                onClick={() => { setLocalSearch(''); onSearch?.(''); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
