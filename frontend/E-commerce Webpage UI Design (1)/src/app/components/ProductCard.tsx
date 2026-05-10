@@ -150,7 +150,7 @@ export function ProductCard({ product, onAddToCart, onWishlistToggle, initialIsW
           <span className="text-2xl text-[var(--green-primary)]">
             Rs {product.price.toLocaleString('en-IN')}
           </span>
-          {product.originalPrice && (
+          {product.originalPrice && product.originalPrice > product.price && (
             <span className="text-sm text-gray-400 line-through mb-1">
               Rs {product.originalPrice.toLocaleString('en-IN')}
             </span>
