@@ -57,4 +57,6 @@ export const adminApi = {
   updateSettings: (data: any) => fetchApi('/admin/settings', { method: 'PUT', body: JSON.stringify(data) }),
   getNotifications: () => fetchApi('/admin/notifications'),
   markNotificationAsRead: (id: string) => fetchApi(`/admin/notifications/${id}/read`, { method: 'PUT' }),
+  changePassword: (data: any) => fetchApi('/admin/change-password', { method: 'PUT', body: JSON.stringify(data) }),
+  updateProfile: (data: any) => fetchApi('/admin/update-profile', { method: 'PUT', body: JSON.stringify(data) }),
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, Eye, Trash2, DollarSign, Clock, Users, Loader2 } from 'lucide-react';
+import { MessageSquare, Eye, Trash2, DollarSign, Clock, Users, Loader2, Package, Gavel, CheckCircle, ChevronRight, ShoppingBag, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { adminApi } from '../services/api';
 
@@ -70,138 +70,159 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
         <p className="font-['Manrope'] text-gray-600">Monitor bidding system and product requests</p>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          onClick={() => setFilter('open')}
-          className={`rounded-2xl p-6 border transition-all cursor-pointer hover:shadow-md ${
-            filter === 'open' ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'
-          }`}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
-              <MessageSquare className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="font-['Manrope'] text-xs text-blue-700">Open Requests</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-blue-900">{stats.open}</p>
-            </div>
-          </div>
-          <p className="font-['Manrope'] text-sm text-blue-700">Awaiting seller offers</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          onClick={() => setFilter('active')}
-          className={`rounded-2xl p-6 border transition-all cursor-pointer hover:shadow-md ${
-            filter === 'active' ? 'bg-emerald-100 border-emerald-300' : 'bg-emerald-50 border-emerald-200'
-          }`}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="font-['Manrope'] text-xs text-emerald-700">Active Bidding</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">{stats.active}</p>
-            </div>
-          </div>
-          <p className="font-['Manrope'] text-sm text-emerald-700">Competitive offers received</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          onClick={() => setFilter('closed')}
-          className={`rounded-2xl p-6 border transition-all cursor-pointer hover:shadow-md ${
-            filter === 'closed' ? 'bg-gray-200 border-gray-400' : 'bg-gray-50 border-gray-200'
-          }`}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-gray-500 rounded-xl flex items-center justify-center">
-              <Clock className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <p className="font-['Manrope'] text-xs text-gray-700">Closed</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-blue-900">{stats.closed}</p>
-            </div>
-          </div>
-          <p className="font-['Manrope'] text-sm text-gray-700">Successfully fulfilled</p>
-        </motion.div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Requests', value: requests.length, status: 'all', icon: ShoppingBag },
+          { label: 'Open Requests', value: stats.open, status: 'open', icon: MessageSquare },
+          { label: 'Active Bidding', value: stats.active, status: 'active', icon: Gavel },
+          { label: 'Closed Cases', value: stats.closed, status: 'closed', icon: CheckCircle },
+        ].map((stat, index) => {
+          const Icon = stat.icon;
+          const isSelected = filter === stat.status;
+          
+          return (
+            <motion.button
+              key={stat.status}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + index * 0.05 }}
+              onClick={() => setFilter(stat.status as any)}
+              className={`relative overflow-hidden p-6 rounded-3xl text-left transition-all duration-300 group ${
+                isSelected
+                  ? 'bg-[#064e3b] text-white shadow-xl shadow-emerald-900/20'
+                  : 'bg-white border border-gray-100 hover:border-emerald-200 hover:shadow-lg'
+              }`}
+            >
+              <div className={`absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500 ${isSelected ? 'text-white' : 'text-emerald-900'}`}>
+                <Icon className="w-32 h-32" />
+              </div>
+              
+              <div className="relative z-10">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
+                  isSelected ? 'bg-white/20' : 'bg-emerald-50 text-emerald-600'
+                }`}>
+                  <Icon className="w-6 h-6" />
+                </div>
+                <p className={`font-['Manrope'] text-xs font-bold uppercase tracking-wider mb-1 ${isSelected ? 'text-emerald-100' : 'text-gray-400'}`}>
+                  {stat.label}
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="font-['Crimson_Pro'] text-4xl font-bold">{stat.value}</p>
+                </div>
+              </div>
+              
+              {isSelected && (
+                <motion.div 
+                  layoutId="request-filter-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-400" 
+                />
+              )}
+            </motion.button>
+          );
+        })}
       </div>
 
-      <div className="flex gap-3">
-        {(['all', 'open', 'active', 'closed'] as const).map(status => (
-          <button
-            key={status}
-            onClick={() => setFilter(status)}
-            className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${
-              filter === status
-                ? 'bg-[#064e3b] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </button>
-        ))}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+            <Package className="w-5 h-5" />
+          </div>
+          <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">Request Pipeline</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-2">Status:</span>
+          <div className="px-4 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold capitalize">
+            {filter}
+          </div>
+        </div>
       </div>
 
       <div className="space-y-4">
         {filteredRequests.map((request, index) => (
           <motion.div
             key={request.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + index * 0.05 }}
-            className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 + index * 0.05 }}
+            className="group bg-white rounded-[2rem] p-8 border border-gray-100 hover:border-emerald-200 shadow-xl shadow-gray-200/40 hover:shadow-2xl hover:shadow-emerald-900/5 transition-all"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">{request.product}</h3>
-                  <span className={`px-3 py-1 rounded-full text-xs font-['Manrope'] font-semibold ${
-                    request.status.toLowerCase() === 'open' ? 'bg-blue-100 text-blue-700' :
-                    request.status.toLowerCase() === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                    'bg-gray-100 text-gray-600'
-                  }`}>
-                    {request.status}
-                  </span>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex-1 space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:bg-[#064e3b] group-hover:text-white transition-all duration-300">
+                    <ShoppingBag className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900 leading-tight">{request.product}</h3>
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        request.status.toLowerCase() === 'open' ? 'bg-emerald-100 text-emerald-700' :
+                        request.status.toLowerCase() === 'active' ? 'bg-amber-100 text-amber-700' :
+                        'bg-gray-100 text-gray-500'
+                      }`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${
+                          request.status.toLowerCase() === 'open' ? 'bg-emerald-500' :
+                          request.status.toLowerCase() === 'active' ? 'bg-amber-500' :
+                          'bg-gray-400'
+                        }`} />
+                        {request.status}
+                      </div>
+                    </div>
+                    <p className="font-['Manrope'] text-sm font-semibold text-gray-400 uppercase tracking-widest">
+                      ID: {request.id} • Customer: <span className="text-emerald-700">{request.customer}</span>
+                    </p>
+                  </div>
                 </div>
-                <p className="font-['Manrope'] text-sm text-gray-600 mb-3">{request.id} • Posted by {request.customer}</p>
-                <p className="font-['Manrope'] text-gray-700 mb-4">{request.description}</p>
 
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-gray-500" />
+                <p className="font-['Manrope'] text-gray-600 text-lg leading-relaxed max-w-2xl">
+                  "{request.description}"
+                </p>
+
+                <div className="flex flex-wrap items-center gap-8 pt-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                      <DollarSign className="w-5 h-5" />
+                    </div>
                     <div>
-                      <p className="font-['Manrope'] text-xs text-gray-500">Customer Budget</p>
-                      <p className="font-['Manrope'] font-bold text-gray-900">{request.budget}</p>
+                      <p className="font-['Manrope'] text-[10px] font-bold text-gray-400 uppercase tracking-widest">Customer Budget</p>
+                      <p className="font-['Manrope'] text-lg font-bold text-gray-900">{request.budget}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-gray-500" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                      <Clock className="w-5 h-5" />
+                    </div>
                     <div>
-                      <p className="font-['Manrope'] text-xs text-gray-500">Posted</p>
-                      <p className="font-['Manrope'] font-semibold text-gray-700">
-                        {new Date(request.posted).toLocaleDateString()}
+                      <p className="font-['Manrope'] text-[10px] font-bold text-gray-400 uppercase tracking-widest">Posted On</p>
+                      <p className="font-['Manrope'] text-lg font-bold text-gray-900">
+                        {new Date(request.posted).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-['Manrope'] text-[10px] font-bold text-gray-400 uppercase tracking-widest">Current Bids</p>
+                      <p className="font-['Manrope'] text-lg font-bold text-gray-900">4 Active Offers</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <button className="p-3 hover:bg-gray-100 rounded-xl transition-colors" title="View Details">
-                  <Eye className="w-5 h-5 text-gray-600" />
+              <div className="flex flex-row md:flex-col gap-3">
+                <button 
+                  className="flex items-center justify-center gap-2 px-6 py-4 bg-[#064e3b] text-white rounded-2xl font-['Manrope'] font-bold hover:bg-[#053d2e] transition-all shadow-lg shadow-emerald-900/10"
+                >
+                  View Bids
+                  <ChevronRight className="w-4 h-4" />
                 </button>
-                <button className="p-3 hover:bg-red-50 rounded-xl transition-colors" title="Remove">
-                  <Trash2 className="w-5 h-5 text-red-600" />
+                <button className="flex items-center justify-center gap-2 px-6 py-4 bg-white border border-gray-200 text-gray-600 rounded-2xl font-['Manrope'] font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all">
+                  <Trash2 className="w-5 h-5" />
+                  Dismiss
                 </button>
               </div>
             </div>

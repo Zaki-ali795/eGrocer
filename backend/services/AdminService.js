@@ -119,12 +119,20 @@ class AdminService {
         return await this.adminRepository.updateSettings(data);
     }
 
+    async updateAdminProfile(userId, data) {
+        return await this.adminRepository.updateAdminProfile(userId, data);
+    }
+
     async getNotifications(adminId) {
         return await this.adminRepository.getNotifications(adminId);
     }
 
     async markNotificationAsRead(id) {
         return await this.adminRepository.markNotificationAsRead(id);
+    }
+
+    async changePassword(userId, currentPassword, newPassword) {
+        return await this.adminRepository.changePassword(userId, currentPassword, newPassword);
     }
 }
 

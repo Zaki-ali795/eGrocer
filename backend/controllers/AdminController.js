@@ -31,6 +31,8 @@ class AdminController {
         this.updateSettings = this.updateSettings.bind(this);
         this.getNotifications = this.getNotifications.bind(this);
         this.markNotificationAsRead = this.markNotificationAsRead.bind(this);
+        this.changePassword = this.changePassword.bind(this);
+        this.updateAdminProfile = this.updateAdminProfile.bind(this);
     }
 
     async getDashboardOverview(req, res, next) {
@@ -265,6 +267,27 @@ class AdminController {
         try {
             const result = await this.adminService.markNotificationAsRead(req.params.id);
             res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async changePassword(req, res, next) {
+        try {
+            const { currentPassword, newPassword } = req.body;
+            // In a real app, get user ID from token/session. Defaulting to 1 for Admin.
+            const result = await this.adminService.changePassword(1, currentPassword, newPassword);
+            res.json({ success: true, message: 'Password changed successfully' });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async updateAdminProfile(req, res, next) {
+        try {
+            // In a real app, get user ID from token/session. Defaulting to 1 for Admin.
+            const result = await this.adminService.updateAdminProfile(1, req.body);
+            res.json({ success: true, message: 'Profile updated successfully' });
         } catch (err) {
             next(err);
         }

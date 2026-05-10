@@ -53,6 +53,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
     imageUrl: '',
     nutritionalInfo: '',
     isPerishable: false,
+    isActive: true,
     stock: ''
   });
 
@@ -97,6 +98,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
         imageUrl: product.image,
         nutritionalInfo: product.nutritional_info || '',
         isPerishable: product.is_perishable || false,
+        isActive: product.status === 'active',
         stock: product.stock.toString()
       });
     } else {
@@ -113,6 +115,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
         imageUrl: '',
         nutritionalInfo: '',
         isPerishable: false,
+        isActive: true,
         stock: '0'
       });
     }
@@ -127,7 +130,8 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
         categoryId: parseInt(formData.categoryId),
         basePrice: parseFloat(formData.basePrice),
         salePrice: formData.salePrice ? parseFloat(formData.salePrice) : null,
-        stock: parseInt(formData.stock)
+        stock: parseInt(formData.stock),
+        status: formData.isActive ? 'active' : 'inactive'
       };
 
       if (editingProduct) {
@@ -308,32 +312,30 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                     </span>
                   </td>
                   <td className="py-4 px-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-['Manrope'] font-semibold ${
-                      product.status === 'active'
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-gray-100 text-gray-600'
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                      product.status === 'active' 
+                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                        : 'bg-red-50 text-red-700 border border-red-100'
                     }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${product.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'}`} />
                       {product.status}
-                    </span>
+                    </div>
                   </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2">
-                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="View">
-                        <Eye className="w-4 h-4 text-gray-600" />
-                      </button>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2">
                       <button 
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors" 
-                        title="Edit"
                         onClick={() => handleOpenModal(product)}
+                        className="p-2 hover:bg-blue-50 rounded-lg transition-colors group" 
+                        title="Edit Product"
                       >
-                        <Edit className="w-4 h-4 text-gray-600" />
+                        <Edit className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
                       </button>
                       <button 
-                        className="p-2 hover:bg-red-50 rounded-lg transition-colors" 
-                        title="Delete"
                         onClick={() => handleDelete(product.id)}
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors group" 
+                        title="Delete Product"
                       >
-                        <Trash2 className="w-4 h-4 text-red-600" />
+                        <Trash2 className="w-4 h-4 text-gray-400 group-hover:text-red-600" />
                       </button>
                     </div>
                   </td>
@@ -471,15 +473,32 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                   />
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
-                  <input
-                    type="checkbox"
-                    id="isPerishable"
-                    checked={formData.isPerishable}
-                    onChange={e => setFormData({ ...formData, isPerishable: e.target.checked })}
-                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <label htmlFor="isPerishable" className="text-sm font-medium text-gray-700">Perishable Item</label>
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <span className="text-sm font-['Manrope'] font-semibold text-gray-700">Perishable Product</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isPerishable}
+                        onChange={(e) => setFormData({ ...formData, isPerishable: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <span className="text-sm font-['Manrope'] font-semibold text-gray-700">Active Status</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isActive}
+                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="flex gap-4 pt-6">

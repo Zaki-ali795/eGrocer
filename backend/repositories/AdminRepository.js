@@ -1,5 +1,6 @@
 // repositories/AdminRepository.js
 const BaseRepository = require('./BaseRepository');
+const bcrypt = require('bcryptjs');
 
 class AdminRepository extends BaseRepository {
     constructor(pool) {
@@ -452,6 +453,20 @@ class AdminRepository extends BaseRepository {
         return result.rowsAffected[0] > 0;
     }
 
+    async updateAdminProfile(userId, data) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, userId)
+            .input('firstName', this.sql.VarChar, data.firstName)
+            .input('lastName', this.sql.VarChar, data.lastName)
+            .input('email', this.sql.VarChar, data.email)
+            .query(`
+                UPDATE Users 
+                SET first_name = @firstName, last_name = @lastName, email = @email, updated_at = GETDATE()
+                WHERE user_id = @id
+            `);
+        return result.rowsAffected[0] > 0;
+    }
+
     async updateSettings(data) {
         return true;
     }
@@ -479,6 +494,27 @@ class AdminRepository extends BaseRepository {
             .input('id', this.sql.Int, id)
             .query('UPDATE Notifications SET is_read = 1 WHERE notification_id = @id');
         return result.rowsAffected[0] > 0;
+    }
+
+    async changePassword(userId, currentPassword, newPassword) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, userId)
+            .query('SELECT password_hash FROM Users WHERE user_id = @id');
+        
+        if (result.recordset.length === 0) throw new Error('User not found');
+        
+        const isMatch = await bcrypt.compare(currentPassword, result.recordset[0].password_hash);
+        if (!isMatch) throw new Error('Current password is incorrect');
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        const updateResult = await this.pool.request()
+            .input('id', this.sql.Int, userId)
+            .input('hash', this.sql.VarChar, hashedPassword)
+            .query('UPDATE Users SET password_hash = @hash, updated_at = GETDATE() WHERE user_id = @id');
+        
+        return updateResult.rowsAffected[0] > 0;
     }
 }
 

@@ -61,5 +61,7 @@ router.delete('/promotions/:id', handle('deletePromotion'));
 
 router.put('/users/:id/status', handle('toggleUserStatus'));
 router.put('/settings', handle('updateSettings'));
+router.put('/change-password', handle('changePassword'));
+router.put('/update-profile', handle('updateAdminProfile'));
 
 module.exports = router;

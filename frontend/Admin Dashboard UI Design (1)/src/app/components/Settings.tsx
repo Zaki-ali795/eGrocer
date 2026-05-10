@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings as SettingsIcon, Shield, CreditCard, Percent, Bell, Globe } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, CreditCard, Percent, Bell, Globe, Lock, Key, Eye, EyeOff, X, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { adminApi } from '../services/api';
 
@@ -7,6 +7,10 @@ export function Settings() {
   const [taxRate, setTaxRate] = useState('8.5');
   const [taxId, setTaxId] = useState('US-TAX-123456');
   const [saving, setSaving] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   const handleSaveSettings = async () => {
     try {
@@ -163,10 +167,13 @@ export function Settings() {
 
           <div className="space-y-4">
             <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="font-['Manrope'] font-semibold text-gray-900 mb-1">Two-Factor Authentication</p>
-              <p className="font-['Manrope'] text-sm text-gray-600 mb-3">Add extra layer of security</p>
-              <button className="px-4 py-2 bg-[#064e3b] text-white rounded-xl font-['Manrope'] font-medium hover:bg-[#234d3e] transition-colors">
-                Enable 2FA
+              <p className="font-['Manrope'] font-semibold text-gray-900 mb-1">Administrative Password</p>
+              <p className="font-['Manrope'] text-sm text-gray-600 mb-3">Update your login credentials</p>
+              <button 
+                onClick={() => setIsPasswordModalOpen(true)}
+                className="px-4 py-2 bg-[#064e3b] text-white rounded-xl font-['Manrope'] font-medium hover:bg-[#234d3e] transition-colors"
+              >
+                Change Password
               </button>
             </div>
             <div className="p-4 bg-gray-50 rounded-xl">
@@ -216,6 +223,137 @@ export function Settings() {
           </div>
         </div>
       </motion.div>
+
+      {/* Password Change Modal - Reused from Profile */}
+      {isPasswordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsPasswordModalOpen(false)}
+            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+          />
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100"
+          >
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                    <Lock className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">Security Update</h2>
+                    <p className="font-['Manrope'] text-xs text-gray-500 font-bold uppercase tracking-widest">Change Admin Password</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setIsPasswordModalOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="font-['Manrope'] text-sm font-bold text-gray-700 ml-1">Current Password</label>
+                  <div className="relative">
+                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type={showPasswords.current ? 'text' : 'password'}
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                      className="w-full pl-11 pr-12 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-emerald-500/20 focus:outline-none transition-all font-['Manrope']"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      onClick={() => setShowPasswords({...showPasswords, current: !showPasswords.current})}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPasswords.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-['Manrope'] text-sm font-bold text-gray-700 ml-1">New Password</label>
+                  <div className="relative">
+                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type={showPasswords.new ? 'text' : 'password'}
+                      value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                      className="w-full pl-11 pr-12 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-emerald-500/20 focus:outline-none transition-all font-['Manrope']"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      onClick={() => setShowPasswords({...showPasswords, new: !showPasswords.new})}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-['Manrope'] text-sm font-bold text-gray-700 ml-1">Confirm New Password</label>
+                  <div className="relative">
+                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type={showPasswords.confirm ? 'text' : 'password'}
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                      className="w-full pl-11 pr-12 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-emerald-500/20 focus:outline-none transition-all font-['Manrope']"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      onClick={() => setShowPasswords({...showPasswords, confirm: !showPasswords.confirm})}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <button
+                  onClick={async () => {
+                    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+                      alert('New passwords do not match');
+                      return;
+                    }
+                    try {
+                      setPasswordLoading(true);
+                      await adminApi.changePassword({
+                        currentPassword: passwordForm.currentPassword,
+                        newPassword: passwordForm.newPassword
+                      });
+                      alert('Password updated successfully!');
+                      setIsPasswordModalOpen(false);
+                      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                    } catch (err: any) {
+                      alert(err.message);
+                    } finally {
+                      setPasswordLoading(false);
+                    }
+                  }}
+                  disabled={passwordLoading || !passwordForm.currentPassword || !passwordForm.newPassword}
+                  className="w-full py-4 bg-[#064e3b] text-white rounded-[1.5rem] font-bold shadow-xl shadow-emerald-900/20 hover:bg-[#053d2e] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {passwordLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
+                  Update Security Credentials
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
