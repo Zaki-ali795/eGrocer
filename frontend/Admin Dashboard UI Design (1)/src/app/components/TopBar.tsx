@@ -26,9 +26,13 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
   const [adminUser, setAdminUser] = useState<any>(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('admin_user');
+    const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      setAdminUser(JSON.parse(savedUser));
+      try {
+        setAdminUser(JSON.parse(savedUser));
+      } catch (err) {
+        console.error('Failed to parse admin user:', err);
+      }
     }
   }, []);
 
@@ -70,8 +74,8 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleSignOut = () => {
-    localStorage.removeItem('admin_user');
-    localStorage.removeItem('admin_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     onSignOut?.();
   };
 
@@ -100,7 +104,7 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
       <div className="h-full px-8 flex items-center justify-between">
         <div className="flex-1 max-w-2xl">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 transition-colors group-focus-within:text-[#064e3b]" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 transition-colors group-focus-within:text-[#10b981]" />
             <input
               type="text"
               placeholder={getPlaceholder()}
@@ -248,7 +252,7 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
                           <User className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-900">{adminUser ? `${adminUser.first_name} ${adminUser.last_name}` : 'Admin'}</p>
+                          <p className="text-sm font-bold text-gray-900">{adminUser ? `${adminUser.first_name} ${adminUser.last_name || ''}` : 'Admin'}</p>
                           <p className="text-xs text-gray-500">{adminUser?.email || 'admin@egrocer.com'}</p>
                         </div>
                       </div>
@@ -260,13 +264,6 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
                       >
                         <User className="w-4 h-4" />
                         View Profile
-                      </button>
-                      <button 
-                        onClick={() => { setIsUserMenuOpen(false); onNavigate?.('settings'); }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-2xl transition-colors"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Account Settings
                       </button>
                     </div>
                     <div className="p-2 border-t border-gray-50">

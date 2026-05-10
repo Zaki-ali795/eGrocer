@@ -44,6 +44,35 @@ export function ReportsAnalytics() {
     { name: 'New', value: 15 },
   ];
 
+  const handleExport = () => {
+    if (!data) return;
+
+    const sections = [
+      ['--- Platform Overview ---'],
+      ['Metric', 'Value'],
+      ['Monthly Revenue', `Rs ${data.stats.monthly_revenue}`],
+      ['Today Orders', data.stats.today_orders],
+      ['Total Sellers', data.stats.seller_count],
+      [''],
+      ['--- Sales by Category ---'],
+      ['Category', 'Sales'],
+      ...data.topCategories.map((c: any) => [c.name, c.sales]),
+      [''],
+      ['--- Revenue History ---'],
+      ['Date', 'Revenue'],
+      ...data.revenueHistory.map((h: any) => [h.name, h.revenue])
+    ];
+
+    const csvContent = sections.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `eGrocer_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-8 space-y-6">
       <motion.div
@@ -60,7 +89,10 @@ export function ReportsAnalytics() {
             <Calendar className="w-5 h-5" />
             Date Range
           </button>
-          <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all">
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
+          >
             <Download className="w-5 h-5" />
             Export Report
           </button>
@@ -88,7 +120,7 @@ export function ReportsAnalytics() {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
               />
-              <Bar dataKey="value" fill="#064e3b" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="sales" fill="#064e3b" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -149,7 +181,7 @@ export function ReportsAnalytics() {
         <ResponsiveContainer width="100%" height={350}>
           <LineChart data={data?.revenueHistory || []}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="date" stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
+            <XAxis dataKey="name" stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
             <YAxis stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
             <Tooltip
               contentStyle={{
@@ -160,7 +192,7 @@ export function ReportsAnalytics() {
               }}
             />
             <Legend wrapperStyle={{ fontFamily: 'Manrope' }} />
-            <Line type="monotone" dataKey="amount" stroke="#064e3b" strokeWidth={3} name="Revenue (Rupees)" />
+            <Line type="monotone" dataKey="revenue" stroke="#064e3b" strokeWidth={3} name="Revenue (Rupees)" />
           </LineChart>
         </ResponsiveContainer>
       </motion.div>
@@ -178,7 +210,7 @@ export function ReportsAnalytics() {
             </div>
             <div>
               <p className="font-['Manrope'] text-xs text-emerald-700">Total Sales</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">Rs {data?.stats.totalRevenue.toLocaleString()}</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">Rs {data?.stats.monthly_revenue?.toLocaleString()}</p>
             </div>
           </div>
           <p className="font-['Manrope'] text-sm text-emerald-700">Live platform stats</p>
@@ -196,7 +228,7 @@ export function ReportsAnalytics() {
             </div>
             <div>
               <p className="font-['Manrope'] text-xs text-blue-700">Orders</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-blue-900">{data?.stats.totalOrders}</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-blue-900">{data?.stats.today_orders}</p>
             </div>
           </div>
           <p className="font-['Manrope'] text-sm text-blue-700">Total orders processed</p>
@@ -214,7 +246,7 @@ export function ReportsAnalytics() {
             </div>
             <div>
               <p className="font-['Manrope'] text-xs text-purple-700">Active Sellers</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-purple-900">{data?.stats.totalSellers}</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-purple-900">{data?.stats.seller_count}</p>
             </div>
           </div>
           <p className="font-['Manrope'] text-sm text-purple-700">Platform scale</p>

@@ -152,7 +152,7 @@ export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: C
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {categories.map((category, index) => (
+          {filteredCategories.map((category, index) => (
             <motion.div
               key={category.id}
               initial={{ opacity: 0, scale: 0.95 }}

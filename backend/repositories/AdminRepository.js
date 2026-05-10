@@ -155,10 +155,12 @@ class AdminRepository extends BaseRepository {
                 p.base_price as price,
                 i.quantity_in_stock as stock,
                 CASE WHEN p.is_active = 1 THEN 'active' ELSE 'inactive' END as status,
-                p.image_url as image
+                p.image_url as image,
+                s.store_name as seller
             FROM Products p
             INNER JOIN Categories c ON p.category_id = c.category_id
             LEFT JOIN Inventory i ON p.product_id = i.product_id
+            LEFT JOIN Sellers s ON p.seller_id = s.seller_id
             ORDER BY p.created_at DESC
         `);
         return result.recordset;
@@ -210,6 +212,7 @@ class AdminRepository extends BaseRepository {
                 CASE WHEN p.is_active = 1 THEN 'active' ELSE 'inactive' END as status
             FROM Products p
             LEFT JOIN Inventory i ON p.product_id = i.product_id
+            LEFT JOIN Sellers s ON p.seller_id = s.seller_id
             ORDER BY i.quantity_in_stock ASC
         `);
         return result.recordset;
@@ -405,7 +408,7 @@ class AdminRepository extends BaseRepository {
             .input('start', this.sql.DateTime, new Date(data.start))
             .input('end', this.sql.DateTime, new Date(data.end))
             .input('max', this.sql.Int, data.max)
-            .input('adminId', this.sql.Int, data.adminId)
+            .input('adminId', this.sql.Int, (await this.pool.request().query('SELECT TOP 1 admin_id FROM Admins')).recordset[0].admin_id)
             .query(`
                 INSERT INTO FlashDeals (deal_name, description, product_id, discount_percentage, deal_price, start_datetime, end_datetime, max_quantity, created_by)
                 VALUES (@name, @description, @productId, @discount, @price, @start, @end, @max, @adminId)
@@ -430,10 +433,11 @@ class AdminRepository extends BaseRepository {
             .input('limit', this.sql.Int, data.limit)
             .input('start', this.sql.DateTime, new Date(data.start))
             .input('end', this.sql.DateTime, new Date(data.end))
-            .input('adminId', this.sql.Int, data.adminId)
+            .input('maxCap', this.sql.Decimal(10, 2), data.maxCap || null)
+            .input('adminId', this.sql.Int, (await this.pool.request().query('SELECT TOP 1 admin_id FROM Admins')).recordset[0].admin_id)
             .query(`
-                INSERT INTO PromoCodes (code, description, discount_type, discount_value, minimum_order_amount, usage_limit, valid_from, valid_until, created_by)
-                VALUES (@code, @description, @type, @value, @minOrder, @limit, @start, @end, @adminId)
+                INSERT INTO PromoCodes (code, description, discount_type, discount_value, minimum_order_amount, usage_limit, valid_from, valid_until, created_by, max_discount_amount)
+                VALUES (@code, @description, @type, @value, @minOrder, @limit, @start, @end, @adminId, @maxCap)
             `);
         return result.rowsAffected[0] > 0;
     }
@@ -515,6 +519,20 @@ class AdminRepository extends BaseRepository {
             .query('UPDATE Users SET password_hash = @hash, updated_at = GETDATE() WHERE user_id = @id');
         
         return updateResult.rowsAffected[0] > 0;
+    }
+
+    async updateAdminProfile(userId, data) {
+        const result = await this.pool.request()
+            .input('userId', this.sql.Int, userId)
+            .input('firstName', this.sql.VarChar, data.firstName)
+            .input('lastName', this.sql.VarChar, data.lastName)
+            .input('email', this.sql.VarChar, data.email)
+            .query(`
+                UPDATE Users 
+                SET first_name = @firstName, last_name = @lastName, email = @email, updated_at = GETDATE()
+                WHERE user_id = @userId
+            `);
+        return result.rowsAffected[0] > 0;
     }
 }
 

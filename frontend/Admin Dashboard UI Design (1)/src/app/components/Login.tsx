@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Lock, Mail, Loader2, Warehouse, ArrowRight } from 'lucide-react';
 
@@ -7,10 +7,24 @@ interface LoginProps {
 }
 
 export function Login({ onLogin }: LoginProps) {
-  const [email, setEmail] = useState('rehan.admin@egrocer.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // On mount, check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.user_type === 'admin') {
+          onLogin();
+        }
+      } catch {}
+    }
+  }, [onLogin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,11 +41,12 @@ export function Login({ onLogin }: LoginProps) {
       const result = await response.json();
 
       if (result.success) {
-        if (result.data.user.user_type !== 'admin') {
+        const user = result.data.user;
+        if (user.user_type !== 'admin') {
           throw new Error('Access denied. Admin account required.');
         }
-        localStorage.setItem('admin_user', JSON.stringify(result.data.user));
-        localStorage.setItem('admin_token', result.data.token);
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('token', result.data.token);
         onLogin();
       } else {
         throw new Error(result.message || 'Login failed');
@@ -67,7 +82,7 @@ export function Login({ onLogin }: LoginProps) {
             >
               <Warehouse className="w-10 h-10 text-white" />
             </motion.div>
-          <h1 className="font-['Crimson_Pro'] text-4xl font-bold text-white mb-2">eGrocer Admin</h1>
+            <h1 className="font-['Crimson_Pro'] text-4xl font-bold text-white mb-2">eGrocer Admin</h1>
             <p className="font-['Manrope'] text-emerald-100/60 font-medium tracking-wide uppercase text-xs">Secure Portal Login</p>
           </div>
 
@@ -100,9 +115,8 @@ export function Login({ onLogin }: LoginProps) {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
+              <div className="px-1">
                 <label className="font-['Manrope'] text-sm font-bold text-emerald-100">Password</label>
-                <button type="button" className="text-xs font-bold text-emerald-400 hover:text-emerald-300">Forgot?</button>
               </div>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-white transition-colors">
@@ -116,6 +130,15 @@ export function Login({ onLogin }: LoginProps) {
                   className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-['Manrope'] placeholder:text-emerald-100/30 focus:outline-none focus:bg-white/10 focus:border-emerald-400/50 transition-all"
                   placeholder="••••••••••••"
                 />
+              </div>
+              <div className="flex justify-end px-1">
+                <button 
+                  type="button" 
+                  onClick={() => alert('Administrative Password Recovery:\n\nPlease contact your System Administrator or IT Department to reset your portal credentials. For security reasons, admin passwords cannot be reset via email.')}
+                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  Forgot password?
+                </button>
               </div>
             </div>
 

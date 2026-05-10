@@ -44,6 +44,15 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
 
   const { stats, revenueHistory, topCategories, recentActivity } = data;
 
+  const getUserData = () => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  };
+  const userData = getUserData();
+
   return (
     <div className="p-8 space-y-8">
       <motion.div
@@ -51,7 +60,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="font-['Crimson_Pro'] text-5xl font-bold text-gray-900 mb-2">Welcome back, Admin</h1>
+        <h1 className="font-['Crimson_Pro'] text-5xl font-bold text-gray-900 mb-2">Welcome back, {userData.first_name || 'Admin'}</h1>
         <p className="font-['Manrope'] text-gray-600">Here's what's happening with your platform today.</p>
       </motion.div>
 

@@ -58,7 +58,7 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
 
   useEffect(() => {
     if (formData.productId && products.length > 0) {
-      const product = products.find(p => p.id === formData.productId);
+      const product = products.find(p => p.id.toString() === formData.productId);
       if (product) {
         const discount = parseFloat(formData.discount) || 0;
         const calculatedPrice = product.price * (1 - discount / 100);

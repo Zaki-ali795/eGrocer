@@ -5,10 +5,19 @@ import { motion } from 'motion/react';
 
 export function ProfileManagement() {
   const [loading, setLoading] = useState(false);
+  const getUserData = () => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  };
+  const userData = getUserData();
+
   const [profileData, setProfileData] = useState({
-    firstName: 'Rehan',
-    lastName: 'Ahmed',
-    email: 'rehan.admin@egrocer.com',
+    firstName: userData.first_name || 'Admin',
+    lastName: userData.last_name || '',
+    email: userData.email || 'admin@egrocer.com',
     role: 'Platform Administrator',
     bio: 'Experienced system administrator focusing on e-commerce optimization and security.',
     joined: 'January 2024'
@@ -37,7 +46,19 @@ export function ProfileManagement() {
         lastName: profileData.lastName,
         email: profileData.email
       });
+
+      // Update localStorage so other components (TopBar) reflect the change immediately
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const updatedUser = { 
+        ...currentUser, 
+        first_name: profileData.firstName, 
+        last_name: profileData.lastName, 
+        email: profileData.email 
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
       alert('Profile updated successfully!');
+      window.location.reload(); // Refresh to sync all components
     } catch (err: any) {
       alert(err.message);
     } finally {
