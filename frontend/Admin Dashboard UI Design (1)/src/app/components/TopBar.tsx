@@ -1,10 +1,47 @@
+import { useState, useEffect } from 'react';
 import { Search, Bell, User, ChevronDown, LogOut, Settings, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useState } from 'react';
+import { adminApi } from '../services/api';
+
+interface Notification {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  time: string;
+}
 
 export function TopBar({ onNavigate }: { onNavigate?: (page: string) => void }) {
-  const [notifications] = useState(7);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  const loadNotifications = async () => {
+    try {
+      const data = await adminApi.getNotifications();
+      setNotifications(data);
+    } catch (err) {
+      console.error('Failed to load notifications:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const markAsRead = async (id: number) => {
+    try {
+      await adminApi.markNotificationAsRead(id.toString());
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleSignOut = () => {
     // In a real app, clear tokens/session
@@ -31,22 +68,98 @@ export function TopBar({ onNavigate }: { onNavigate?: (page: string) => void }) 
         </div>
 
         <div className="flex items-center gap-4 ml-8">
+        <div className="relative">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="relative p-3 rounded-xl hover:bg-gray-100 transition-colors"
+            onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+            className={`relative p-3 rounded-xl transition-all ${isNotificationsOpen ? 'bg-orange-50 text-[#ff6b35]' : 'hover:bg-gray-100 text-gray-600'}`}
           >
-            <Bell className="w-5 h-5 text-gray-600" />
-            {notifications > 0 && (
+            <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
               <motion.span
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="absolute -top-1 -right-1 w-5 h-5 bg-[#ff6b35] text-white text-xs font-['Manrope'] font-bold rounded-full flex items-center justify-center"
+                className="absolute -top-1 -right-1 w-5 h-5 bg-[#ff6b35] text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm"
               >
-                {notifications}
+                {unreadCount}
               </motion.span>
             )}
           </motion.button>
+
+          <AnimatePresence>
+            {isNotificationsOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-[60]" 
+                  onClick={() => setIsNotificationsOpen(false)}
+                ></div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute right-0 mt-3 w-80 md:w-96 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[70]"
+                >
+                  <div className="p-5 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
+                    <h3 className="font-bold text-gray-900">Notifications</h3>
+                    <span className="text-xs font-medium text-[#ff6b35] bg-orange-50 px-2 py-1 rounded-lg">
+                      {unreadCount} Unread
+                    </span>
+                  </div>
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      notifications.map((notif) => (
+                        <div 
+                          key={notif.id}
+                          onClick={() => markAsRead(notif.id)}
+                          className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer relative ${!notif.isRead ? 'bg-orange-50/20' : ''}`}
+                        >
+                          {!notif.isRead && (
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#ff6b35]"></div>
+                          )}
+                          <div className="flex gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                              notif.type === 'order' ? 'bg-blue-100 text-blue-600' :
+                              notif.type === 'inventory' ? 'bg-red-100 text-red-600' :
+                              'bg-emerald-100 text-emerald-600'
+                            }`}>
+                              {notif.type === 'order' ? <Shield className="w-5 h-5" /> : 
+                               notif.type === 'inventory' ? <Settings className="w-5 h-5" /> : 
+                               <User className="w-5 h-5" />}
+                            </div>
+                            <div className="flex-1">
+                              <p className={`text-sm font-bold ${!notif.isRead ? 'text-gray-900' : 'text-gray-600'}`}>
+                                {notif.title}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                {notif.message}
+                              </p>
+                              <p className="text-[10px] text-gray-400 mt-2 font-medium">
+                                {new Date(notif.time).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-10 text-center">
+                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Bell className="w-8 h-8 text-gray-300" />
+                        </div>
+                        <p className="text-sm text-gray-400">No notifications yet</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 bg-gray-50/50 border-t border-gray-50 text-center">
+                    <button className="text-xs font-bold text-gray-500 hover:text-[#ff6b35] transition-colors">
+                      View All Notifications
+                    </button>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
 
           <div className="h-8 w-px bg-gray-300"></div>
 

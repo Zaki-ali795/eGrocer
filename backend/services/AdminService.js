@@ -118,6 +118,14 @@ class AdminService {
     async updateSettings(data) {
         return await this.adminRepository.updateSettings(data);
     }
+
+    async getNotifications(adminId) {
+        return await this.adminRepository.getNotifications(adminId);
+    }
+
+    async markNotificationAsRead(id) {
+        return await this.adminRepository.markNotificationAsRead(id);
+    }
 }
 
 module.exports = AdminService;

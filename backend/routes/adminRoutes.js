@@ -38,6 +38,8 @@ router.get('/inventory', handle('getInventory'));
 router.get('/promotions', handle('getPromotions'));
 router.get('/payments', handle('getPayments'));
 router.get('/product-requests', handle('getProductRequests'));
+router.get('/notifications', handle('getNotifications'));
+router.put('/notifications/:id/read', handle('markNotificationAsRead'));
 
 // ── Write Routes ─────────────────────────────────────────────────
 router.post('/products', handle('createProduct'));

@@ -55,4 +55,6 @@ export const adminApi = {
 
   toggleUserStatus: (id: string, isActive: boolean) => fetchApi(`/admin/users/${id}/status`, { method: 'PUT', body: JSON.stringify({ isActive }) }),
   updateSettings: (data: any) => fetchApi('/admin/settings', { method: 'PUT', body: JSON.stringify(data) }),
+  getNotifications: () => fetchApi('/admin/notifications'),
+  markNotificationAsRead: (id: string) => fetchApi(`/admin/notifications/${id}/read`, { method: 'PUT' }),
 };

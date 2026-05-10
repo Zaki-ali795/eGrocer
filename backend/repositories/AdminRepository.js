@@ -455,6 +455,31 @@ class AdminRepository extends BaseRepository {
     async updateSettings(data) {
         return true;
     }
+
+    async getNotifications(adminId) {
+        const result = await this.pool.request()
+            .input('adminId', this.sql.Int, adminId)
+            .query(`
+                SELECT 
+                    notification_id as id,
+                    notification_type as type,
+                    title,
+                    message,
+                    is_read as isRead,
+                    created_at as time
+                FROM Notifications
+                WHERE user_id = @adminId
+                ORDER BY created_at DESC
+            `);
+        return result.recordset;
+    }
+
+    async markNotificationAsRead(id) {
+        const result = await this.pool.request()
+            .input('id', this.sql.Int, id)
+            .query('UPDATE Notifications SET is_read = 1 WHERE notification_id = @id');
+        return result.rowsAffected[0] > 0;
+    }
 }
 
 module.exports = AdminRepository;

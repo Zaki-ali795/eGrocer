@@ -29,6 +29,8 @@ class AdminController {
         this.deletePromotion = this.deletePromotion.bind(this);
         this.toggleUserStatus = this.toggleUserStatus.bind(this);
         this.updateSettings = this.updateSettings.bind(this);
+        this.getNotifications = this.getNotifications.bind(this);
+        this.markNotificationAsRead = this.markNotificationAsRead.bind(this);
     }
 
     async getDashboardOverview(req, res, next) {
@@ -243,6 +245,25 @@ class AdminController {
     async updateSettings(req, res, next) {
         try {
             const result = await this.adminService.updateSettings(req.body);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getNotifications(req, res, next) {
+        try {
+            // In a real app, get admin ID from token/session. Defaulting to 1.
+            const data = await this.adminService.getNotifications(1);
+            res.json({ success: true, data });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async markNotificationAsRead(req, res, next) {
+        try {
+            const result = await this.adminService.markNotificationAsRead(req.params.id);
             res.json({ success: true, data: result });
         } catch (err) {
             next(err);
