@@ -14,8 +14,10 @@ import { FlashDealsManagement } from './components/FlashDealsManagement';
 import { PaymentsManagement } from './components/PaymentsManagement';
 import { ReportsAnalytics } from './components/ReportsAnalytics';
 import { Settings } from './components/Settings';
+import { Login } from './components/Login';
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Default to true for current session, but enable toggle
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [navigationParams, setNavigationParams] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,6 +61,10 @@ export default function App() {
     }
   };
 
+  if (!isLoggedIn) {
+    return <Login onLogin={() => setIsLoggedIn(true)} />;
+  }
+
   return (
     <div className="flex h-screen bg-[#f8fafc] overflow-hidden selection:bg-emerald-100 selection:text-emerald-900">
       <Sidebar currentPage={currentPage} onNavigate={(page) => handleNavigate(page, null)} />
@@ -67,6 +73,7 @@ export default function App() {
           onNavigate={(page) => handleNavigate(page, null)} 
           onSearch={setSearchQuery}
           currentPage={currentPage}
+          onSignOut={() => setIsLoggedIn(false)}
         />
         <main className="flex-1 overflow-y-auto">
           {renderPage()}

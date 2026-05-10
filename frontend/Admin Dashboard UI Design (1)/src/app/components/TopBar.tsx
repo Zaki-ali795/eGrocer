@@ -12,14 +12,16 @@ interface Notification {
   time: string;
 }
 
-export function TopBar({ onNavigate, onSearch, currentPage }: { 
+export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: { 
   onNavigate?: (page: string) => void, 
   onSearch?: (query: string) => void,
-  currentPage?: string
+  currentPage?: string,
+  onSignOut?: () => void
 }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const [localSearch, setLocalSearch] = useState('');
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export function TopBar({ onNavigate, onSearch, currentPage }: {
 
   const handleSignOut = () => {
     // In a real app, clear tokens/session
-    window.location.reload(); 
+    onSignOut?.();
   };
 
   const getPlaceholder = () => {
@@ -261,9 +263,8 @@ export function TopBar({ onNavigate, onSearch, currentPage }: {
                     <div className="p-2 border-t border-gray-50">
                       <button 
                         onClick={() => {
-                          if(window.confirm('Are you sure you want to sign out?')) {
-                            handleSignOut();
-                          }
+                          setIsUserMenuOpen(false);
+                          setIsSignOutModalOpen(true);
                         }}
                         className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 rounded-2xl transition-colors"
                       >
@@ -278,6 +279,49 @@ export function TopBar({ onNavigate, onSearch, currentPage }: {
           </div>
         </div>
       </div>
+      <AnimatePresence>
+        {isSignOutModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSignOutModalOpen(false)}
+              className="absolute inset-0 bg-[#064e3b]/20 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-white rounded-[2.5rem] p-8 shadow-2xl border border-gray-100"
+            >
+              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <LogOut className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="font-['Crimson_Pro'] text-2xl font-bold text-center text-gray-900 mb-2">Sign Out</h3>
+              <p className="font-['Manrope'] text-center text-gray-600 mb-8">Are you sure you want to log out? You will need to enter your credentials again.</p>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsSignOutModalOpen(false)}
+                  className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-2xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setIsSignOutModalOpen(false);
+                    handleSignOut();
+                  }}
+                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg shadow-red-200 transition-all"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 }

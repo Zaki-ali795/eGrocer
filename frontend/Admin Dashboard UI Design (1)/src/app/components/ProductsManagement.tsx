@@ -28,6 +28,7 @@ interface ProductsManagementProps {
 export function ProductsManagement({ initialCategory, searchQuery = '' }: ProductsManagementProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'all');
@@ -204,20 +205,51 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
         className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100"
       >
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#064e3b]/20 focus:outline-none transition-all"
-          >
-            <option value="all">All Categories</option>
-            {categoryList.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-          <button className="flex items-center gap-2 px-6 py-3 bg-gray-50 rounded-2xl font-['Manrope'] font-medium text-gray-700 hover:bg-gray-100 transition-all">
-            <Filter className="w-5 h-5" />
-            Filters
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-['Manrope'] font-medium transition-all ${
+                isFilterOpen ? 'bg-[#064e3b] text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Filter className="w-5 h-5" />
+              Filters
+            </button>
+
+            {isFilterOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)}></div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute left-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 z-20 p-4"
+                >
+                  <h4 className="font-bold text-sm text-gray-900 mb-3">Filter by Category</h4>
+                  <div className="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
+                    <button
+                      onClick={() => { setSelectedCategory('all'); setIsFilterOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                        selectedCategory === 'all' ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-gray-50 text-gray-600'
+                      }`}
+                    >
+                      All Categories
+                    </button>
+                    {categoryList.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => { setSelectedCategory(cat); setIsFilterOpen(false); }}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          selectedCategory === cat ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-gray-50 text-gray-600'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto">

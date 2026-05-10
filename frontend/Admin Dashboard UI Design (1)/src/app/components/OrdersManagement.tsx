@@ -28,6 +28,30 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const handleExport = () => {
+    const headers = ['Order ID', 'Customer', 'Items', 'Total', 'Status', 'Date'];
+    const csvRows = [
+      headers.join(','),
+      ...filteredOrders.map(o => [
+        o.orderNumber,
+        `"${o.customer}"`,
+        o.items,
+        o.total,
+        o.status,
+        new Date(o.date).toLocaleDateString()
+      ].join(','))
+    ];
+    
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders-export-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   const loadData = async () => {
     try {
@@ -90,7 +114,8 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 rounded-2xl font-['Manrope'] font-semibold text-gray-700 hover:border-gray-300 transition-all"
+          onClick={handleExport}
+          className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 rounded-2xl font-['Manrope'] font-semibold text-gray-700 hover:border-gray-300 transition-all shadow-sm hover:shadow-md"
         >
           <Download className="w-5 h-5" />
           Export Orders
@@ -130,11 +155,44 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
         transition={{ delay: 0.3 }}
         className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100"
       >
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <button className="flex items-center gap-2 px-6 py-3 bg-gray-50 rounded-2xl font-['Manrope'] font-medium text-gray-700 hover:bg-gray-100 transition-all">
-            <Filter className="w-5 h-5" />
-            Filters
-          </button>
+        <div className="flex flex-col md:flex-row gap-4 mb-6 relative">
+          <div className="relative">
+            <button 
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-['Manrope'] font-medium transition-all ${
+                isFilterOpen ? 'bg-[#064e3b] text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Filter className="w-5 h-5" />
+              Filters
+            </button>
+
+            {isFilterOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)}></div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute left-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 z-20 p-4"
+                >
+                  <h4 className="font-bold text-sm text-gray-900 mb-3">Filter by Status</h4>
+                  <div className="space-y-2">
+                    {['all', ...Object.keys(statusConfig)].map(status => (
+                      <button
+                        key={status}
+                        onClick={() => { setSelectedStatus(status); setIsFilterOpen(false); }}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium capitalize transition-colors ${
+                          selectedStatus === status ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-gray-50 text-gray-600'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
