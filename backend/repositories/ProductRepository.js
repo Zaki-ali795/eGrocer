@@ -227,15 +227,17 @@ class ProductRepository extends BaseRepository {
                 p.product_name,
                 p.image_url,
                 p.base_price as original_price,
-                fd.deal_price,
+                ISNULL(fd.deal_price, p.base_price * (1 - fd.discount_percentage / 100)) as deal_price,
                 fd.discount_percentage,
                 fd.max_quantity as total_stock,
                 (fd.max_quantity - fd.sold_quantity) as available_stock,
-                fd.end_datetime
+                fd.end_datetime,
+                s.store_name
             FROM FlashDeals fd
             INNER JOIN Products p ON fd.product_id = p.product_id
+            LEFT JOIN Sellers s ON p.seller_id = s.seller_id
             WHERE fd.is_active = 1 
-              AND GETDATE() BETWEEN fd.start_datetime AND fd.end_datetime
+              AND SYSUTCDATETIME() BETWEEN fd.start_datetime AND fd.end_datetime
               AND (fd.max_quantity - fd.sold_quantity) > 0
             ORDER BY fd.end_datetime ASC
         `);
