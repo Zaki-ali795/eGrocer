@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Search, Filter, Download, Eye, Package, Truck, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Search, Download, Eye, Package, Truck, CheckCircle, XCircle, Loader2, ArrowUpRight, Clock, ShieldCheck, ShoppingBag, RefreshCw, ChevronDown } from 'lucide-react';
 import { motion } from 'motion/react';
 import { adminApi } from '../services/api';
+import { useState, useEffect } from 'react';
 
 interface Order {
   id: string;
@@ -105,93 +105,98 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
       >
         <div>
           <h1 className="font-['Crimson_Pro'] text-5xl font-bold text-gray-900 mb-2">Orders</h1>
-          <p className="font-['Manrope'] text-gray-600">Track and manage customer orders</p>
+          <p className="font-['Manrope'] text-gray-600">Track and manage customer fulfillment</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleExport}
-          className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 rounded-2xl font-['Manrope'] font-semibold text-gray-700 hover:border-gray-300 transition-all shadow-sm hover:shadow-md"
-        >
-          <Download className="w-5 h-5" />
-          Export Orders
-        </motion.button>
+        <div className="flex items-center gap-3">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleExport}
+            className="flex items-center gap-2 px-6 py-3 bg-[#064e3b] text-white rounded-2xl font-['Manrope'] font-bold shadow-lg shadow-emerald-900/20 hover:bg-[#053d2e] transition-all"
+          >
+            <Download className="w-5 h-5" />
+            Export Report
+          </motion.button>
+        </div>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Orders', value: orders.length, status: 'all' },
-          { label: 'Pending', value: orders.filter(o => o.status === 'pending').length, status: 'pending' },
-          { label: 'Confirmed', value: orders.filter(o => o.status === 'confirmed').length, status: 'confirmed' },
-          { label: 'Processing', value: orders.filter(o => o.status === 'processing').length, status: 'processing' },
-        ].map((stat, index) => (
-          <motion.button
-            key={stat.status}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.05 }}
-            onClick={() => setSelectedStatus(stat.status)}
-            className={`p-4 rounded-2xl text-left transition-all ${
-              selectedStatus === stat.status
-                ? 'bg-[#064e3b] text-white shadow-lg'
-                : 'bg-white border border-gray-200 hover:border-[#064e3b]/30'
-            }`}
-          >
-            <p className={`font-['Manrope'] text-sm mb-1 ${selectedStatus === stat.status ? 'text-white/80' : 'text-gray-600'}`}>
-              {stat.label}
-            </p>
-            <p className="font-['Crimson_Pro'] text-3xl font-bold">{stat.value}</p>
-          </motion.button>
-        ))}
+          { label: 'Total Orders', value: orders.length, status: 'all', icon: ShoppingBag, color: 'emerald' },
+          { label: 'Pending', value: orders.filter(o => o.status === 'pending').length, status: 'pending', icon: Clock, color: 'amber' },
+          { label: 'Confirmed', value: orders.filter(o => o.status === 'confirmed').length, status: 'confirmed', icon: ShieldCheck, color: 'blue' },
+          { label: 'Processing', value: orders.filter(o => o.status === 'processing').length, status: 'processing', icon: RefreshCw, color: 'indigo' },
+        ].map((stat, index) => {
+          const Icon = stat.icon || Package;
+          const isSelected = selectedStatus === stat.status;
+          
+          return (
+            <motion.button
+              key={stat.status}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + index * 0.05 }}
+              onClick={() => setSelectedStatus(stat.status)}
+              className={`relative overflow-hidden p-6 rounded-3xl text-left transition-all duration-300 group ${
+                isSelected
+                  ? 'bg-[#064e3b] text-white shadow-xl shadow-emerald-900/20'
+                  : 'bg-white border border-gray-100 hover:border-emerald-200 hover:shadow-lg'
+              }`}
+            >
+              <div className={`absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500 ${isSelected ? 'text-white' : 'text-emerald-900'}`}>
+                <Icon className="w-32 h-32" />
+              </div>
+              
+              <div className="relative z-10">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
+                  isSelected ? 'bg-white/20' : 'bg-emerald-50 text-emerald-600'
+                }`}>
+                  <Icon className="w-6 h-6" />
+                </div>
+                <p className={`font-['Manrope'] text-xs font-bold uppercase tracking-wider mb-1 ${isSelected ? 'text-emerald-100' : 'text-gray-400'}`}>
+                  {stat.label}
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <p className="font-['Crimson_Pro'] text-4xl font-bold">{stat.value}</p>
+                  <span className={`text-xs font-bold ${isSelected ? 'text-emerald-300' : 'text-emerald-600'}`}>
+                    +12%
+                  </span>
+                </div>
+              </div>
+              
+              {isSelected && (
+                <motion.div 
+                  layoutId="active-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-400" 
+                />
+              )}
+            </motion.button>
+          );
+        })}
       </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100"
+        className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-gray-200/50 border border-gray-100"
       >
-        <div className="flex flex-col md:flex-row gap-4 mb-6 relative">
-          <div className="relative">
-            <button 
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-['Manrope'] font-medium transition-all ${
-                isFilterOpen ? 'bg-[#064e3b] text-white' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Filter className="w-5 h-5" />
-              Filters
-            </button>
-
-            {isFilterOpen && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)}></div>
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="absolute left-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 z-20 p-4"
-                >
-                  <h4 className="font-bold text-sm text-gray-900 mb-3">Filter by Status</h4>
-                  <div className="space-y-2">
-                    {['all', ...Object.keys(statusConfig)].map(status => (
-                      <button
-                        key={status}
-                        onClick={() => { setSelectedStatus(status); setIsFilterOpen(false); }}
-                        className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium capitalize transition-colors ${
-                          selectedStatus === status ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-gray-50 text-gray-600'
-                        }`}
-                      >
-                        {status}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              </>
-            )}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">Order Manifest</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-2">Showing:</span>
+            <div className="px-4 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold capitalize">
+              {selectedStatus}
+            </div>
           </div>
         </div>
 
@@ -233,24 +238,37 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
                     <td className="py-4 px-4">
                       <span className="font-['Manrope'] font-semibold text-gray-900">Rs {order.total.toLocaleString()}</span>
                     </td>
-                    <td className="py-4 px-4">
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                        className={`px-3 py-1 rounded-full text-xs font-['Manrope'] font-semibold ${statusInfo.color} border-none focus:ring-0 cursor-pointer`}
-                      >
-                        {Object.keys(statusConfig).map(statusKey => (
-                          <option key={statusKey} value={statusKey}>{statusConfig[statusKey].label}</option>
-                        ))}
-                      </select>
+                    <td className="py-5 px-4">
+                      <div className="relative group/status w-fit">
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                          className={`appearance-none pl-10 pr-8 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ${statusInfo.color} border-none focus:ring-4 focus:ring-emerald-500/10 cursor-pointer transition-all hover:scale-105`}
+                        >
+                          {Object.keys(statusConfig).map(statusKey => (
+                            <option key={statusKey} value={statusKey}>{statusConfig[statusKey].label}</option>
+                          ))}
+                        </select>
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <StatusIcon className="w-4 h-4" />
+                        </div>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <ChevronDown className="w-3 h-3 opacity-50" />
+                        </div>
+                      </div>
                     </td>
                     <td className="py-4 px-4">
                       <span className="font-['Manrope'] text-sm text-gray-600">{new Date(order.date).toLocaleDateString()}</span>
                     </td>
-                    <td className="py-4 px-4">
-                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="View Details">
-                        <Eye className="w-4 h-4 text-gray-600" />
-                      </button>
+                    <td className="py-5 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                          <Eye className="w-4 h-4" />
+                        </div>
+                        <button className="text-xs font-bold text-emerald-600 hover:underline">
+                          View Items
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 );
