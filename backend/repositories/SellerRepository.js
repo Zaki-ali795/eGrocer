@@ -29,8 +29,10 @@ class SellerRepository extends BaseRepository {
         return result.recordset[0] || null;
     }
 
-    async getAllProductRequests() {
-        const result = await this.pool.request().query(`
+    async getAllProductRequests(sellerId) {
+        const result = await this.pool.request()
+            .input('sellerId', sellerId)
+            .query(`
             SELECT 
                 pr.request_id,
                 pr.customer_id,
@@ -38,14 +40,21 @@ class SellerRepository extends BaseRepository {
                 pr.description,
                 pr.quantity,
                 pr.max_budget,
-                pr.request_status,
+                CASE 
+                    WHEN b.bid_status = 'accepted' THEN 'accepted'
+                    WHEN b.bid_id IS NOT NULL THEN 'offered' 
+                    ELSE pr.request_status 
+                END AS request_status,
                 pr.created_at,
                 u.first_name + ' ' + u.last_name AS customer_name,
-                c.category_name
+                c.category_name,
+                b.bid_price AS your_bid_price,
+                b.bid_status
             FROM ProductRequests pr
             INNER JOIN Users u ON pr.customer_id = u.user_id
             LEFT JOIN Categories c ON pr.category_id = c.category_id
-            WHERE pr.request_status = 'open'
+            LEFT JOIN ProductRequestBids b ON pr.request_id = b.request_id AND b.seller_id = @sellerId
+            WHERE pr.request_status = 'open' OR b.seller_id = @sellerId
             ORDER BY pr.created_at DESC
         `);
         return result.recordset;
@@ -137,6 +146,7 @@ class SellerRepository extends BaseRepository {
                     o.order_id,
                     o.order_number,
                     o.order_status,
+                    o.payment_method,
                     o.created_at,
                     oi.quantity,
                     oi.unit_price,
@@ -327,28 +337,73 @@ class SellerRepository extends BaseRepository {
     }
 
     async updateOrderStatus(orderId, status) {
-        await this.pool
-            .request()
-            .input('orderId', orderId)
-            .input('status', status)
-            .query(`UPDATE Orders SET order_status = @status WHERE order_id = @orderId`);
+        const transaction = this.pool.transaction();
+        try {
+            await transaction.begin();
+            const req = transaction.request();
+            req.input('orderId', orderId);
+            req.input('status',  status);
+
+            // 1. Update Order table
+            await req.query(`UPDATE Orders SET order_status = @status, updated_at = GETDATE() WHERE order_id = @orderId`);
+
+            // 2. Update Deliveries table if applicable
+            const deliveryStatusMap = {
+                'delivered':  'delivered',
+                'dispatched': 'dispatched',
+                'processing': 'pending'
+            };
+            const deliveryStatus = deliveryStatusMap[status];
+            if (deliveryStatus) {
+                const delReq = transaction.request();
+                delReq.input('orderId', orderId);
+                delReq.input('dStatus', deliveryStatus);
+                await delReq.query(`UPDATE Deliveries SET delivery_status = @dStatus, updated_at = GETDATE() WHERE order_id = @orderId`);
+            }
+
+            // 3. Insert into History table for tracking
+            const notes = status === 'processing' ? 'Order is being prepared' : 
+                         status === 'confirmed'  ? 'Order has been confirmed' :
+                         status === 'dispatched' ? 'Order is on its way' :
+                         `Order status updated to ${status}`;
+                         
+            req.input('notes', notes);
+            await req.query(`
+                INSERT INTO OrderStatusHistory (order_id, status, notes)
+                VALUES (@orderId, @status, @notes)
+            `);
+
+            await transaction.commit();
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
     }
 
     async updateProfile(sellerId, profileData) {
-        const { storeName, storeDescription, phone } = profileData;
+        const { storeName, storeDescription, phone, firstName, lastName, email } = profileData;
         await this.pool
             .request()
             .input('sellerId', sellerId)
             .input('storeName', storeName)
             .input('storeDescription', storeDescription)
             .input('phone', phone)
+            .input('firstName', firstName)
+            .input('lastName', lastName)
+            .input('email', email)
             .query(`
                 UPDATE Sellers 
                 SET store_name = @storeName, 
                     store_description = @storeDescription,
                     updated_at = GETDATE()
                 WHERE seller_id = @sellerId;
-                UPDATE Users SET phone = @phone WHERE user_id = @sellerId;
+                
+                UPDATE Users 
+                SET first_name = @firstName,
+                    last_name = @lastName,
+                    email = @email,
+                    phone = @phone 
+                WHERE user_id = @sellerId;
             `);
     }
 
