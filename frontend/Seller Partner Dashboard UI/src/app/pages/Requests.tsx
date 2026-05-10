@@ -22,16 +22,17 @@ export default function Requests() {
     if (!sellerId) return;
     try {
       setLoading(true);
-      const data = await sellerApi.getRequests();
+      const data = await sellerApi.getRequests(sellerId);
       // Map database fields to UI expectations if necessary
       const mappedRequests = data.map((r: any) => ({
         id: r.request_id,
         productName: r.product_name,
         customerName: r.customer_name,
         quantity: r.quantity,
-        location: 'Local Delivery', // DB doesn't have location yet, using placeholder
+        location: 'Local Delivery', 
         requestDate: r.created_at,
         status: r.request_status === 'open' ? 'pending' : r.request_status,
+        yourOffer: r.your_bid_price
       }));
       setRequests(mappedRequests);
     } catch (err: any) {
