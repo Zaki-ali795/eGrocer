@@ -155,10 +155,12 @@ class AdminRepository extends BaseRepository {
                 p.base_price as price,
                 i.quantity_in_stock as stock,
                 CASE WHEN p.is_active = 1 THEN 'active' ELSE 'inactive' END as status,
-                p.image_url as image
+                p.image_url as image,
+                s.store_name as seller
             FROM Products p
             INNER JOIN Categories c ON p.category_id = c.category_id
             LEFT JOIN Inventory i ON p.product_id = i.product_id
+            LEFT JOIN Sellers s ON p.seller_id = s.seller_id
             ORDER BY p.created_at DESC
         `);
         return result.recordset;
@@ -210,6 +212,7 @@ class AdminRepository extends BaseRepository {
                 CASE WHEN p.is_active = 1 THEN 'active' ELSE 'inactive' END as status
             FROM Products p
             LEFT JOIN Inventory i ON p.product_id = i.product_id
+            LEFT JOIN Sellers s ON p.seller_id = s.seller_id
             ORDER BY i.quantity_in_stock ASC
         `);
         return result.recordset;
