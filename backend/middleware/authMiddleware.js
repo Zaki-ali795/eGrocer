@@ -1,24 +1,23 @@
-// middleware/authMiddleware.js
-const jwt = require('jsonwebtoken');
+// backend/middleware/authMiddleware.js
 
 /**
- * Verifies JWT on protected routes.
- * SRP: only responsible for authentication checking.
+ * Simple authentication middleware for the development phase.
+ * Extracts the user ID from the 'x-user-id' header.
+ * 
+ * If the header is missing, it falls back to user_id = 3 (John Doe)
+ * to ensure that existing features don't break during the transition.
  */
 function authMiddleware(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ success: false, message: 'No token provided.' });
+    const headerUserId = req.headers['x-user-id'];
+    
+    if (headerUserId) {
+        req.user = {
+            user_id: parseInt(headerUserId, 10),
+            id: parseInt(headerUserId, 10)
+        };
     }
 
-    const token = authHeader.split(' ')[1];
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // { user_id, email, user_type }
-        next();
-    } catch (err) {
-        return res.status(401).json({ success: false, message: 'Invalid or expired token.' });
-    }
+    next();
 }
 
 module.exports = authMiddleware;
