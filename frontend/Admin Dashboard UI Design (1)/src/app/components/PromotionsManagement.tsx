@@ -15,7 +15,7 @@ interface Promo {
   status: string;
 }
 
-export function PromotionsManagement() {
+export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: string }) {
   const [promos, setPromos] = useState<Promo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,9 +107,11 @@ export function PromotionsManagement() {
     }
   };
 
-  const filteredPromos = filter === 'all'
-    ? promos
-    : promos.filter(promo => promo.status === filter);
+  const filteredPromos = promos.filter(promo => {
+    const matchesFilter = filter === 'all' || promo.status === filter;
+    const matchesSearch = promo.code.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">

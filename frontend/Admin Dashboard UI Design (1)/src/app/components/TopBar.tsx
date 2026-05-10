@@ -12,10 +12,17 @@ interface Notification {
   time: string;
 }
 
-export function TopBar({ onNavigate }: { onNavigate?: (page: string) => void }) {
+export function TopBar({ onNavigate, onSearch }: { onNavigate?: (page: string) => void, onSearch?: (query: string) => void }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [localSearch, setLocalSearch] = useState('');
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setLocalSearch(query);
+    onSearch?.(query);
+  };
 
   const loadNotifications = async () => {
     try {
@@ -62,6 +69,8 @@ export function TopBar({ onNavigate }: { onNavigate?: (page: string) => void }) 
             <input
               type="text"
               placeholder="Search products, orders, users..."
+              value={localSearch}
+              onChange={handleSearchChange}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all duration-300"
             />
           </div>

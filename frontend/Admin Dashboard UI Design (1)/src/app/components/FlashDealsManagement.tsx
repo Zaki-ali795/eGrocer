@@ -16,7 +16,7 @@ interface FlashDeal {
   max: number;
 }
 
-export function FlashDealsManagement() {
+export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: string }) {
   const [deals, setDeals] = useState<FlashDeal[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,7 +132,11 @@ export function FlashDealsManagement() {
     }
   };
 
-  const filteredDeals = deals.filter(deal => showActive ? deal.status === 'active' : deal.status !== 'active');
+  const filteredDeals = deals.filter(deal => {
+    const matchesStatus = showActive ? deal.status === 'active' : deal.status !== 'active';
+    const matchesSearch = deal.product.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
 
   const calculateTimeLeft = (endTime: string) => {
     const end = new Date(endTime);

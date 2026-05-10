@@ -16,10 +16,14 @@ interface Category {
 
 interface CategoriesManagementProps {
   onNavigateProducts: (categoryName: string) => void;
+  searchQuery?: string;
 }
 
-export function CategoriesManagement({ onNavigateProducts }: CategoriesManagementProps) {
+export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: CategoriesManagementProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const filteredCategories = categories.filter(cat => 
+    cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

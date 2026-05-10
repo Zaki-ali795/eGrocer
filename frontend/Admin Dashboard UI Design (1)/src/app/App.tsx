@@ -17,10 +17,13 @@ import { Settings } from './components/Settings';
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [navigationParams, setNavigationParams] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleNavigate = (page: string, params: any = null) => {
     setCurrentPage(page);
     setNavigationParams(params);
+    // Optional: Clear search when navigating to a new page
+    // setSearchQuery('');
   };
 
   const renderPage = () => {
@@ -28,23 +31,23 @@ export default function App() {
       case 'dashboard':
         return <DashboardOverview onNavigate={(page) => handleNavigate(page, null)} />;
       case 'products':
-        return <ProductsManagement initialCategory={navigationParams?.category} />;
+        return <ProductsManagement initialCategory={navigationParams?.category} searchQuery={searchQuery} />;
       case 'categories':
-        return <CategoriesManagement onNavigateProducts={(cat: string) => handleNavigate('products', { category: cat })} />;
+        return <CategoriesManagement onNavigateProducts={(cat: string) => handleNavigate('products', { category: cat })} searchQuery={searchQuery} />;
       case 'inventory':
-        return <InventoryManagement />;
+        return <InventoryManagement searchQuery={searchQuery} />;
       case 'orders':
-        return <OrdersManagement />;
+        return <OrdersManagement searchQuery={searchQuery} />;
       case 'users':
-        return <UsersManagement />;
+        return <UsersManagement searchQuery={searchQuery} />;
       case 'requests':
-        return <CustomerRequests />;
+        return <CustomerRequests searchQuery={searchQuery} />;
       case 'promotions':
-        return <PromotionsManagement />;
+        return <PromotionsManagement searchQuery={searchQuery} />;
       case 'flash-deals':
-        return <FlashDealsManagement />;
+        return <FlashDealsManagement searchQuery={searchQuery} />;
       case 'payments':
-        return <PaymentsManagement />;
+        return <PaymentsManagement searchQuery={searchQuery} />;
       case 'reports':
         return <ReportsAnalytics />;
       case 'settings':
@@ -58,7 +61,10 @@ export default function App() {
     <div className="flex h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-amber-50/20 overflow-hidden">
       <Sidebar currentPage={currentPage} onNavigate={(page) => handleNavigate(page, null)} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <TopBar onNavigate={(page) => handleNavigate(page, null)} />
+        <TopBar 
+          onNavigate={(page) => handleNavigate(page, null)} 
+          onSearch={setSearchQuery}
+        />
         <main className="flex-1 overflow-y-auto">
           {renderPage()}
         </main>

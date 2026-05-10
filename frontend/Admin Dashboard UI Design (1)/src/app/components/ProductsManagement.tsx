@@ -22,9 +22,10 @@ interface Product {
 
 interface ProductsManagementProps {
   initialCategory?: string;
+  searchQuery?: string;
 }
 
-export function ProductsManagement({ initialCategory }: ProductsManagementProps) {
+export function ProductsManagement({ initialCategory, searchQuery = '' }: ProductsManagementProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,7 +154,8 @@ export function ProductsManagement({ initialCategory }: ProductsManagementProps)
   };
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const combinedSearch = (searchTerm + ' ' + searchQuery).trim().toLowerCase();
+    const matchesSearch = product.name.toLowerCase().includes(combinedSearch);
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });

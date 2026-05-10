@@ -23,7 +23,7 @@ const statusConfig: any = {
   refunded: { label: 'Refunded', color: 'bg-gray-100 text-gray-700', icon: XCircle },
 };
 
-export function OrdersManagement() {
+export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,8 +56,9 @@ export function OrdersManagement() {
   };
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customer.toLowerCase().includes(searchTerm.toLowerCase());
+    const combinedSearch = (searchTerm + ' ' + searchQuery).trim().toLowerCase();
+    const matchesSearch = order.orderNumber.toLowerCase().includes(combinedSearch) ||
+                         order.customer.toLowerCase().includes(combinedSearch);
     const matchesStatus = selectedStatus === 'all' || order.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });

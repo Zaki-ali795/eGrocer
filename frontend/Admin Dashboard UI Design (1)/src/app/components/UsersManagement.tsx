@@ -14,7 +14,7 @@ interface User {
   revenue?: number;
 }
 
-export function UsersManagement() {
+export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) {
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState({ customers: 0, sellers: 0, active: 0 });
   const [loading, setLoading] = useState(true);
@@ -53,9 +53,10 @@ export function UsersManagement() {
   };
 
   const filteredUsers = users.filter(user => {
+    const combinedSearch = (searchTerm + ' ' + searchQuery).trim().toLowerCase();
     const matchesFilter = filter === 'all' || user.type === filter;
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = user.name.toLowerCase().includes(combinedSearch) ||
+                         user.email.toLowerCase().includes(combinedSearch);
     return matchesFilter && matchesSearch;
   });
 

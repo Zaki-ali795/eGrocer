@@ -11,7 +11,7 @@ interface InventoryItem {
   status: string;
 }
 
-export function InventoryManagement() {
+export function InventoryManagement({ searchQuery = '' }: { searchQuery?: string }) {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,9 +60,11 @@ export function InventoryManagement() {
     calculatedStatus: getStatus(item)
   }));
 
-  const filteredInventory = filter === 'all'
-    ? inventoryWithStatus
-    : inventoryWithStatus.filter(item => item.calculatedStatus === filter);
+  const filteredInventory = inventoryWithStatus.filter(item => {
+    const matchesFilter = filter === 'all' || item.calculatedStatus === filter;
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   const stats = {
     good: inventoryWithStatus.filter(i => i.calculatedStatus === 'good').length,
