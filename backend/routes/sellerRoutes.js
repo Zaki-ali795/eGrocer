@@ -8,32 +8,106 @@ const SellerRepository = require('../repositories/SellerRepository');
 const SellerService = require('../services/SellerService');
 const SellerController = require('../controllers/SellerController');
 
-// Using a factory pattern or async closure to inject the DB pool
-(async () => {
+async function getController() {
     const pool = await getPool();
     const repo = new SellerRepository(pool);
     const service = new SellerService(repo);
-    const controller = new SellerController(service);
+    return new SellerController(service);
+}
 
-    router.get('/profile/:sellerId', controller.getProfile);
-    router.get('/requests', controller.getOpenRequests);
-    router.get('/bids/:sellerId', controller.getSellerBids);
-    router.get('/products/:sellerId', controller.getProducts);
-    router.patch('/inventory', controller.updateInventory);
-    router.get('/stats/:sellerId', controller.getDashboardStats);
-    router.get('/stats/history/:sellerId', controller.getSalesHistory);
-    router.get('/orders/:sellerId', controller.getOrders);
-    router.post('/products', controller.addProduct);
-    router.put('/products/:productId', controller.updateProduct);
-    router.delete('/products/:productId', controller.deleteProduct);
-    router.get('/promotions/:sellerId', controller.getPromotions);
-    router.post('/promotions', controller.createPromotion);
-    router.delete('/promotions/:dealId', controller.deletePromotion);
-    router.get('/earnings/:sellerId', controller.getEarnings);
-    router.post('/bid', controller.placeBid);
-    router.patch('/orders/status', controller.updateOrderStatus);
-    router.put('/profile/:sellerId', controller.updateProfile);
-    router.get('/categories', controller.getCategories);
-})();
+router.get('/profile/:sellerId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getProfile(req, res, next);
+});
+
+router.get('/requests', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getOpenRequests(req, res, next);
+});
+
+router.get('/bids/:sellerId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getSellerBids(req, res, next);
+});
+
+router.get('/products/:sellerId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getProducts(req, res, next);
+});
+
+router.patch('/inventory', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.updateInventory(req, res, next);
+});
+
+router.get('/stats/:sellerId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getDashboardStats(req, res, next);
+});
+
+router.get('/stats/history/:sellerId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getSalesHistory(req, res, next);
+});
+
+router.get('/orders/:sellerId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getOrders(req, res, next);
+});
+
+router.post('/products', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.addProduct(req, res, next);
+});
+
+router.put('/products/:productId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.updateProduct(req, res, next);
+});
+
+router.delete('/products/:productId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.deleteProduct(req, res, next);
+});
+
+router.get('/promotions/:sellerId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getPromotions(req, res, next);
+});
+
+router.post('/promotions', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.createPromotion(req, res, next);
+});
+
+router.delete('/promotions/:dealId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.deletePromotion(req, res, next);
+});
+
+router.get('/earnings/:sellerId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getEarnings(req, res, next);
+});
+
+router.post('/bid', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.placeBid(req, res, next);
+});
+
+router.patch('/orders/status', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.updateOrderStatus(req, res, next);
+});
+
+router.put('/profile/:sellerId', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.updateProfile(req, res, next);
+});
+
+router.get('/categories', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getCategories(req, res, next);
+});
 
 module.exports = router;
