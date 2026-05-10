@@ -61,7 +61,7 @@ export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) 
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+      <Loader2 className="w-12 h-12 animate-spin text-[var(--primary)]" />
     </div>
   );
 
@@ -69,7 +69,7 @@ export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) 
     <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
       <p className="text-red-600 font-semibold text-lg">Failed to load users data</p>
       <p className="text-red-500 text-sm mt-1">{error}</p>
-      <button onClick={loadData} className="mt-4 text-emerald-600 font-bold underline">Try Again</button>
+      <button onClick={loadData} className="mt-4 text-[var(--primary)] font-bold underline">Try Again</button>
     </div>
   );
 
@@ -110,16 +110,16 @@ export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) 
           transition={{ delay: 0.15 }}
           onClick={() => setFilter('seller')}
           className={`rounded-2xl p-6 border transition-all cursor-pointer hover:shadow-md ${
-            filter === 'seller' ? 'bg-emerald-100 border-emerald-300' : 'bg-emerald-50 border-emerald-200'
+            filter === 'seller' ? 'bg-[var(--primary)]/10 border-[var(--primary)]/30' : 'bg-[var(--primary)]/5 border-[var(--primary)]/20'
           }`}
         >
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-[var(--primary)] rounded-xl flex items-center justify-center">
               <Store className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-['Manrope'] text-xs text-emerald-700">Seller Partners</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">{stats.sellers}</p>
+              <p className="font-['Manrope'] text-xs text-[var(--green-dark)]">Seller Partners</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-[var(--green-dark)]">{stats.sellers}</p>
             </div>
           </div>
         </motion.div>
@@ -159,7 +159,7 @@ export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) 
                 onClick={() => setFilter(type)}
                 className={`px-4 py-3 rounded-2xl font-['Manrope'] font-medium transition-all ${
                   filter === type
-                    ? 'bg-[#064e3b] text-white'
+                    ? 'bg-[var(--green-dark)] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -228,7 +228,7 @@ export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) 
                   </td>
                   <td className="py-4 px-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-['Manrope'] font-semibold ${
-                      user.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                      user.status === 'active' ? 'bg-[var(--primary)]/10 text-[var(--green-dark)]' : 'bg-gray-100 text-gray-600'
                     }`}>
                       {user.status}
                     </span>
@@ -243,7 +243,7 @@ export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) 
                         className="p-2 hover:bg-red-50 rounded-lg transition-colors" 
                         title={user.status === 'active' ? 'Disable Account' : 'Enable Account'}
                       >
-                        <Ban className={`w-4 h-4 ${user.status === 'active' ? 'text-red-600' : 'text-emerald-600'}`} />
+                        <Ban className={`w-4 h-4 ${user.status === 'active' ? 'text-red-600' : 'text-[var(--primary)]'}`} />
                       </button>
                     </div>
                   </td>

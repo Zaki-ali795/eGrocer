@@ -44,12 +44,6 @@ export default function EGrocerAuthUI() {
       icon: <Store className="w-6 h-6" />,
       desc: "Sell products and manage your grocery store.",
     },
-    {
-      id: "admin",
-      title: "Admin",
-      icon: <ShieldCheck className="w-6 h-6" />,
-      desc: "Manage platform operations and users.",
-    },
   ];
 
   const [passwordStrength, setPasswordStrength] = useState(0);
@@ -103,7 +97,7 @@ export default function EGrocerAuthUI() {
     }
 
     const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/signup";
-    const payload = mode === "login" 
+    const payload = mode === "login"
       ? { email: formData.email, password: formData.password }
       : { ...formData, userType: role };
 
@@ -122,7 +116,7 @@ export default function EGrocerAuthUI() {
 
       // Clear any old session data from other sellers
       localStorage.clear();
-      
+
       // Save token and user info
       localStorage.setItem("token", result.data.token);
       localStorage.setItem("user", JSON.stringify(result.data.user));
@@ -131,12 +125,16 @@ export default function EGrocerAuthUI() {
 
       // Redirect based on role
       const userType = result.data.user.user_type || role;
+
+      if (userType === "admin") {
+        localStorage.clear();
+        throw new Error("admin cant access from here");
+      }
+
       if (userType === "customer") {
         window.location.href = `http://localhost:5173?userId=${result.data.user.user_id}`; // Customer dashboard with dynamic ID
       } else if (userType === "seller") {
-        window.location.href = `http://localhost:5174?sellerId=${result.data.user.user_id}`; // Seller dashboard with dynamic ID
-      } else if (userType === "admin") {
-        window.location.href = "http://localhost:5175"; // Admin dashboard
+        window.location.href = `http://localhost:5179?sellerId=${result.data.user.user_id}`; // Seller dashboard with dynamic ID
       }
     } catch (err) {
       setError(err.message);
@@ -161,12 +159,12 @@ export default function EGrocerAuthUI() {
           <div className="flex items-center gap-4 mb-8">
             <div className="relative group">
               {/* Subtle Glow Effect */}
-              <div className="absolute -inset-1 bg-green-400 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-              
-              <img 
-                src={logo} 
-                alt="eGrocer Logo" 
-                className="relative w-16 h-16 object-contain rounded-2xl shadow-xl" 
+              <div className="absolute -inset-1 bg-[#2ECC71] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+
+              <img
+                src={logo}
+                alt="eGrocer Logo"
+                className="relative w-16 h-16 object-contain rounded-2xl shadow-xl"
               />
             </div>
             <div>
@@ -177,7 +175,7 @@ export default function EGrocerAuthUI() {
 
           <h2 className="text-6xl font-black leading-tight mb-6">
             Fresh Groceries <br />
-            <span className="text-green-400">Delivered To Your Doorstep</span>
+            <span className="text-[#2ECC71]">Delivered To Your Doorstep</span>
           </h2>
 
           <p className="text-lg text-white/80 max-w-xl leading-relaxed">
@@ -208,7 +206,7 @@ export default function EGrocerAuthUI() {
                 setMode(mode === "login" ? "signup" : "login");
                 setError("");
               }}
-              className="text-green-600 font-semibold hover:text-green-700"
+              className="text-[#27AE60] font-semibold hover:text-[#1E8449]"
             >
               {mode === "login" ? "Sign Up" : "Login"}
             </button>
@@ -224,17 +222,16 @@ export default function EGrocerAuthUI() {
           {/* ROLE SELECTOR */}
           {mode === "signup" && (
             <div className="grid md:grid-cols-2 gap-4 mb-8">
-              {roleCards.filter(item => item.id !== "admin").map((item) => (
+              {roleCards.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setRole(item.id)}
-                  className={`border-2 rounded-2xl p-4 text-left transition-all ${
-                    role === item.id
-                      ? "border-green-500 bg-green-50"
-                      : "border-gray-200 hover:border-green-300"
-                  }`}
+                  className={`border-2 rounded-2xl p-4 text-left transition-all ${role === item.id
+                    ? "border-[#27AE60] bg-[#27AE60]/5"
+                    : "border-gray-200 hover:border-[#27AE60]/30"
+                    }`}
                 >
-                  <div className="w-12 h-12 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-[#27AE60]/10 text-[#27AE60] flex items-center justify-center mb-3">
                     {item.icon}
                   </div>
                   <h3 className="font-bold text-gray-900">{item.title}</h3>
@@ -261,7 +258,7 @@ export default function EGrocerAuthUI() {
                       value={formData.firstName}
                       onChange={handleChange}
                       placeholder="Fahad"
-                      className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#27AE60]"
                       required
                     />
                   </div>
@@ -318,7 +315,7 @@ export default function EGrocerAuthUI() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="+923004249190"
+                    placeholder="+92 300 4249190"
                     className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -398,7 +395,7 @@ export default function EGrocerAuthUI() {
                   required
                 />
               </div>
-              
+
               {/* STRENGTH BAR */}
               {mode === "signup" && formData.password && (
                 <div className="mt-3">
@@ -406,26 +403,24 @@ export default function EGrocerAuthUI() {
                     {[1, 2, 3, 4].map((level) => (
                       <div
                         key={level}
-                        className={`flex-1 rounded-full transition-all duration-500 ${
-                          passwordStrength >= level
-                            ? passwordStrength <= 1
-                              ? "bg-red-500"
-                              : passwordStrength <= 2
+                        className={`flex-1 rounded-full transition-all duration-500 ${passwordStrength >= level
+                          ? passwordStrength <= 1
+                            ? "bg-red-500"
+                            : passwordStrength <= 2
                               ? "bg-yellow-500"
                               : passwordStrength <= 3
-                              ? "bg-blue-500"
-                              : "bg-green-500"
-                            : "bg-gray-100"
-                        }`}
+                                ? "bg-blue-500"
+                                : "bg-[#27AE60]"
+                          : "bg-gray-100"
+                          }`}
                       />
                     ))}
                   </div>
                   <div className="flex justify-between items-center mt-1.5">
-                    <p className={`text-[10px] font-bold uppercase tracking-wider ${
-                      passwordStrength <= 1 ? "text-red-500" :
+                    <p className={`text-[10px] font-bold uppercase tracking-wider ${passwordStrength <= 1 ? "text-red-500" :
                       passwordStrength <= 2 ? "text-yellow-600" :
-                      passwordStrength <= 3 ? "text-blue-600" : "text-green-600"
-                    }`}>
+                        passwordStrength <= 3 ? "text-blue-600" : "text-[#27AE60]"
+                      }`}>
                       {passwordStrength === 0 && "Enter Password"}
                       {passwordStrength === 1 && "Very Weak"}
                       {passwordStrength === 2 && "Fair"}
@@ -447,7 +442,7 @@ export default function EGrocerAuthUI() {
                   <input type="checkbox" />
                   Remember me
                 </label>
-                <button type="button" className="text-green-600 font-semibold">
+                <button type="button" className="text-[#27AE60] font-semibold">
                   Forgot Password?
                 </button>
               </div>
@@ -457,7 +452,7 @@ export default function EGrocerAuthUI() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 transition-all text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2"
+              className="w-full bg-[#27AE60] hover:bg-[#1E8449] disabled:bg-gray-400 transition-all text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2"
             >
               {isLoading ? "Processing..." : (mode === "login" ? "Login to eGrocer" : "Create Account")}
               {!isLoading && <ArrowRight className="w-5 h-5" />}

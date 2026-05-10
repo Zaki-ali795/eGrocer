@@ -66,7 +66,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="w-64 h-screen bg-gradient-to-b from-[#10b981] via-[#059669] to-[#064e3b] sticky top-0 flex flex-col shadow-2xl z-50 border-r border-white/5"
+      className="w-64 h-screen bg-gradient-to-b from-[var(--green-primary)] via-[var(--green-secondary)] to-[var(--green-dark)] sticky top-0 flex flex-col shadow-2xl z-50 border-r border-white/5"
     >
       <div className="p-6">
         <motion.div
@@ -80,7 +80,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
           </div>
           <div>
             <h1 className="font-['Crimson_Pro'] text-2xl text-white tracking-tight font-bold">eGrocer</h1>
-            <p className="font-['Manrope'] text-[10px] uppercase tracking-widest text-emerald-400 font-bold">Admin Portal</p>
+            <p className="font-['Manrope'] text-[10px] uppercase tracking-widest text-white/60 font-bold">Admin Portal</p>
           </div>
         </motion.div>
       </div>
@@ -94,38 +94,37 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
               </h3>
               <ul className="space-y-1">
                 {group.items.map((item, index) => {
-                  const Icon = item.icon;
-                  const isActive = currentPage === item.id;
+                   const Icon = item.icon;
+                   const isActive = currentPage === item.id;
 
-                  return (
-                    <motion.li
-                      key={item.id}
-                      initial={{ x: -10, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: 0.1 + (groupIndex * 0.1) + (index * 0.05) }}
-                    >
-                      <button
-                        onClick={() => onNavigate(item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 font-['Manrope'] group relative ${
-                          isActive
-                            ? 'bg-emerald-500/10 text-emerald-400 shadow-sm'
-                            : 'text-white/60 hover:bg-white/5 hover:text-white'
-                        }`}
-                      >
-                        <Icon className={`w-4 h-4 transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
-                        <span className="font-semibold text-sm">{item.label}</span>
-                        {isActive && (
-                          <>
-                            <motion.div
-                              layoutId="activeGlow"
-                              className="absolute inset-0 bg-emerald-500/5 rounded-xl -z-10"
-                            />
-                            <div className="ml-auto w-1.5 h-1.5 bg-emerald-400 rounded-full shadow-[0_0_10px_#34d399]" />
-                          </>
-                        )}
-                      </button>
-                    </motion.li>
-                  );
+                   return (
+                     <motion.li
+                       key={item.id}
+                       initial={{ x: -10, opacity: 0 }}
+                       animate={{ x: 0, opacity: 1 }}
+                       transition={{ delay: 0.1 + (groupIndex * 0.1) + (index * 0.05) }}
+                     >
+                       <button
+                         onClick={() => onNavigate(item.id)}
+                         className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 font-['Manrope'] group relative ${
+                           isActive
+                             ? 'bg-white text-[var(--green-dark)] shadow-xl'
+                             : 'text-white/60 hover:bg-white/5 hover:text-white'
+                         }`}
+                       >
+                         <Icon className={`w-4 h-4 transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
+                         <span className="font-semibold text-sm">{item.label}</span>
+                         {isActive && (
+                           <>
+                             <motion.div
+                               layoutId="activeGlow"
+                               className="absolute inset-0 bg-white rounded-xl -z-10"
+                             />
+                           </>
+                         )}
+                       </button>
+                     </motion.li>
+                   );
                 })}
               </ul>
             </div>
@@ -137,7 +136,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         <div className="bg-white/5 border border-white/5 rounded-2xl p-4 transition-all hover:bg-white/10 group cursor-default">
           <div className="flex items-center justify-between mb-2">
             <p className="font-['Manrope'] text-[10px] text-white/40 font-bold uppercase tracking-wider">Server Node 01</p>
-            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_#34d399]"></div>
+            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse shadow-[0_0_8px_white]"></div>
           </div>
           <p className="font-['Manrope'] text-xs text-white/80 font-medium group-hover:text-white transition-colors">Operational</p>
         </div>

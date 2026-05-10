@@ -106,7 +106,7 @@ export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: C
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+      <Loader2 className="w-12 h-12 animate-spin text-[var(--primary)]" />
     </div>
   );
 
@@ -114,7 +114,7 @@ export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: C
     <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
       <p className="text-red-600 font-semibold text-lg">Failed to load categories</p>
       <p className="text-red-500 text-sm mt-1">{error}</p>
-      <button onClick={loadData} className="mt-4 text-emerald-600 font-bold underline">Try Again</button>
+      <button onClick={loadData} className="mt-4 text-[var(--primary)] font-bold underline">Try Again</button>
     </div>
   );
 
@@ -133,7 +133,7 @@ export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: C
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--green-dark)] to-[var(--green-secondary)] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           <Plus className="w-5 h-5" />
           Add Category
@@ -159,10 +159,10 @@ export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: C
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + index * 0.05 }}
               onClick={() => onNavigateProducts(category.name)}
-              className="group bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-2xl p-5 hover:border-[#064e3b]/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
+              className="group bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-2xl p-5 hover:border-[var(--green-dark)]/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300 overflow-hidden">
+                <div className="w-14 h-14 bg-gradient-to-br from-[var(--primary)]/10 to-[var(--primary)]/20 rounded-xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300 overflow-hidden">
                   {category.image ? (
                     <img src={category.image} alt={category.name} className="w-full h-full object-cover" />
                   ) : (
@@ -190,12 +190,12 @@ export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: C
 
               <div className="flex items-center justify-between">
                 <span className="font-['Manrope'] text-sm text-gray-700">
-                  <span className="font-bold text-[#064e3b]">{category.productCount}</span> products
+                  <span className="font-bold text-[var(--green-dark)]">{category.productCount}</span> products
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${category.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${category.status === 'active' ? 'bg-[var(--primary)]/10 text-[var(--green-dark)]' : 'bg-gray-100 text-gray-600'}`}>
                   {category.status}
                 </span>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#064e3b] group-hover:translate-x-1 transition-all" />
+                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[var(--green-dark)] group-hover:translate-x-1 transition-all" />
               </div>
             </motion.div>
           ))}
@@ -236,7 +236,7 @@ export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: C
                     type="text"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[var(--green-dark)]/20 focus:outline-none"
                   />
                 </div>
 
@@ -255,7 +255,7 @@ export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: C
                     type="url"
                     value={formData.imageUrl}
                     onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[var(--green-dark)]/20 focus:outline-none"
                   />
                 </div>
 
@@ -264,7 +264,7 @@ export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: C
                   <select
                     value={formData.parentId}
                     onChange={e => setFormData({ ...formData, parentId: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none"
                   >
                     <option value="">None</option>
                     {categories.map(cat => (
@@ -285,7 +285,7 @@ export function CategoriesManagement({ onNavigateProducts, searchQuery = '' }: C
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[var(--green-dark)] to-[var(--green-secondary)] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
                     {editingCategory ? 'Update Category' : 'Create Category'}
                   </button>

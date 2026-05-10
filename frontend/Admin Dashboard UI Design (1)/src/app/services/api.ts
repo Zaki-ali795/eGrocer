@@ -3,10 +3,23 @@ const API_BASE_URL = '/api';
 
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE_URL.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+  
+  const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
+  let userId = '';
+  
+  if (userStr) {
+    try {
+      userId = JSON.parse(userStr).user_id;
+    } catch {}
+  }
+
   const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+      'x-user-id': userId,
       ...options.headers,
     },
   });
@@ -59,4 +72,5 @@ export const adminApi = {
   markNotificationAsRead: (id: string) => fetchApi(`/admin/notifications/${id}/read`, { method: 'PUT' }),
   changePassword: (data: any) => fetchApi('/admin/change-password', { method: 'PUT', body: JSON.stringify(data) }),
   updateProfile: (data: any) => fetchApi('/admin/update-profile', { method: 'PUT', body: JSON.stringify(data) }),
+  getMe: () => fetchApi('/users/me'),
 };

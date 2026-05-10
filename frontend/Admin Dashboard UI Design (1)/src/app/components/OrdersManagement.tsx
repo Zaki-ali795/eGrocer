@@ -18,7 +18,7 @@ const statusConfig: any = {
   confirmed: { label: 'Confirmed', color: 'bg-blue-100 text-blue-700', icon: Package },
   processing: { label: 'Processing', color: 'bg-indigo-100 text-indigo-700', icon: Package },
 
-  delivered: { label: 'Delivered', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
+  delivered: { label: 'Delivered', color: 'bg-[var(--primary)]/10 text-[var(--green-dark)]', icon: CheckCircle },
   cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700', icon: XCircle },
   refunded: { label: 'Refunded', color: 'bg-gray-100 text-gray-700', icon: XCircle },
 };
@@ -88,7 +88,7 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+      <Loader2 className="w-12 h-12 animate-spin text-[var(--primary)]" />
     </div>
   );
 
@@ -96,7 +96,7 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
     <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
       <p className="text-red-600 font-semibold text-lg">Failed to load orders</p>
       <p className="text-red-500 text-sm mt-1">{error}</p>
-      <button onClick={loadData} className="mt-4 text-emerald-600 font-bold underline">Try Again</button>
+      <button onClick={loadData} className="mt-4 text-[var(--primary)] font-bold underline">Try Again</button>
     </div>
   );
 
@@ -116,7 +116,7 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleExport}
-            className="flex items-center gap-2 px-6 py-3 bg-[#064e3b] text-white rounded-2xl font-['Manrope'] font-bold shadow-lg shadow-emerald-900/20 hover:bg-[#053d2e] transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-[var(--green-dark)] text-white rounded-2xl font-['Manrope'] font-bold shadow-lg shadow-[var(--green-dark)]/20 hover:bg-[var(--green-primary)] transition-all"
           >
             <Download className="w-5 h-5" />
             Export Report
@@ -143,8 +143,8 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
               onClick={() => setSelectedStatus(stat.status)}
               className={`relative overflow-hidden p-6 rounded-3xl text-left transition-all duration-300 group ${
                 isSelected
-                  ? 'bg-[#064e3b] text-white shadow-xl shadow-emerald-900/20'
-                  : 'bg-white border border-gray-100 hover:border-emerald-200 hover:shadow-lg'
+                  ? 'bg-[var(--green-dark)] text-white shadow-xl shadow-[var(--green-dark)]/20'
+                  : 'bg-white border border-gray-100 hover:border-[var(--primary)]/20 hover:shadow-lg'
               }`}
             >
               <div className={`absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500 ${isSelected ? 'text-white' : 'text-emerald-900'}`}>
@@ -153,7 +153,7 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
               
               <div className="relative z-10">
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
-                  isSelected ? 'bg-white/20' : 'bg-emerald-50 text-emerald-600'
+                  isSelected ? 'bg-white/20' : 'bg-[var(--primary)]/10 text-[var(--primary)]'
                 }`}>
                   <Icon className="w-6 h-6" />
                 </div>
@@ -171,7 +171,7 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
               {isSelected && (
                 <motion.div 
                   layoutId="active-indicator"
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-400" 
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--green-secondary)]" 
                 />
               )}
             </motion.button>
@@ -194,7 +194,7 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-2">Showing:</span>
-            <div className="px-4 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold capitalize">
+            <div className="px-4 py-1.5 bg-[var(--primary)]/10 text-[var(--green-dark)] rounded-full text-xs font-bold capitalize">
               {selectedStatus}
             </div>
           </div>
@@ -243,7 +243,7 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
                         <select
                           value={order.status}
                           onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                          className={`appearance-none pl-10 pr-8 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ${statusInfo.color} border-none focus:ring-4 focus:ring-emerald-500/10 cursor-pointer transition-all hover:scale-105`}
+                          className={`appearance-none pl-10 pr-8 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ${statusInfo.color} border-none focus:ring-4 focus:ring-[var(--primary)]/10 cursor-pointer transition-all hover:scale-105`}
                         >
                           {Object.keys(statusConfig).map(statusKey => (
                             <option key={statusKey} value={statusKey}>{statusConfig[statusKey].label}</option>
@@ -262,10 +262,10 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
                     </td>
                     <td className="py-5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                        <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 group-hover:bg-[var(--primary)]/10 group-hover:text-[var(--primary)] transition-colors">
                           <Eye className="w-4 h-4" />
                         </div>
-                        <button className="text-xs font-bold text-emerald-600 hover:underline">
+                        <button className="text-xs font-bold text-[var(--primary)] hover:underline">
                           View Items
                         </button>
                       </div>

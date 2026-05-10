@@ -58,7 +58,7 @@ export function Settings() {
                 type="number"
                 value={taxRate}
                 onChange={(e) => setTaxRate(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#064e3b]/20 focus:outline-none transition-all"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none transition-all"
               />
             </div>
             <div>
@@ -67,13 +67,13 @@ export function Settings() {
                 type="text"
                 value={taxId}
                 onChange={(e) => setTaxId(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#064e3b]/20 focus:outline-none transition-all"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none transition-all"
               />
             </div>
             <button 
               onClick={handleSaveSettings}
               disabled={saving}
-              className="w-full px-6 py-3 bg-[#064e3b] text-white rounded-xl font-['Manrope'] font-semibold hover:bg-[#234d3e] transition-colors disabled:opacity-50"
+              className="w-full px-6 py-3 bg-[var(--green-dark)] text-white rounded-xl font-['Manrope'] font-semibold hover:bg-[var(--green-primary)] transition-colors disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Tax Settings'}
             </button>
@@ -87,8 +87,8 @@ export function Settings() {
           className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100"
         >
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-              <CreditCard className="w-6 h-6 text-emerald-600" />
+            <div className="w-12 h-12 bg-[var(--primary)]/10 rounded-xl flex items-center justify-center">
+              <CreditCard className="w-6 h-6 text-[var(--primary)]" />
             </div>
             <div>
               <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">Payment Gateways</h2>
@@ -107,7 +107,7 @@ export function Settings() {
                 <span className="font-['Manrope'] font-semibold text-gray-900">{gateway.name}</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" defaultChecked={gateway.enabled} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#064e3b]"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--green-dark)]"></div>
                 </label>
               </div>
             ))}
@@ -142,7 +142,7 @@ export function Settings() {
                 <span className="font-['Manrope'] font-medium text-gray-900">{notification.name}</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" defaultChecked={notification.enabled} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#064e3b]"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--green-dark)]"></div>
                 </label>
               </div>
             ))}
@@ -171,14 +171,14 @@ export function Settings() {
               <p className="font-['Manrope'] text-sm text-gray-600 mb-3">Update your login credentials</p>
               <button 
                 onClick={() => setIsPasswordModalOpen(true)}
-                className="px-4 py-2 bg-[#064e3b] text-white rounded-xl font-['Manrope'] font-medium hover:bg-[#234d3e] transition-colors"
+                className="px-4 py-2 bg-[var(--green-dark)] text-white rounded-xl font-['Manrope'] font-medium hover:bg-[var(--green-primary)] transition-colors"
               >
                 Change Password
               </button>
             </div>
             <div className="p-4 bg-gray-50 rounded-xl">
               <p className="font-['Manrope'] font-semibold text-gray-900 mb-1">Session Timeout</p>
-              <select className="w-full mt-2 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-['Manrope'] text-gray-700 focus:border-[#064e3b]/20 focus:outline-none transition-all">
+              <select className="w-full mt-2 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-['Manrope'] text-gray-700 focus:border-[var(--primary)]/20 focus:outline-none transition-all">
                 <option>15 minutes</option>
                 <option selected>30 minutes</option>
                 <option>1 hour</option>
@@ -243,7 +243,7 @@ export function Settings() {
             <div className="p-8">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                  <div className="w-12 h-12 bg-[var(--primary)]/5 rounded-2xl flex items-center justify-center text-[var(--primary)]">
                     <Lock className="w-6 h-6" />
                   </div>
                   <div>
@@ -268,7 +268,7 @@ export function Settings() {
                       type={showPasswords.current ? 'text' : 'password'}
                       value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
-                      className="w-full pl-11 pr-12 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-emerald-500/20 focus:outline-none transition-all font-['Manrope']"
+                      className="w-full pl-11 pr-12 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none transition-all font-['Manrope']"
                       placeholder="••••••••"
                     />
                     <button
@@ -288,7 +288,7 @@ export function Settings() {
                       type={showPasswords.new ? 'text' : 'password'}
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                      className="w-full pl-11 pr-12 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-emerald-500/20 focus:outline-none transition-all font-['Manrope']"
+                      className="w-full pl-11 pr-12 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none transition-all font-['Manrope']"
                       placeholder="••••••••"
                     />
                     <button
@@ -344,7 +344,7 @@ export function Settings() {
                     }
                   }}
                   disabled={passwordLoading || !passwordForm.currentPassword || !passwordForm.newPassword}
-                  className="w-full py-4 bg-[#064e3b] text-white rounded-[1.5rem] font-bold shadow-xl shadow-emerald-900/20 hover:bg-[#053d2e] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-[var(--green-dark)] text-white rounded-[1.5rem] font-bold shadow-xl shadow-[var(--green-dark)]/20 hover:bg-[var(--green-primary)] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {passwordLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Shield className="w-5 h-5" />}
                   Update Security Credentials

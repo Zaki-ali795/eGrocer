@@ -153,7 +153,7 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+      <Loader2 className="w-12 h-12 animate-spin text-[var(--primary)]" />
     </div>
   );
 
@@ -192,7 +192,7 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
           onClick={() => setShowActive(true)}
           className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${
             showActive
-              ? 'bg-[#064e3b] text-white shadow-lg'
+              ? 'bg-[var(--green-dark)] text-white shadow-lg'
               : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
           }`}
         >
@@ -202,7 +202,7 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
           onClick={() => setShowActive(false)}
           className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${
             !showActive
-              ? 'bg-[#064e3b] text-white shadow-lg'
+              ? 'bg-[var(--green-dark)] text-white shadow-lg'
               : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
           }`}
         >
@@ -279,7 +279,7 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
               )}
 
               {deal.status === 'active' && (
-                <div className="flex items-center gap-2 text-emerald-700">
+                <div className="flex items-center gap-2 text-[var(--green-dark)]">
                   <TrendingUp className="w-4 h-4" />
                   <span className="font-['Manrope'] text-sm font-semibold">{deal.sold} items claimed</span>
                 </div>
@@ -374,7 +374,7 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
                       readOnly
                       type="number"
                       value={formData.price}
-                      className="w-full px-4 py-3 bg-gray-100 border-2 border-transparent rounded-xl focus:outline-none cursor-not-allowed font-bold text-emerald-700"
+                      className="w-full px-4 py-3 bg-gray-100 border-2 border-transparent rounded-xl focus:outline-none cursor-not-allowed font-bold text-[var(--primary)]"
                     />
                   </div>
                 </div>

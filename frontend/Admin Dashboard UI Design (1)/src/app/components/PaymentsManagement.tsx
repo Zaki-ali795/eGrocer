@@ -53,7 +53,7 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+      <Loader2 className="w-12 h-12 animate-spin text-[var(--primary)]" />
     </div>
   );
 
@@ -166,7 +166,7 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
               }}
             />
-            <Line type="monotone" dataKey="amount" stroke="#064e3b" strokeWidth={3} dot={{ fill: '#064e3b', r: 5 }} />
+            <Line type="monotone" dataKey="amount" stroke="var(--green-dark)" strokeWidth={3} dot={{ fill: 'var(--green-dark)', r: 5 }} />
           </LineChart>
         </ResponsiveContainer>
       </motion.div>
@@ -186,7 +186,7 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
                 onClick={() => setFilter(status)}
                 className={`px-4 py-2 rounded-xl font-['Manrope'] text-sm font-medium transition-all ${
                   filter === status
-                    ? 'bg-[#064e3b] text-white'
+                    ? 'bg-[var(--green-dark)] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -234,7 +234,7 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
                   </td>
                   <td className="py-4 px-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-['Manrope'] font-semibold ${
-                      (txn.status === 'completed' || txn.status === 'Success') ? 'bg-emerald-100 text-emerald-700' :
+                      (txn.status === 'completed' || txn.status === 'Success') ? 'bg-[var(--primary)]/10 text-[var(--green-dark)]' :
                       txn.status === 'pending' ? 'bg-amber-100 text-amber-700' :
                       'bg-red-100 text-red-700'
                     }`}>

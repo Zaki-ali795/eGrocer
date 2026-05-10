@@ -49,7 +49,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+      <Loader2 className="w-12 h-12 animate-spin text-[var(--primary)]" />
     </div>
   );
 
@@ -89,8 +89,8 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
               onClick={() => setFilter(stat.status as any)}
               className={`relative overflow-hidden p-6 rounded-3xl text-left transition-all duration-300 group ${
                 isSelected
-                  ? 'bg-[#064e3b] text-white shadow-xl shadow-emerald-900/20'
-                  : 'bg-white border border-gray-100 hover:border-emerald-200 hover:shadow-lg'
+                  ? 'bg-[var(--green-dark)] text-white shadow-xl shadow-[var(--green-dark)]/20'
+                  : 'bg-white border border-gray-100 hover:border-[var(--primary)]/20 hover:shadow-lg'
               }`}
             >
               <div className={`absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform duration-500 ${isSelected ? 'text-white' : 'text-emerald-900'}`}>
@@ -99,7 +99,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
               
               <div className="relative z-10">
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
-                  isSelected ? 'bg-white/20' : 'bg-emerald-50 text-emerald-600'
+                  isSelected ? 'bg-white/20' : 'bg-[var(--primary)]/10 text-[var(--primary)]'
                 }`}>
                   <Icon className="w-6 h-6" />
                 </div>
@@ -114,7 +114,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
               {isSelected && (
                 <motion.div 
                   layoutId="request-filter-indicator"
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-400" 
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--green-secondary)]" 
                 />
               )}
             </motion.button>
@@ -124,14 +124,14 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
 
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+          <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-xl flex items-center justify-center text-[var(--primary)]">
             <Package className="w-5 h-5" />
           </div>
           <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">Request Pipeline</h2>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-2">Status:</span>
-          <div className="px-4 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold capitalize">
+          <div className="px-4 py-1.5 bg-[var(--primary)]/10 text-[var(--green-dark)] rounded-full text-xs font-bold capitalize">
             {filter}
           </div>
         </div>
@@ -144,24 +144,24 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 + index * 0.05 }}
-            className="group bg-white rounded-[2rem] p-8 border border-gray-100 hover:border-emerald-200 shadow-xl shadow-gray-200/40 hover:shadow-2xl hover:shadow-emerald-900/5 transition-all"
+            className="group bg-white rounded-[2rem] p-8 border border-gray-100 hover:border-[var(--primary)]/20 shadow-xl shadow-gray-200/40 hover:shadow-2xl hover:shadow-[var(--green-dark)]/5 transition-all"
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex-1 space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:bg-[#064e3b] group-hover:text-white transition-all duration-300">
+                  <div className="w-14 h-14 bg-[var(--primary)]/10 rounded-2xl flex items-center justify-center text-[var(--primary)] group-hover:bg-[var(--green-dark)] group-hover:text-white transition-all duration-300">
                     <ShoppingBag className="w-7 h-7" />
                   </div>
                   <div>
                     <div className="flex items-center gap-3 mb-1">
                       <h3 className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900 leading-tight">{request.product}</h3>
                       <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                        request.status.toLowerCase() === 'open' ? 'bg-emerald-100 text-emerald-700' :
+                        request.status.toLowerCase() === 'open' ? 'bg-[var(--primary)]/10 text-[var(--green-dark)]' :
                         request.status.toLowerCase() === 'active' ? 'bg-amber-100 text-amber-700' :
                         'bg-gray-100 text-gray-500'
                       }`}>
                         <div className={`w-1.5 h-1.5 rounded-full ${
-                          request.status.toLowerCase() === 'open' ? 'bg-emerald-500' :
+                          request.status.toLowerCase() === 'open' ? 'bg-[var(--primary)]' :
                           request.status.toLowerCase() === 'active' ? 'bg-amber-500' :
                           'bg-gray-400'
                         }`} />
@@ -169,7 +169,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                       </div>
                     </div>
                     <p className="font-['Manrope'] text-sm font-semibold text-gray-400 uppercase tracking-widest">
-                      ID: {request.id} • Customer: <span className="text-emerald-700">{request.customer}</span>
+                      ID: {request.id} • Customer: <span className="text-[var(--green-dark)]">{request.customer}</span>
                     </p>
                   </div>
                 </div>
@@ -180,7 +180,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
 
                 <div className="flex flex-wrap items-center gap-8 pt-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                    <div className="w-10 h-10 bg-[var(--primary)]/5 rounded-xl flex items-center justify-center text-[var(--primary)]">
                       <DollarSign className="w-5 h-5" />
                     </div>
                     <div>
@@ -190,7 +190,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                    <div className="w-10 h-10 bg-[var(--primary)]/5 rounded-xl flex items-center justify-center text-[var(--primary)]">
                       <Clock className="w-5 h-5" />
                     </div>
                     <div>
@@ -202,7 +202,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                    <div className="w-10 h-10 bg-[var(--primary)]/5 rounded-xl flex items-center justify-center text-[var(--primary)]">
                       <Users className="w-5 h-5" />
                     </div>
                     <div>
@@ -215,7 +215,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
 
               <div className="flex flex-row md:flex-col gap-3">
                 <button 
-                  className="flex items-center justify-center gap-2 px-6 py-4 bg-[#064e3b] text-white rounded-2xl font-['Manrope'] font-bold hover:bg-[#053d2e] transition-all shadow-lg shadow-emerald-900/10"
+                  className="flex items-center justify-center gap-2 px-6 py-4 bg-[var(--green-dark)] text-white rounded-2xl font-['Manrope'] font-bold hover:bg-[var(--green-primary)] transition-all shadow-lg shadow-[var(--green-dark)]/10"
                 >
                   View Bids
                   <ChevronRight className="w-4 h-4" />

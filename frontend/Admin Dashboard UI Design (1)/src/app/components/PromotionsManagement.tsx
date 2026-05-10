@@ -123,7 +123,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+      <Loader2 className="w-12 h-12 animate-spin text-[var(--primary)]" />
     </div>
   );
 
@@ -131,7 +131,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
     <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
       <p className="text-red-600 font-semibold text-lg">Failed to load promotions</p>
       <p className="text-red-500 text-sm mt-1">{error}</p>
-      <button onClick={loadData} className="mt-4 text-emerald-600 font-bold underline">Try Again</button>
+      <button onClick={loadData} className="mt-4 text-[var(--primary)] font-bold underline">Try Again</button>
     </div>
   );
 
@@ -150,7 +150,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--green-dark)] to-[var(--green-primary)] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           <Plus className="w-5 h-5" />
           Create Promo Code
@@ -163,7 +163,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
             key={status}
             onClick={() => setFilter(status)}
             className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${filter === status
-              ? 'bg-[#064e3b] text-white shadow-lg'
+              ? 'bg-[var(--green-dark)] text-white shadow-lg'
               : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
               }`}
           >
@@ -183,15 +183,15 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + index * 0.05 }}
-              className={`bg-white rounded-3xl p-6 shadow-lg border-2 transition-all hover:shadow-xl ${promo.status === 'active' ? 'border-emerald-200' : 'border-gray-200'
+              className={`bg-white rounded-3xl p-6 shadow-lg border-2 transition-all hover:shadow-xl ${promo.status === 'active' ? 'border-[var(--primary)]/20' : 'border-gray-200'
                 }`}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#064e3b] to-[#10b981] rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[var(--green-dark)] to-[var(--green-primary)] rounded-xl flex items-center justify-center">
                     <Tag className="w-5 h-5 text-white" />
                   </div>
-                  <span className={`px-2 py-1 rounded-lg text-xs font-['Manrope'] font-semibold ${promo.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                  <span className={`px-2 py-1 rounded-lg text-xs font-['Manrope'] font-semibold ${promo.status === 'active' ? 'bg-[var(--primary)]/10 text-[var(--green-dark)]' : 'bg-gray-100 text-gray-600'
                     }`}>
                     {promo.status === 'active' ? 'Active' : 'Inactive'}
                   </span>
@@ -215,7 +215,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
               <div className="space-y-3 mb-4">
                 <div className="flex items-center justify-between">
                   <span className="font-['Manrope'] text-sm text-gray-600">Discount</span>
-                  <span className="font-['Manrope'] font-bold text-[#064e3b]">
+                  <span className="font-['Manrope'] font-bold text-[var(--green-dark)]">
                     {promo.type === 'percentage' ? `${promo.value}%` : `Rs ${promo.value}`}
                   </span>
                 </div>
@@ -247,7 +247,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                     transition={{ delay: 0.3 + index * 0.05, duration: 0.8 }}
                     className={`h-full rounded-full ${usagePercentage >= 90 ? 'bg-red-500' :
                       usagePercentage >= 70 ? 'bg-orange-500' :
-                        'bg-emerald-500'
+                        'bg-[var(--primary)]'
                       }`}
                   />
                 </div>
@@ -307,7 +307,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                     type="text"
                     value={formData.code}
                     onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none"
                     placeholder="SAVE20"
                   />
                 </div>
@@ -318,7 +318,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                     <select
                       value={formData.type}
                       onChange={e => setFormData({ ...formData, type: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none"
                     >
                       <option value="percentage">Percentage</option>
                       <option value="fixed">Fixed Amount</option>
@@ -331,7 +331,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                       type="number"
                       value={formData.value}
                       onChange={e => setFormData({ ...formData, value: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -344,7 +344,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                       type="number"
                       value={formData.minOrder}
                       onChange={e => setFormData({ ...formData, minOrder: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -354,7 +354,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                       type="number"
                       value={formData.limit}
                       onChange={e => setFormData({ ...formData, limit: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -363,7 +363,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                       type="number"
                       value={formData.maxCap}
                       onChange={e => setFormData({ ...formData, maxCap: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none"
                       placeholder="Optional cap e.g. 500"
                     />
                   </div>
@@ -376,7 +376,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                     type="date"
                     value={formData.expiry}
                     onChange={e => setFormData({ ...formData, expiry: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none"
                   />
                 </div>
 
@@ -390,7 +390,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[var(--green-dark)] to-[var(--green-primary)] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
                     {editingPromo ? 'Update Promo' : 'Create Promo'}
                   </button>

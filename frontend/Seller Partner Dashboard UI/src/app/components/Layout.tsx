@@ -35,7 +35,7 @@ export default function Layout() {
   
   const handleLogout = () => {
     logout();
-    window.location.href = 'http://localhost:5176';
+    window.location.href = 'http://localhost:5178';
   };
   const [requestCount, setRequestCount] = useState(0);
   const [profile, setProfile] = useState<any>(null);

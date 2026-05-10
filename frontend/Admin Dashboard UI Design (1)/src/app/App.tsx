@@ -63,7 +63,7 @@ export default function App() {
       case 'settings':
         return <Settings />;
       default:
-        return <DashboardOverview />;
+        return <DashboardOverview onNavigate={(page) => handleNavigate(page, null)} />;
     }
   };
 
@@ -72,7 +72,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-[#f8fafc] overflow-hidden selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="flex h-screen bg-[var(--background)] overflow-hidden selection:bg-[var(--primary)]/20 selection:text-[var(--green-dark)]">
       <Sidebar currentPage={currentPage} onNavigate={(page) => handleNavigate(page, null)} />
       <div className="flex-1 flex flex-col overflow-hidden bg-white/40 backdrop-blur-3xl">
         <TopBar 

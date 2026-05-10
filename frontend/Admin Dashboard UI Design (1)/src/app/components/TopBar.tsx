@@ -26,14 +26,27 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
   const [adminUser, setAdminUser] = useState<any>(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    async function loadProfile() {
       try {
-        setAdminUser(JSON.parse(savedUser));
+        const userData = await adminApi.getMe();
+        if (userData) {
+          setAdminUser({
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            email: userData.email
+          });
+        }
       } catch (err) {
-        console.error('Failed to parse admin user:', err);
+        console.error('Failed to load profile from DB, falling back to localStorage:', err);
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          try {
+            setAdminUser(JSON.parse(savedUser));
+          } catch {}
+        }
       }
     }
+    loadProfile();
   }, []);
 
   useEffect(() => {
@@ -104,13 +117,13 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
       <div className="h-full px-8 flex items-center justify-between">
         <div className="flex-1 max-w-2xl">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 transition-colors group-focus-within:text-[#10b981]" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 transition-colors group-focus-within:text-[var(--primary)]" />
             <input
               type="text"
               placeholder={getPlaceholder()}
               value={localSearch}
               onChange={handleSearchChange}
-              className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#10b981]/20 focus:outline-none focus:ring-4 focus:ring-[#10b981]/5 transition-all duration-300"
+              className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[var(--primary)]/20 focus:outline-none focus:ring-4 focus:ring-[var(--primary)]/5 transition-all duration-300"
             />
             {localSearch && (
               <button
@@ -224,7 +237,7 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               className="flex items-center gap-3 p-1.5 pr-4 bg-white border border-gray-100 rounded-2xl hover:border-emerald-200 hover:shadow-md transition-all group"
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white shadow-inner group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 bg-gradient-to-br from-[var(--green-primary)] to-[var(--green-secondary)] rounded-xl flex items-center justify-center text-white shadow-inner group-hover:scale-105 transition-transform">
                 <User className="w-6 h-6" />
               </div>
               <div className="text-left hidden lg:block pr-2">
@@ -293,7 +306,7 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsSignOutModalOpen(false)}
-              className="absolute inset-0 bg-[#064e3b]/20 backdrop-blur-sm"
+              className="absolute inset-0 bg-[var(--green-dark)]/20 backdrop-blur-sm"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}

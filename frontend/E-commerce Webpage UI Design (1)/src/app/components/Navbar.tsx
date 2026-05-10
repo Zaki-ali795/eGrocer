@@ -18,7 +18,7 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = 'http://localhost:5176';
+    window.location.href = 'http://localhost:5178';
   };
 
   const handleSearch = () => {

@@ -35,11 +35,11 @@ export function KPICard({
       <div className="relative z-10">
         <div className="flex items-start justify-between mb-4">
           <div className={`p-3 rounded-2xl ${gradient} bg-opacity-10`}>
-            <Icon className="w-6 h-6 text-[#064e3b]" />
+            <Icon className="w-6 h-6 text-[var(--green-dark)]" />
           </div>
           {change && (
             <span className={`font-['Manrope'] text-sm font-semibold px-3 py-1 rounded-full ${
-              changeType === 'positive' ? 'bg-emerald-100 text-emerald-700' :
+              changeType === 'positive' ? 'bg-[var(--green-primary)]/10 text-[var(--green-dark)]' :
               changeType === 'negative' ? 'bg-red-100 text-red-700' :
               'bg-gray-100 text-gray-700'
             }`}>

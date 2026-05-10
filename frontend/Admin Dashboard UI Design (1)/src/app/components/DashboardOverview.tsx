@@ -31,7 +31,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+      <Loader2 className="w-12 h-12 animate-spin text-[var(--primary)]" />
     </div>
   );
 
@@ -81,7 +81,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
           change="+0%"
           changeType="positive"
           icon={ShoppingCart}
-          gradient="bg-gradient-to-br from-emerald-500 to-emerald-700"
+          gradient="bg-gradient-to-br from-[var(--green-primary)] to-[var(--green-dark)]"
           delay={0.2}
           subtitle={<span>{stats.today_processing} processing • {stats.today_delivered} delivered</span>}
         />
@@ -91,7 +91,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
           change="+0%"
           changeType="positive"
           icon={DollarSign}
-          gradient="bg-gradient-to-br from-emerald-600 to-forest-900"
+          gradient="bg-gradient-to-br from-[var(--green-dark)] to-[var(--green-primary)]"
           delay={0.3}
           subtitle={<span>Rs {(stats.monthly_revenue / (stats.today_orders || 1)).toFixed(0)} avg order value</span>}
         />
@@ -101,7 +101,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
           change="Live now"
           changeType="neutral"
           icon={Zap}
-          gradient="bg-gradient-to-br from-emerald-400 to-teal-600"
+          gradient="bg-gradient-to-br from-[var(--green-secondary)] to-[var(--green-primary)]"
           delay={0.4}
           subtitle={<span>Across all categories</span>}
         />
@@ -121,11 +121,11 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             </div>
             <div className="flex gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-[#10b981] rounded-full"></div>
+                <div className="w-3 h-3 bg-[var(--primary)] rounded-full"></div>
                 <span className="font-['Manrope'] text-sm text-gray-600">Revenue</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-[#10b981] rounded-full"></div>
+                <div className="w-3 h-3 bg-[var(--primary)] rounded-full"></div>
                 <span className="font-['Manrope'] text-sm text-gray-600">Orders</span>
               </div>
             </div>
@@ -134,12 +134,12 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             <AreaChart data={revenueHistory}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="var(--green-primary)" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="var(--green-primary)" stopOpacity={0}/>
                 </linearGradient>
                 <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#34d399" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#34d399" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="var(--green-secondary)" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="var(--green-secondary)" stopOpacity={0}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
@@ -153,8 +153,8 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
                   boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
                 }}
               />
-              <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} fill="url(#colorRevenue)" />
-              <Area type="monotone" dataKey="orders" stroke="#34d399" strokeWidth={3} fill="url(#colorOrders)" />
+              <Area type="monotone" dataKey="revenue" stroke="var(--green-primary)" strokeWidth={3} fill="url(#colorRevenue)" />
+              <Area type="monotone" dataKey="orders" stroke="var(--green-secondary)" strokeWidth={3} fill="url(#colorOrders)" />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
@@ -180,7 +180,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
               />
-              <Bar dataKey="sales" fill="#10b981" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="sales" fill="var(--green-primary)" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -199,7 +199,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
           </div>
           <button 
             onClick={() => onNavigate('orders')}
-            className="font-['Manrope'] text-sm text-[#10b981] hover:text-[#059669] font-semibold"
+            className="font-['Manrope'] text-sm text-[var(--primary)] hover:text-[var(--green-dark)] font-semibold"
           >
             View All
           </button>
@@ -248,7 +248,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
               <p className="font-['Crimson_Pro'] text-2xl font-bold text-emerald-900">Good</p>
             </div>
           </div>
-          <p className="font-['Manrope'] text-sm text-emerald-700">{stats.low_stock_count} products need attention</p>
+          <p className="font-['Manrope'] text-sm text-[var(--green-dark)]">{stats.low_stock_count} products need attention</p>
         </motion.div>
 
         <motion.div

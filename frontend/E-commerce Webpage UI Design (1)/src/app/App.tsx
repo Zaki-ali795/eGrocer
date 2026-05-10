@@ -28,49 +28,20 @@ export default function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
 
-  useEffect(() => {
-    // Capture userId from URL if coming from login redirect
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlId = urlParams.get('userId');
-    
-    if (urlId) {
-      localStorage.setItem('userId', urlId);
-      // Clear old session data to force fresh fetch
-      localStorage.removeItem('user');
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-
-    // Initial fetch of wishlist
-    wishlistApi.getWishlist()
-      .then(setWishlistItems)
-      .catch(err => {
-        console.warn('Wishlist API not ready:', err.message);
-        setWishlistItems([]); // Fallback to empty wishlist
-      });
-
-    // Initial fetch of cart
-    cartApi.getCart()
-      .then(items => {
-        setCartItems(items.map(item => ({
-          id: String(item.id),
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-        })));
-      })
-      .catch(err => console.warn('Cart API not ready:', err.message));
-  }, []);
-
-  const handleAddToCart = async (product: Product, quantity: number = 1) => {
-    const productId = Number(product.id);
-    
+  // Centralized refresh function to keep UI in sync with DB
+  const refreshWishlist = async () => {
     try {
-      await cartApi.addItem(productId, quantity);
-      
-      // Refresh cart from backend to ensure sync
-      const updatedCart = await cartApi.getCart();
-      setCartItems(updatedCart.map(item => ({
+      const items = await wishlistApi.getWishlist();
+      setWishlistItems(items);
+    } catch (err) {
+      console.warn('Failed to refresh wishlist:', err);
+    }
+  };
+
+  const refreshCart = async () => {
+    try {
+      const items = await cartApi.getCart();
+      setCartItems(items.map(item => ({
         id: String(item.id),
         name: item.name,
         price: item.price,
@@ -78,19 +49,48 @@ export default function App() {
         image: item.image,
       })));
     } catch (err) {
+      console.warn('Failed to refresh cart:', err);
+    }
+  };
+
+  useEffect(() => {
+    // 1. Capture userId from URL if coming from login redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlId = urlParams.get('userId');
+    
+    if (urlId) {
+      localStorage.setItem('userId', urlId);
+      // Clear old session data
+      localStorage.removeItem('user');
+      // Clean URL without reloading
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    // 2. Initial fetch
+    refreshWishlist();
+    refreshCart();
+  }, []);
+
+  const handleAddToCart = async (product: Product, quantity: number = 1) => {
+    try {
+      await cartApi.addItem(Number(product.id), quantity);
+      await refreshCart();
+    } catch (err) {
       console.error('Failed to add to cart:', err);
     }
   };
 
   const handleWishlistToggle = async (productId: number) => {
+    console.log('[DEBUG] handleWishlistToggle called for product:', productId);
     try {
       const action = await wishlistApi.toggleWishlist(productId);
-      // Refresh wishlist to keep state in sync
-      const updatedWishlist = await wishlistApi.getWishlist();
-      setWishlistItems(updatedWishlist);
+      console.log('[DEBUG] toggleWishlist response action:', action);
+      // Explicitly wait for refresh to ensure navbar count updates
+      await refreshWishlist();
       return action;
-    } catch (err) {
+    } catch (err: any) {
       console.error('Wishlist toggle failed:', err);
+      window.alert('Failed to update wishlist: ' + (err.message || 'Unknown error'));
       throw err;
     }
   };
@@ -99,7 +99,7 @@ export default function App() {
     if (qty < 1) return;
     try {
       await cartApi.updateQuantity(Number(id), qty);
-      setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: qty } : item));
+      await refreshCart();
     } catch (err) {
       console.error('Failed to update quantity:', err);
     }
@@ -108,7 +108,7 @@ export default function App() {
   const handleRemoveItem = async (id: string) => {
     try {
       await cartApi.removeItem(Number(id));
-      setCartItems(prev => prev.filter(item => item.id !== id));
+      await refreshCart();
     } catch (err) {
       console.error('Failed to remove item:', err);
     }
@@ -137,13 +137,14 @@ export default function App() {
           <Route path="/product/:productId" element={<ProductDetailPage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} />} />
           <Route path="/search" element={<SearchResultsPage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
           <Route path="/cart" element={<CartPage items={cartItems} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} onClearCart={handleClearCart} />} />
-          <Route path="/wishlist" element={<WishlistPage onAddToCart={handleAddToCart} onWishlistUpdate={() => wishlistApi.getWishlist().then(setWishlistItems)} />} />
+          <Route path="/wishlist" element={<WishlistPage onAddToCart={handleAddToCart} items={wishlistItems} onWishlistUpdate={refreshWishlist} />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/tracking" element={<TrackingPage />} />
           <Route path="/profile" element={<ManageProfilePage />} />
           <Route path="/flash-deals" element={<FlashDealsPage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
           <Route path="/previous-orders" element={<PreviousOrdersPage />} />
         </Routes>
+
 
         <Footer />
 

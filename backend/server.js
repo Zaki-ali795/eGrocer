@@ -7,11 +7,32 @@ const errorHandler = require('./middleware/errorHandler');
 const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
+const rateLimit = require('express-rate-limit');
+
+// ── Rate Limiting ────────────────────────────────────────────────
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // Increased limit to 1000 requests per window
+    message: { success: false, message: 'Too many requests, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 50, // Increased limit to 50 auth attempts per window
+    message: { success: false, message: 'Too many login attempts, please try again after 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // ── Middleware ──────────────────────────────────────────────────
+app.use(generalLimiter);
+app.use('/api/auth', authLimiter);
 app.use(cors({
     origin: true,
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
 }));
 app.use(express.json());
 app.use(authMiddleware);

@@ -7,34 +7,17 @@ import { wishlistApi, Product } from '../../services/api';
 
 interface WishlistPageProps {
   onAddToCart: (product: Product) => void;
+  items: Product[];
   onWishlistUpdate: () => void;
 }
 
-export default function WishlistPage({ onAddToCart, onWishlistUpdate }: WishlistPageProps) {
-  const [items, setItems] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function WishlistPage({ onAddToCart, items, onWishlistUpdate }: WishlistPageProps) {
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    loadWishlist();
-  }, []);
-
-  const loadWishlist = async () => {
-    try {
-      setLoading(true);
-      const data = await wishlistApi.getWishlist();
-      setItems(data);
-    } catch (err) {
-      console.error('Failed to load wishlist:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleRemove = async (productId: number) => {
     try {
       await wishlistApi.toggleWishlist(productId); // toggle acts as remove if it exists
-      setItems(prev => prev.filter(item => item.id !== productId));
       onWishlistUpdate();
     } catch (err) {
       console.error('Failed to remove from wishlist:', err);

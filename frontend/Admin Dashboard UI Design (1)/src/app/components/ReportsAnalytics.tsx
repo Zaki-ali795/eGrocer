@@ -4,7 +4,7 @@ import { TrendingUp, Download, Calendar, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { adminApi } from '../services/api';
 
-const COLORS = ['#064e3b', '#10b981', '#ff6b35', '#ffa500', '#4a90e2', '#9b59b6'];
+const COLORS = ['#27AE60', '#2ECC71', '#1E8449', '#ffa500', '#4a90e2', '#9b59b6'];
 
 export function ReportsAnalytics() {
   const [data, setData] = useState<any>(null);
@@ -28,7 +28,7 @@ export function ReportsAnalytics() {
 
   if (loading) return (
     <div className="h-full flex items-center justify-center min-h-[400px]">
-      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+      <Loader2 className="w-12 h-12 animate-spin text-[var(--primary)]" />
     </div>
   );
 
@@ -91,7 +91,7 @@ export function ReportsAnalytics() {
           </button>
           <button 
             onClick={handleExport}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--green-dark)] to-[var(--green-primary)] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
           >
             <Download className="w-5 h-5" />
             Export Report
@@ -120,7 +120,7 @@ export function ReportsAnalytics() {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
               />
-              <Bar dataKey="sales" fill="#064e3b" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="sales" fill="#1E8449" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -192,7 +192,7 @@ export function ReportsAnalytics() {
               }}
             />
             <Legend wrapperStyle={{ fontFamily: 'Manrope' }} />
-            <Line type="monotone" dataKey="revenue" stroke="#064e3b" strokeWidth={3} name="Revenue (Rupees)" />
+            <Line type="monotone" dataKey="revenue" stroke="#1E8449" strokeWidth={3} name="Revenue (Rupees)" />
           </LineChart>
         </ResponsiveContainer>
       </motion.div>
@@ -202,18 +202,18 @@ export function ReportsAnalytics() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-3xl p-6 border border-emerald-200"
+          className="bg-gradient-to-br from-[var(--green-primary)]/5 to-[var(--green-primary)]/10 rounded-3xl p-6 border border-[var(--primary)]/20"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-[var(--primary)] rounded-2xl flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-['Manrope'] text-xs text-emerald-700">Total Sales</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">Rs {data?.stats.monthly_revenue?.toLocaleString()}</p>
+              <p className="font-['Manrope'] text-xs text-[var(--green-dark)]">Total Sales</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-[var(--green-dark)]">Rs {data?.stats.monthly_revenue?.toLocaleString()}</p>
             </div>
           </div>
-          <p className="font-['Manrope'] text-sm text-emerald-700">Live platform stats</p>
+          <p className="font-['Manrope'] text-sm text-[var(--green-dark)]">Live platform stats</p>
         </motion.div>
 
         <motion.div
