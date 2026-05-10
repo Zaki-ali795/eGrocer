@@ -520,6 +520,20 @@ class AdminRepository extends BaseRepository {
         
         return updateResult.rowsAffected[0] > 0;
     }
+
+    async updateAdminProfile(userId, data) {
+        const result = await this.pool.request()
+            .input('userId', this.sql.Int, userId)
+            .input('firstName', this.sql.VarChar, data.firstName)
+            .input('lastName', this.sql.VarChar, data.lastName)
+            .input('email', this.sql.VarChar, data.email)
+            .query(`
+                UPDATE Users 
+                SET first_name = @firstName, last_name = @lastName, email = @email, updated_at = GETDATE()
+                WHERE user_id = @userId
+            `);
+        return result.rowsAffected[0] > 0;
+    }
 }
 
 module.exports = AdminRepository;
