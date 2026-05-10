@@ -111,7 +111,13 @@ export function Login({ onLogin }: LoginProps) {
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
                 <label className="font-['Manrope'] text-sm font-bold text-emerald-100">Password</label>
-                <button type="button" className="text-xs font-bold text-emerald-400 hover:text-emerald-300">Forgot?</button>
+                <button 
+                  type="button" 
+                  onClick={() => alert('Administrative Password Recovery:\n\nPlease contact your System Administrator or IT Department to reset your portal credentials. For security reasons, admin passwords cannot be reset via email.')}
+                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  Forgot password
+                </button>
               </div>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-white transition-colors">

@@ -17,10 +17,16 @@ import { Settings } from './components/Settings';
 import { Login } from './components/Login';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('user'));
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [navigationParams, setNavigationParams] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSignOut = () => {
+    localStorage.removeItem('user');
+    setIsLoggedIn(false);
+    setCurrentPage('dashboard');
+  };
 
   const handleNavigate = (page: string, params: any = null) => {
     setCurrentPage(page);
@@ -73,7 +79,7 @@ export default function App() {
           onNavigate={(page) => handleNavigate(page, null)} 
           onSearch={setSearchQuery}
           currentPage={currentPage}
-          onSignOut={() => setIsLoggedIn(false)}
+          onSignOut={handleSignOut}
         />
         <main className="flex-1 overflow-y-auto">
           {renderPage()}

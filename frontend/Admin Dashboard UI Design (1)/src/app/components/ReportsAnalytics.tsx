@@ -44,6 +44,35 @@ export function ReportsAnalytics() {
     { name: 'New', value: 15 },
   ];
 
+  const handleExport = () => {
+    if (!data) return;
+
+    const sections = [
+      ['--- Platform Overview ---'],
+      ['Metric', 'Value'],
+      ['Monthly Revenue', `Rs ${data.stats.monthly_revenue}`],
+      ['Today Orders', data.stats.today_orders],
+      ['Total Sellers', data.stats.seller_count],
+      [''],
+      ['--- Sales by Category ---'],
+      ['Category', 'Sales'],
+      ...data.topCategories.map((c: any) => [c.name, c.sales]),
+      [''],
+      ['--- Revenue History ---'],
+      ['Date', 'Revenue'],
+      ...data.revenueHistory.map((h: any) => [h.name, h.revenue])
+    ];
+
+    const csvContent = sections.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `eGrocer_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-8 space-y-6">
       <motion.div
@@ -60,7 +89,10 @@ export function ReportsAnalytics() {
             <Calendar className="w-5 h-5" />
             Date Range
           </button>
-          <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all">
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
+          >
             <Download className="w-5 h-5" />
             Export Report
           </button>
