@@ -142,7 +142,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
             onClick={() => setFilter(status)}
             className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${
               filter === status
-                ? 'bg-[#1a3a2e] text-white shadow-lg'
+                ? 'bg-[#064e3b] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
             }`}
           >

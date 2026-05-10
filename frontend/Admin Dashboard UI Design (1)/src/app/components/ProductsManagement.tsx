@@ -190,7 +190,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1a3a2e] to-[#2a5f4a] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           <Plus className="w-5 h-5" />
           Add Product
@@ -207,7 +207,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
+            className="px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#064e3b]/20 focus:outline-none transition-all"
           >
             <option value="all">All Categories</option>
             {categoryList.map(cat => (
@@ -347,7 +347,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                       type="text"
                       value={formData.name}
                       onChange={e => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -356,7 +356,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                       required
                       value={formData.categoryId}
                       onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     >
                       <option value="">Select Category</option>
                       {categories.map((cat: any) => (
@@ -371,7 +371,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                   <textarea
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none h-24"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none h-24"
                   />
                 </div>
 
@@ -382,7 +382,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                       type="text"
                       value={formData.brand}
                       onChange={e => setFormData({ ...formData, brand: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -392,7 +392,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                       type="text"
                       value={formData.sku}
                       onChange={e => setFormData({ ...formData, sku: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -405,7 +405,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                       type="number"
                       value={formData.basePrice}
                       onChange={e => setFormData({ ...formData, basePrice: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -415,7 +415,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                       type="number"
                       value={formData.stock}
                       onChange={e => setFormData({ ...formData, stock: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -424,7 +424,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                       type="text"
                       value={formData.unit}
                       onChange={e => setFormData({ ...formData, unit: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -435,7 +435,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                     type="url"
                     value={formData.imageUrl}
                     onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                   />
                 </div>
 
@@ -460,7 +460,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#1a3a2e] to-[#2a5f4a] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
                     {editingProduct ? 'Update Product' : 'Create Product'}
                   </button>

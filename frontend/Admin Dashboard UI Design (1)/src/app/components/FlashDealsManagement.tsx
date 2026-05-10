@@ -180,7 +180,7 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#ff6b35] to-[#ff8c42] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           <Plus className="w-5 h-5" />
           Create Flash Deal
@@ -192,7 +192,7 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
           onClick={() => setShowActive(true)}
           className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${
             showActive
-              ? 'bg-[#1a3a2e] text-white shadow-lg'
+              ? 'bg-[#064e3b] text-white shadow-lg'
               : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
           }`}
         >
@@ -202,7 +202,7 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
           onClick={() => setShowActive(false)}
           className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${
             !showActive
-              ? 'bg-[#1a3a2e] text-white shadow-lg'
+              ? 'bg-[#064e3b] text-white shadow-lg'
               : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
           }`}
         >

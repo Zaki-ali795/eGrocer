@@ -89,13 +89,13 @@ export function TopBar({ onNavigate, onSearch, currentPage }: {
       <div className="h-full px-8 flex items-center justify-between">
         <div className="flex-1 max-w-2xl">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 transition-colors group-focus-within:text-[#1a3a2e]" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 transition-colors group-focus-within:text-[#064e3b]" />
             <input
               type="text"
               placeholder={getPlaceholder()}
               value={localSearch}
               onChange={handleSearchChange}
-              className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none focus:ring-4 focus:ring-[#1a3a2e]/5 transition-all duration-300"
+              className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#064e3b]/20 focus:outline-none focus:ring-4 focus:ring-[#064e3b]/5 transition-all duration-300"
             />
             {localSearch && (
               <button

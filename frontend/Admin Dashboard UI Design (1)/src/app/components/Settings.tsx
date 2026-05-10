@@ -54,7 +54,7 @@ export function Settings() {
                 type="number"
                 value={taxRate}
                 onChange={(e) => setTaxRate(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#064e3b]/20 focus:outline-none transition-all"
               />
             </div>
             <div>
@@ -63,13 +63,13 @@ export function Settings() {
                 type="text"
                 value={taxId}
                 onChange={(e) => setTaxId(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl font-['Manrope'] text-gray-700 focus:bg-white focus:border-[#064e3b]/20 focus:outline-none transition-all"
               />
             </div>
             <button 
               onClick={handleSaveSettings}
               disabled={saving}
-              className="w-full px-6 py-3 bg-[#1a3a2e] text-white rounded-xl font-['Manrope'] font-semibold hover:bg-[#234d3e] transition-colors disabled:opacity-50"
+              className="w-full px-6 py-3 bg-[#064e3b] text-white rounded-xl font-['Manrope'] font-semibold hover:bg-[#234d3e] transition-colors disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Tax Settings'}
             </button>
@@ -103,7 +103,7 @@ export function Settings() {
                 <span className="font-['Manrope'] font-semibold text-gray-900">{gateway.name}</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" defaultChecked={gateway.enabled} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1a3a2e]"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#064e3b]"></div>
                 </label>
               </div>
             ))}
@@ -138,7 +138,7 @@ export function Settings() {
                 <span className="font-['Manrope'] font-medium text-gray-900">{notification.name}</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" defaultChecked={notification.enabled} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1a3a2e]"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#064e3b]"></div>
                 </label>
               </div>
             ))}
@@ -165,13 +165,13 @@ export function Settings() {
             <div className="p-4 bg-gray-50 rounded-xl">
               <p className="font-['Manrope'] font-semibold text-gray-900 mb-1">Two-Factor Authentication</p>
               <p className="font-['Manrope'] text-sm text-gray-600 mb-3">Add extra layer of security</p>
-              <button className="px-4 py-2 bg-[#1a3a2e] text-white rounded-xl font-['Manrope'] font-medium hover:bg-[#234d3e] transition-colors">
+              <button className="px-4 py-2 bg-[#064e3b] text-white rounded-xl font-['Manrope'] font-medium hover:bg-[#234d3e] transition-colors">
                 Enable 2FA
               </button>
             </div>
             <div className="p-4 bg-gray-50 rounded-xl">
               <p className="font-['Manrope'] font-semibold text-gray-900 mb-1">Session Timeout</p>
-              <select className="w-full mt-2 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-['Manrope'] text-gray-700 focus:border-[#1a3a2e]/20 focus:outline-none transition-all">
+              <select className="w-full mt-2 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl font-['Manrope'] text-gray-700 focus:border-[#064e3b]/20 focus:outline-none transition-all">
                 <option>15 minutes</option>
                 <option selected>30 minutes</option>
                 <option>1 hour</option>

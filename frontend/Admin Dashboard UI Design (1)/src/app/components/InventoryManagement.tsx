@@ -207,7 +207,7 @@ export function InventoryManagement({ searchQuery = '' }: { searchQuery?: string
           {filter !== 'all' && (
             <button
               onClick={() => setFilter('all')}
-              className="font-['Manrope'] text-sm text-[#1a3a2e] hover:text-[#2a5f4a] font-semibold"
+              className="font-['Manrope'] text-sm text-[#064e3b] hover:text-[#10b981] font-semibold"
             >
               Clear Filter
             </button>
@@ -269,7 +269,7 @@ export function InventoryManagement({ searchQuery = '' }: { searchQuery?: string
                   <td className="py-4 px-4">
                     <button 
                       onClick={() => handleAdjustStock(item.id)}
-                      className="px-4 py-2 bg-[#1a3a2e] text-white rounded-xl font-['Manrope'] text-sm font-medium hover:bg-[#234d3e] transition-colors"
+                      className="px-4 py-2 bg-[#064e3b] text-white rounded-xl font-['Manrope'] text-sm font-medium hover:bg-[#234d3e] transition-colors"
                     >
                       Adjust Stock
                     </button>

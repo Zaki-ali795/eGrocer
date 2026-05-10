@@ -166,7 +166,7 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
               }}
             />
-            <Line type="monotone" dataKey="amount" stroke="#1a3a2e" strokeWidth={3} dot={{ fill: '#1a3a2e', r: 5 }} />
+            <Line type="monotone" dataKey="amount" stroke="#064e3b" strokeWidth={3} dot={{ fill: '#064e3b', r: 5 }} />
           </LineChart>
         </ResponsiveContainer>
       </motion.div>
@@ -186,7 +186,7 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
                 onClick={() => setFilter(status)}
                 className={`px-4 py-2 rounded-xl font-['Manrope'] text-sm font-medium transition-all ${
                   filter === status
-                    ? 'bg-[#1a3a2e] text-white'
+                    ? 'bg-[#064e3b] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >

@@ -159,7 +159,7 @@ export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) 
                 onClick={() => setFilter(type)}
                 className={`px-4 py-3 rounded-2xl font-['Manrope'] font-medium transition-all ${
                   filter === type
-                    ? 'bg-[#1a3a2e] text-white'
+                    ? 'bg-[#064e3b] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >

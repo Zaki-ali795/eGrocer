@@ -112,8 +112,8 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
             onClick={() => setSelectedStatus(stat.status)}
             className={`p-4 rounded-2xl text-left transition-all ${
               selectedStatus === stat.status
-                ? 'bg-[#1a3a2e] text-white shadow-lg'
-                : 'bg-white border border-gray-200 hover:border-[#1a3a2e]/30'
+                ? 'bg-[#064e3b] text-white shadow-lg'
+                : 'bg-white border border-gray-200 hover:border-[#064e3b]/30'
             }`}
           >
             <p className={`font-['Manrope'] text-sm mb-1 ${selectedStatus === stat.status ? 'text-white/80' : 'text-gray-600'}`}>

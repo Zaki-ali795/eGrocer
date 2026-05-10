@@ -57,9 +57,9 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-amber-50/20 overflow-hidden">
+    <div className="flex h-screen bg-[#f8fafc] overflow-hidden selection:bg-emerald-100 selection:text-emerald-900">
       <Sidebar currentPage={currentPage} onNavigate={(page) => handleNavigate(page, null)} />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden bg-white/40 backdrop-blur-3xl">
         <TopBar 
           onNavigate={(page) => handleNavigate(page, null)} 
           onSearch={setSearchQuery}

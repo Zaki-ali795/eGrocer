@@ -142,7 +142,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1a3a2e] to-[#2a5f4a] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           <Plus className="w-5 h-5" />
           Create Promo Code
@@ -156,7 +156,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
             onClick={() => setFilter(status)}
             className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${
               filter === status
-                ? 'bg-[#1a3a2e] text-white shadow-lg'
+                ? 'bg-[#064e3b] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
             }`}
           >
@@ -182,7 +182,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#1a3a2e] to-[#2a5f4a] rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#064e3b] to-[#10b981] rounded-xl flex items-center justify-center">
                     <Tag className="w-5 h-5 text-white" />
                   </div>
                   <span className={`px-2 py-1 rounded-lg text-xs font-['Manrope'] font-semibold ${
@@ -210,7 +210,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
               <div className="space-y-3 mb-4">
                 <div className="flex items-center justify-between">
                   <span className="font-['Manrope'] text-sm text-gray-600">Discount</span>
-                  <span className="font-['Manrope'] font-bold text-[#1a3a2e]">
+                  <span className="font-['Manrope'] font-bold text-[#064e3b]">
                     {promo.type === 'percentage' ? `${promo.value}%` : `Rs ${promo.value}`}
                   </span>
                 </div>
@@ -303,7 +303,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                     type="text"
                     value={formData.code}
                     onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     placeholder="SAVE20"
                   />
                 </div>
@@ -314,7 +314,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                     <select
                       value={formData.type}
                       onChange={e => setFormData({ ...formData, type: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     >
                       <option value="percentage">Percentage</option>
                       <option value="fixed">Fixed Amount</option>
@@ -327,7 +327,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                       type="number"
                       value={formData.value}
                       onChange={e => setFormData({ ...formData, value: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -340,7 +340,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                       type="number"
                       value={formData.minOrder}
                       onChange={e => setFormData({ ...formData, minOrder: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -350,7 +350,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                       type="number"
                       value={formData.limit}
                       onChange={e => setFormData({ ...formData, limit: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -362,7 +362,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                     type="date"
                     value={formData.expiry}
                     onChange={e => setFormData({ ...formData, expiry: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none"
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
                   />
                 </div>
 
@@ -376,7 +376,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#1a3a2e] to-[#2a5f4a] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
                     {editingPromo ? 'Update Promo' : 'Create Promo'}
                   </button>

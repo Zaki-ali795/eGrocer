@@ -4,7 +4,7 @@ import { TrendingUp, Download, Calendar, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { adminApi } from '../services/api';
 
-const COLORS = ['#1a3a2e', '#2a5f4a', '#ff6b35', '#ffa500', '#4a90e2', '#9b59b6'];
+const COLORS = ['#064e3b', '#10b981', '#ff6b35', '#ffa500', '#4a90e2', '#9b59b6'];
 
 export function ReportsAnalytics() {
   const [data, setData] = useState<any>(null);
@@ -60,7 +60,7 @@ export function ReportsAnalytics() {
             <Calendar className="w-5 h-5" />
             Date Range
           </button>
-          <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1a3a2e] to-[#2a5f4a] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all">
+          <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all">
             <Download className="w-5 h-5" />
             Export Report
           </button>
@@ -88,7 +88,7 @@ export function ReportsAnalytics() {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
               />
-              <Bar dataKey="value" fill="#1a3a2e" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="value" fill="#064e3b" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -160,7 +160,7 @@ export function ReportsAnalytics() {
               }}
             />
             <Legend wrapperStyle={{ fontFamily: 'Manrope' }} />
-            <Line type="monotone" dataKey="amount" stroke="#1a3a2e" strokeWidth={3} name="Revenue (Rupees)" />
+            <Line type="monotone" dataKey="amount" stroke="#064e3b" strokeWidth={3} name="Revenue (Rupees)" />
           </LineChart>
         </ResponsiveContainer>
       </motion.div>
