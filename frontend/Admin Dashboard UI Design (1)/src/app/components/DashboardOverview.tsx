@@ -5,7 +5,11 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { useState, useEffect } from 'react';
 import { adminApi } from '../services/api';
 
-export function DashboardOverview() {
+interface DashboardOverviewProps {
+  onNavigate: (page: string) => void;
+}
+
+export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +72,7 @@ export function DashboardOverview() {
           change="+0%"
           changeType="positive"
           icon={ShoppingCart}
-          gradient="bg-gradient-to-br from-emerald-400 to-emerald-600"
+          gradient="bg-gradient-to-br from-emerald-500 to-emerald-700"
           delay={0.2}
           subtitle={<span>{stats.today_processing} processing • {stats.today_delivered} delivered</span>}
         />
@@ -78,7 +82,7 @@ export function DashboardOverview() {
           change="+0%"
           changeType="positive"
           icon={DollarSign}
-          gradient="bg-gradient-to-br from-amber-400 to-amber-600"
+          gradient="bg-gradient-to-br from-emerald-600 to-forest-900"
           delay={0.3}
           subtitle={<span>Rs {(stats.monthly_revenue / (stats.today_orders || 1)).toFixed(0)} avg order value</span>}
         />
@@ -88,7 +92,7 @@ export function DashboardOverview() {
           change="Live now"
           changeType="neutral"
           icon={Zap}
-          gradient="bg-gradient-to-br from-orange-400 to-orange-600"
+          gradient="bg-gradient-to-br from-emerald-400 to-teal-600"
           delay={0.4}
           subtitle={<span>Across all categories</span>}
         />
@@ -108,11 +112,11 @@ export function DashboardOverview() {
             </div>
             <div className="flex gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-[#1a3a2e] rounded-full"></div>
+                <div className="w-3 h-3 bg-[#064e3b] rounded-full"></div>
                 <span className="font-['Manrope'] text-sm text-gray-600">Revenue</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-[#ff6b35] rounded-full"></div>
+                <div className="w-3 h-3 bg-[#10b981] rounded-full"></div>
                 <span className="font-['Manrope'] text-sm text-gray-600">Orders</span>
               </div>
             </div>
@@ -121,27 +125,27 @@ export function DashboardOverview() {
             <AreaChart data={revenueHistory}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#1a3a2e" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#1a3a2e" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#064e3b" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#064e3b" stopOpacity={0}/>
                 </linearGradient>
                 <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ff6b35" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#ff6b35" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="name" stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
-              <YAxis stroke="#888" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+              <XAxis dataKey="name" stroke="#64748b" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
+              <YAxis stroke="#64748b" style={{ fontFamily: 'Manrope', fontSize: 12 }} />
               <Tooltip
                 contentStyle={{
                   fontFamily: 'Manrope',
-                  borderRadius: '12px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                  borderRadius: '16px',
+                  border: 'none',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
                 }}
               />
-              <Area type="monotone" dataKey="revenue" stroke="#1a3a2e" strokeWidth={3} fill="url(#colorRevenue)" />
-              <Area type="monotone" dataKey="orders" stroke="#ff6b35" strokeWidth={3} fill="url(#colorOrders)" />
+              <Area type="monotone" dataKey="revenue" stroke="#064e3b" strokeWidth={3} fill="url(#colorRevenue)" />
+              <Area type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={3} fill="url(#colorOrders)" />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
@@ -167,7 +171,7 @@ export function DashboardOverview() {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
               />
-              <Bar dataKey="sales" fill="#1a3a2e" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="sales" fill="#064e3b" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -184,7 +188,12 @@ export function DashboardOverview() {
             <h2 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-900">Recent Activity</h2>
             <p className="font-['Manrope'] text-sm text-gray-500">Real-time platform updates</p>
           </div>
-          <button className="font-['Manrope'] text-sm text-[#1a3a2e] hover:text-[#2a5f4a] font-semibold">View All</button>
+          <button 
+            onClick={() => onNavigate('orders')}
+            className="font-['Manrope'] text-sm text-[#064e3b] hover:text-[#10b981] font-semibold"
+          >
+            View All
+          </button>
         </div>
         <div className="space-y-4">
           {recentActivity.map((activity: any, index: number) => {
@@ -218,7 +227,8 @@ export function DashboardOverview() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.3, duration: 0.5 }}
-          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-3xl p-6 border border-emerald-200"
+          onClick={() => onNavigate('inventory')}
+          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-3xl p-6 border border-emerald-200 cursor-pointer hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center">
@@ -236,7 +246,8 @@ export function DashboardOverview() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.4, duration: 0.5 }}
-          className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-6 border border-orange-200"
+          onClick={() => onNavigate('inventory')}
+          className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl p-6 border border-orange-200 cursor-pointer hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center">
@@ -254,7 +265,8 @@ export function DashboardOverview() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.5, duration: 0.5 }}
-          className="bg-gradient-to-br from-red-50 to-red-100 rounded-3xl p-6 border border-red-200"
+          onClick={() => onNavigate('requests')}
+          className="bg-gradient-to-br from-red-50 to-red-100 rounded-3xl p-6 border border-red-200 cursor-pointer hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center">

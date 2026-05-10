@@ -1,33 +1,131 @@
-import { useState } from 'react';
-import { Tag, Plus, Copy, Edit, Trash2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { useState, useEffect } from 'react';
+import { Tag, Plus, Copy, Edit, Trash2, Loader2, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { adminApi } from '../services/api';
 
 interface Promo {
   id: string;
   code: string;
-  discount: number;
-  type: 'percentage' | 'fixed';
+  value: number;
+  type: string;
   minOrder: number;
-  usageLimit: number;
-  used: number;
+  limit: number;
+  usage: number;
   expiry: string;
-  active: boolean;
+  status: string;
 }
 
-const mockPromos: Promo[] = [
-  { id: 'PR001', code: 'WELCOME20', discount: 20, type: 'percentage', minOrder: 5000, usageLimit: 1000, used: 347, expiry: '2026-06-30', active: true },
-  { id: 'PR002', code: 'FRESH10', discount: 10, type: 'percentage', minOrder: 0, usageLimit: 500, used: 482, expiry: '2026-05-15', active: true },
-  { id: 'PR003', code: 'SAVE15', discount: 1500, type: 'fixed', minOrder: 10000, usageLimit: 200, used: 89, expiry: '2026-12-31', active: true },
-  { id: 'PR004', code: 'LOYALTY25', discount: 25, type: 'percentage', minOrder: 7500, usageLimit: 300, used: 156, expiry: '2026-08-20', active: true },
-  { id: 'PR005', code: 'EXPIRED50', discount: 50, type: 'percentage', minOrder: 15000, usageLimit: 100, used: 100, expiry: '2026-03-01', active: false },
-];
-
-export function PromotionsManagement() {
+export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: string }) {
+  const [promos, setPromos] = useState<Promo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
-  const filteredPromos = filter === 'all'
-    ? mockPromos
-    : mockPromos.filter(promo => filter === 'active' ? promo.active : !promo.active);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPromo, setEditingPromo] = useState<Promo | null>(null);
+  const [formData, setFormData] = useState({
+    code: '',
+    type: 'percentage',
+    value: '',
+    minOrder: '0',
+    limit: '100',
+    expiry: ''
+  });
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const data = await adminApi.getPromotions();
+      setPromos(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleOpenModal = (promo: Promo | null = null) => {
+    if (promo) {
+      setEditingPromo(promo);
+      setFormData({
+        code: promo.code,
+        type: promo.type,
+        value: promo.value.toString(),
+        minOrder: promo.minOrder.toString(),
+        limit: promo.limit.toString(),
+        expiry: promo.expiry.split('T')[0]
+      });
+    } else {
+      setEditingPromo(null);
+      setFormData({
+        code: '',
+        type: 'percentage',
+        value: '',
+        minOrder: '0',
+        limit: '100',
+        expiry: ''
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const data = {
+        ...formData,
+        value: parseFloat(formData.value),
+        minOrder: parseFloat(formData.minOrder),
+        limit: parseInt(formData.limit)
+      };
+      
+      if (editingPromo) {
+        // await adminApi.updatePromotion(editingPromo.id, data);
+        alert('Update functionality coming soon in backend');
+      } else {
+        await adminApi.createPromotion(data);
+      }
+      setIsModalOpen(false);
+      loadData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this promotion?')) {
+      try {
+        await adminApi.deletePromotion(id);
+        loadData();
+      } catch (err: any) {
+        alert(err.message);
+      }
+    }
+  };
+
+  const filteredPromos = promos.filter(promo => {
+    const matchesFilter = filter === 'all' || promo.status === filter;
+    const matchesSearch = promo.code.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  if (loading) return (
+    <div className="h-full flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
+      <p className="text-red-600 font-semibold text-lg">Failed to load promotions</p>
+      <p className="text-red-500 text-sm mt-1">{error}</p>
+      <button onClick={loadData} className="mt-4 text-emerald-600 font-bold underline">Try Again</button>
+    </div>
+  );
 
   return (
     <div className="p-8 space-y-6">
@@ -43,7 +141,8 @@ export function PromotionsManagement() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1a3a2e] to-[#2a5f4a] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
+          onClick={() => handleOpenModal()}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-2xl font-['Manrope'] font-semibold shadow-lg hover:shadow-xl transition-all"
         >
           <Plus className="w-5 h-5" />
           Create Promo Code
@@ -57,7 +156,7 @@ export function PromotionsManagement() {
             onClick={() => setFilter(status)}
             className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${
               filter === status
-                ? 'bg-[#1a3a2e] text-white shadow-lg'
+                ? 'bg-[#064e3b] text-white shadow-lg'
                 : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
             }`}
           >
@@ -68,7 +167,7 @@ export function PromotionsManagement() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPromos.map((promo, index) => {
-          const usagePercentage = (promo.used / promo.usageLimit) * 100;
+          const usagePercentage = (promo.usage / (promo.limit || 1)) * 100;
           const isExpiringSoon = new Date(promo.expiry).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000;
 
           return (
@@ -78,18 +177,18 @@ export function PromotionsManagement() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + index * 0.05 }}
               className={`bg-white rounded-3xl p-6 shadow-lg border-2 transition-all hover:shadow-xl ${
-                promo.active ? 'border-emerald-200' : 'border-gray-200'
+                promo.status === 'active' ? 'border-emerald-200' : 'border-gray-200'
               }`}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#1a3a2e] to-[#2a5f4a] rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#064e3b] to-[#10b981] rounded-xl flex items-center justify-center">
                     <Tag className="w-5 h-5 text-white" />
                   </div>
                   <span className={`px-2 py-1 rounded-lg text-xs font-['Manrope'] font-semibold ${
-                    promo.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                    promo.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
                   }`}>
-                    {promo.active ? 'Active' : 'Inactive'}
+                    {promo.status === 'active' ? 'Active' : 'Inactive'}
                   </span>
                 </div>
               </div>
@@ -97,7 +196,11 @@ export function PromotionsManagement() {
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
                   <p className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">{promo.code}</p>
-                  <button className="p-1 hover:bg-gray-100 rounded transition-colors" title="Copy Code">
+                  <button 
+                    onClick={() => navigator.clipboard.writeText(promo.code)}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors" 
+                    title="Copy Code"
+                  >
                     <Copy className="w-4 h-4 text-gray-500" />
                   </button>
                 </div>
@@ -107,8 +210,8 @@ export function PromotionsManagement() {
               <div className="space-y-3 mb-4">
                 <div className="flex items-center justify-between">
                   <span className="font-['Manrope'] text-sm text-gray-600">Discount</span>
-                  <span className="font-['Manrope'] font-bold text-[#1a3a2e]">
-                    {promo.type === 'percentage' ? `${promo.discount}%` : `Rs ${promo.discount}`}
+                  <span className="font-['Manrope'] font-bold text-[#064e3b]">
+                    {promo.type === 'percentage' ? `${promo.value}%` : `Rs ${promo.value}`}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -129,13 +232,13 @@ export function PromotionsManagement() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-['Manrope'] text-xs text-gray-600">Usage</span>
                   <span className="font-['Manrope'] text-xs font-semibold text-gray-900">
-                    {promo.used} / {promo.usageLimit}
+                    {promo.usage} / {promo.limit || '∞'}
                   </span>
                 </div>
                 <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${usagePercentage}%` }}
+                    animate={{ width: `${Math.min(usagePercentage, 100)}%` }}
                     transition={{ delay: 0.3 + index * 0.05, duration: 0.8 }}
                     className={`h-full rounded-full ${
                       usagePercentage >= 90 ? 'bg-red-500' :
@@ -147,11 +250,17 @@ export function PromotionsManagement() {
               </div>
 
               <div className="flex gap-2">
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-gray-200 transition-colors">
+                <button 
+                  onClick={() => handleOpenModal(promo)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-gray-200 transition-colors"
+                >
                   <Edit className="w-4 h-4" />
                   Edit
                 </button>
-                <button className="px-4 py-2 bg-red-50 text-red-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-red-100 transition-colors">
+                <button 
+                  onClick={() => handleDelete(promo.id)}
+                  className="px-4 py-2 bg-red-50 text-red-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-red-100 transition-colors"
+                >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -159,6 +268,124 @@ export function PromotionsManagement() {
           );
         })}
       </div>
+
+      {/* Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">
+                  {editingPromo ? 'Edit Promo Code' : 'Create Promo Code'}
+                </h2>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSave} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Promo Code</label>
+                  <input
+                    required
+                    type="text"
+                    value={formData.code}
+                    onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    placeholder="SAVE20"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Type</label>
+                    <select
+                      value={formData.type}
+                      onChange={e => setFormData({ ...formData, type: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    >
+                      <option value="percentage">Percentage</option>
+                      <option value="fixed">Fixed Amount</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Value</label>
+                    <input
+                      required
+                      type="number"
+                      value={formData.value}
+                      onChange={e => setFormData({ ...formData, value: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Min. Order</label>
+                    <input
+                      required
+                      type="number"
+                      value={formData.minOrder}
+                      onChange={e => setFormData({ ...formData, minOrder: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Usage Limit</label>
+                    <input
+                      required
+                      type="number"
+                      value={formData.limit}
+                      onChange={e => setFormData({ ...formData, limit: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Expiry Date</label>
+                  <input
+                    required
+                    type="date"
+                    value={formData.expiry}
+                    onChange={e => setFormData({ ...formData, expiry: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex gap-4 pt-6">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-[#064e3b] to-[#10b981] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    {editingPromo ? 'Update Promo' : 'Create Promo'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

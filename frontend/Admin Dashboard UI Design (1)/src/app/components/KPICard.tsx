@@ -35,7 +35,7 @@ export function KPICard({
       <div className="relative z-10">
         <div className="flex items-start justify-between mb-4">
           <div className={`p-3 rounded-2xl ${gradient} bg-opacity-10`}>
-            <Icon className="w-6 h-6 text-[#1a3a2e]" />
+            <Icon className="w-6 h-6 text-[#064e3b]" />
           </div>
           {change && (
             <span className={`font-['Manrope'] text-sm font-semibold px-3 py-1 rounded-full ${

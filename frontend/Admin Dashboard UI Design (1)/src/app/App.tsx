@@ -8,39 +8,52 @@ import { InventoryManagement } from './components/InventoryManagement';
 import { OrdersManagement } from './components/OrdersManagement';
 import { UsersManagement } from './components/UsersManagement';
 import { CustomerRequests } from './components/CustomerRequests';
+import { ProfileManagement } from './components/ProfileManagement';
 import { PromotionsManagement } from './components/PromotionsManagement';
 import { FlashDealsManagement } from './components/FlashDealsManagement';
 import { PaymentsManagement } from './components/PaymentsManagement';
 import { ReportsAnalytics } from './components/ReportsAnalytics';
 import { Settings } from './components/Settings';
+import { Login } from './components/Login';
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Default to true for current session, but enable toggle
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [navigationParams, setNavigationParams] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleNavigate = (page: string, params: any = null) => {
+    setCurrentPage(page);
+    setNavigationParams(params);
+    setSearchQuery(''); // Clear search on navigation for a fresh start
+  };
 
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <DashboardOverview />;
+        return <DashboardOverview onNavigate={(page) => handleNavigate(page, null)} />;
       case 'products':
-        return <ProductsManagement />;
+        return <ProductsManagement initialCategory={navigationParams?.category} searchQuery={searchQuery} />;
       case 'categories':
-        return <CategoriesManagement />;
+        return <CategoriesManagement onNavigateProducts={(cat: string) => handleNavigate('products', { category: cat })} searchQuery={searchQuery} />;
       case 'inventory':
-        return <InventoryManagement />;
+        return <InventoryManagement searchQuery={searchQuery} />;
       case 'orders':
-        return <OrdersManagement />;
+        return <OrdersManagement searchQuery={searchQuery} />;
       case 'users':
-        return <UsersManagement />;
+        return <UsersManagement searchQuery={searchQuery} />;
       case 'requests':
-        return <CustomerRequests />;
+        return <CustomerRequests searchQuery={searchQuery} />;
       case 'promotions':
-        return <PromotionsManagement />;
+        return <PromotionsManagement searchQuery={searchQuery} />;
       case 'flash-deals':
-        return <FlashDealsManagement />;
+        return <FlashDealsManagement searchQuery={searchQuery} />;
       case 'payments':
-        return <PaymentsManagement />;
+        return <PaymentsManagement searchQuery={searchQuery} />;
       case 'reports':
         return <ReportsAnalytics />;
+      case 'profile':
+        return <ProfileManagement />;
       case 'settings':
         return <Settings />;
       default:
@@ -48,11 +61,20 @@ export default function App() {
     }
   };
 
+  if (!isLoggedIn) {
+    return <Login onLogin={() => setIsLoggedIn(true)} />;
+  }
+
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-amber-50/20 overflow-hidden">
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <TopBar />
+    <div className="flex h-screen bg-[#f8fafc] overflow-hidden selection:bg-emerald-100 selection:text-emerald-900">
+      <Sidebar currentPage={currentPage} onNavigate={(page) => handleNavigate(page, null)} />
+      <div className="flex-1 flex flex-col overflow-hidden bg-white/40 backdrop-blur-3xl">
+        <TopBar 
+          onNavigate={(page) => handleNavigate(page, null)} 
+          onSearch={setSearchQuery}
+          currentPage={currentPage}
+          onSignOut={() => setIsLoggedIn(false)}
+        />
         <main className="flex-1 overflow-y-auto">
           {renderPage()}
         </main>

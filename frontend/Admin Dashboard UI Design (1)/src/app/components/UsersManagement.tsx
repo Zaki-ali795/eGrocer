@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Users, Search, UserCheck, Store, Eye, Ban } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Search, UserCheck, Store, Eye, Ban, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { adminApi } from '../services/api';
 
 interface User {
   id: string;
@@ -13,31 +14,64 @@ interface User {
   revenue?: number;
 }
 
-const mockUsers: User[] = [
-  { id: 'U001', name: 'Sarah Johnson', email: 'sarah.j@email.com', type: 'customer', status: 'active', joined: '2025-01-15', orders: 47 },
-  { id: 'U002', name: 'Fresh Farms Co.', email: 'contact@freshfarms.com', type: 'seller', status: 'active', joined: '2024-08-20', revenue: 4523000 },
-  { id: 'U003', name: 'Michael Chen', email: 'mchen@email.com', type: 'customer', status: 'active', joined: '2025-11-03', orders: 23 },
-  { id: 'U004', name: 'Garden Fresh Ltd.', email: 'info@gardenfresh.com', type: 'seller', status: 'active', joined: '2024-05-12', revenue: 6789000 },
-  { id: 'U005', name: 'Emma Wilson', email: 'emma.w@email.com', type: 'customer', status: 'active', joined: '2026-02-28', orders: 89 },
-  { id: 'U006', name: 'Organic Harvest', email: 'sales@organicharvest.com', type: 'seller', status: 'inactive', joined: '2023-12-01', revenue: 1234000 },
-];
-
-export function UsersManagement() {
+export function UsersManagement({ searchQuery = '' }: { searchQuery?: string }) {
+  const [users, setUsers] = useState<User[]>([]);
+  const [stats, setStats] = useState({ customers: 0, sellers: 0, active: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'customer' | 'seller'>('all');
-  const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredUsers = mockUsers.filter(user => {
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const data = await adminApi.getUsers();
+      setUsers(data.users);
+      setStats(data.stats);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleToggleStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? false : true;
+    const action = currentStatus === 'active' ? 'disable' : 'enable';
+    if (window.confirm(`Are you sure you want to ${action} this user?`)) {
+      try {
+        await adminApi.toggleUserStatus(id, newStatus);
+        loadData();
+      } catch (err: any) {
+        alert(err.message);
+      }
+    }
+  };
+
+  const filteredUsers = users.filter(user => {
+    const combinedSearch = searchQuery.trim().toLowerCase();
     const matchesFilter = filter === 'all' || user.type === filter;
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = user.name.toLowerCase().includes(combinedSearch) ||
+                         user.email.toLowerCase().includes(combinedSearch);
     return matchesFilter && matchesSearch;
   });
 
-  const stats = {
-    customers: mockUsers.filter(u => u.type === 'customer').length,
-    sellers: mockUsers.filter(u => u.type === 'seller').length,
-    active: mockUsers.filter(u => u.status === 'active').length,
-  };
+  if (loading) return (
+    <div className="h-full flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8 text-center bg-red-50 rounded-3xl border border-red-100 m-8">
+      <p className="text-red-600 font-semibold text-lg">Failed to load users data</p>
+      <p className="text-red-500 text-sm mt-1">{error}</p>
+      <button onClick={loadData} className="mt-4 text-emerald-600 font-bold underline">Try Again</button>
+    </div>
+  );
 
   return (
     <div className="p-8 space-y-6">
@@ -54,7 +88,10 @@ export function UsersManagement() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200"
+          onClick={() => setFilter('customer')}
+          className={`rounded-2xl p-6 border transition-all cursor-pointer hover:shadow-md ${
+            filter === 'customer' ? 'bg-blue-100 border-blue-300' : 'bg-blue-50 border-blue-200'
+          }`}
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
@@ -71,15 +108,18 @@ export function UsersManagement() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200"
+          onClick={() => setFilter('seller')}
+          className={`rounded-2xl p-6 border transition-all cursor-pointer hover:shadow-md ${
+            filter === 'seller' ? 'bg-emerald-100 border-emerald-300' : 'bg-emerald-50 border-emerald-200'
+          }`}
         >
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
               <Store className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-['Manrope'] text-xs text-purple-700">Seller Partners</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-purple-900">{stats.sellers}</p>
+              <p className="font-['Manrope'] text-xs text-emerald-700">Seller Partners</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">{stats.sellers}</p>
             </div>
           </div>
         </motion.div>
@@ -88,15 +128,18 @@ export function UsersManagement() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-6 border border-emerald-200"
+          onClick={() => setFilter('all')}
+          className={`rounded-2xl p-6 border transition-all cursor-pointer hover:shadow-md ${
+            filter === 'all' ? 'bg-gray-200 border-gray-400' : 'bg-gray-50 border-gray-100'
+          }`}
         >
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-gray-600 rounded-xl flex items-center justify-center">
               <Users className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-['Manrope'] text-xs text-emerald-700">Active Users</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">{stats.active}</p>
+              <p className="font-['Manrope'] text-xs text-gray-700">All Active</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">{stats.active}</p>
             </div>
           </div>
         </motion.div>
@@ -109,16 +152,6 @@ export function UsersManagement() {
         className="bg-white rounded-3xl p-6 shadow-lg border border-gray-100"
       >
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl font-['Manrope'] text-gray-700 placeholder:text-gray-400 focus:bg-white focus:border-[#1a3a2e]/20 focus:outline-none transition-all"
-            />
-          </div>
           <div className="flex gap-2">
             {(['all', 'customer', 'seller'] as const).map(type => (
               <button
@@ -126,7 +159,7 @@ export function UsersManagement() {
                 onClick={() => setFilter(type)}
                 className={`px-4 py-3 rounded-2xl font-['Manrope'] font-medium transition-all ${
                   filter === type
-                    ? 'bg-[#1a3a2e] text-white'
+                    ? 'bg-[#064e3b] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -205,8 +238,12 @@ export function UsersManagement() {
                       <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="View Profile">
                         <Eye className="w-4 h-4 text-gray-600" />
                       </button>
-                      <button className="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Disable Account">
-                        <Ban className="w-4 h-4 text-red-600" />
+                      <button 
+                        onClick={() => handleToggleStatus(user.id, user.status)}
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors" 
+                        title={user.status === 'active' ? 'Disable Account' : 'Enable Account'}
+                      >
+                        <Ban className={`w-4 h-4 ${user.status === 'active' ? 'text-red-600' : 'text-emerald-600'}`} />
                       </button>
                     </div>
                   </td>
