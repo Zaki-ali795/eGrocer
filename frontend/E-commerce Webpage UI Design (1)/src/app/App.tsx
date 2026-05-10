@@ -14,7 +14,7 @@ import { FlashDealsPage } from './pages/FlashDealsPage';
 import { PreviousOrdersPage } from './pages/PreviousOrdersPage';
 import { ManageProfilePage } from './pages/ManageProfilePage';
 import WishlistPage from './pages/WishlistPage.tsx';
-import { Product, wishlistApi } from '../services/api';
+import { Product, wishlistApi, cartApi, CartItem as BackendCartItem } from '../services/api';
 
 interface CartItem {
   id: string;
@@ -29,6 +29,17 @@ export default function App() {
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
 
   useEffect(() => {
+    // Capture userId from URL if coming from login redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlId = urlParams.get('userId');
+    
+    if (urlId) {
+      localStorage.setItem('userId', urlId);
+      // Clear old session data to force fresh fetch
+      localStorage.removeItem('user');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
     // Initial fetch of wishlist
     wishlistApi.getWishlist()
       .then(setWishlistItems)
@@ -36,32 +47,39 @@ export default function App() {
         console.warn('Wishlist API not ready:', err.message);
         setWishlistItems([]); // Fallback to empty wishlist
       });
+
+    // Initial fetch of cart
+    cartApi.getCart()
+      .then(items => {
+        setCartItems(items.map(item => ({
+          id: String(item.id),
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+        })));
+      })
+      .catch(err => console.warn('Cart API not ready:', err.message));
   }, []);
 
-  const handleAddToCart = (product: Product, quantity: number = 1) => {
-    const productId = String(product.id);
+  const handleAddToCart = async (product: Product, quantity: number = 1) => {
+    const productId = Number(product.id);
     
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === productId);
-      if (existingItem) {
-        return prevItems.map(item =>
-          item.id === productId
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      } else {
-        return [
-          ...prevItems,
-          {
-            id: productId,
-            name: product.name,
-            price: product.price,
-            quantity: quantity,
-            image: product.image,
-          }
-        ];
-      }
-    });
+    try {
+      await cartApi.addItem(productId, quantity);
+      
+      // Refresh cart from backend to ensure sync
+      const updatedCart = await cartApi.getCart();
+      setCartItems(updatedCart.map(item => ({
+        id: String(item.id),
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+      })));
+    } catch (err) {
+      console.error('Failed to add to cart:', err);
+    }
   };
 
   const handleWishlistToggle = async (productId: number) => {
@@ -77,17 +95,32 @@ export default function App() {
     }
   };
 
-  const handleUpdateQuantity = (id: string, qty: number) => {
+  const handleUpdateQuantity = async (id: string, qty: number) => {
     if (qty < 1) return;
-    setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: qty } : item));
+    try {
+      await cartApi.updateQuantity(Number(id), qty);
+      setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: qty } : item));
+    } catch (err) {
+      console.error('Failed to update quantity:', err);
+    }
   };
 
-  const handleRemoveItem = (id: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+  const handleRemoveItem = async (id: string) => {
+    try {
+      await cartApi.removeItem(Number(id));
+      setCartItems(prev => prev.filter(item => item.id !== id));
+    } catch (err) {
+      console.error('Failed to remove item:', err);
+    }
   };
 
-  const handleClearCart = () => {
-    setCartItems([]);
+  const handleClearCart = async () => {
+    try {
+      await cartApi.clearCart();
+      setCartItems([]);
+    } catch (err) {
+      console.error('Failed to clear cart:', err);
+    }
   };
 
   return (
