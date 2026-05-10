@@ -17,7 +17,7 @@ import { Settings } from './components/Settings';
 import { Login } from './components/Login';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Default to true for current session, but enable toggle
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [navigationParams, setNavigationParams] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');

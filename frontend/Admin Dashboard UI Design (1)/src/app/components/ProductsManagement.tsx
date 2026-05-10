@@ -77,11 +77,8 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
     loadData();
   }, []);
 
-  useEffect(() => {
-    if (initialCategory) {
-      setSelectedCategory(initialCategory);
-    }
-  }, [initialCategory]);
+
+
 
   const handleOpenModal = (product: Product | null = null) => {
     if (product) {

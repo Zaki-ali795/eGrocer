@@ -7,17 +7,53 @@ interface LoginProps {
 }
 
 export function Login({ onLogin }: LoginProps) {
-  const [email, setEmail] = useState('rehan.admin@egrocer.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // On mount, check if user is already logged in from the login-sign-up app
+  useState(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.user_type === 'admin') {
+          onLogin();
+        }
+      } catch {}
+    }
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setLoading(false);
-    onLogin();
+    setError('');
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || 'Login failed');
+      }
+      // Verify this is an admin user
+      const user = result.data.user;
+      if (user.user_type !== 'admin') {
+        throw new Error('Access denied. This portal is for administrators only.');
+      }
+      // Store auth data
+      localStorage.setItem('token', result.data.token);
+      localStorage.setItem('user', JSON.stringify(user));
+      onLogin();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -47,6 +83,12 @@ export function Login({ onLogin }: LoginProps) {
             <h1 className="font-['Crimson_Pro'] text-4xl font-bold text-white mb-2">eGrocer Admin</h1>
             <p className="font-['Manrope'] text-emerald-100/60 font-medium tracking-wide uppercase text-xs">Secure Portal Login</p>
           </div>
+
+          {error && (
+            <div className="mb-4 p-4 bg-red-500/20 border border-red-400/30 rounded-2xl">
+              <p className="font-['Manrope'] text-sm text-red-200 font-medium">{error}</p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
