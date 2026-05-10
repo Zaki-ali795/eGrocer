@@ -43,7 +43,8 @@ class SellerController {
 
     async getOpenRequests(req, res, next) {
         try {
-            const requests = await this.sellerService.getOpenRequests();
+            const sellerId = req.query.sellerId;
+            const requests = await this.sellerService.getOpenRequests(sellerId);
             res.json({ success: true, data: requests });
         } catch (err) {
             next(err);
