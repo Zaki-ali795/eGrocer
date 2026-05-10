@@ -7,7 +7,7 @@ class OrderService {
         this.productRepo = productRepo;
     }
 
-    async processCheckout(customerId, shippingAddressId, billingAddressId, cartItems, paymentMethod) {
+    async processCheckout(customerId, address, cartItems, paymentMethod) {
         if (!cartItems || cartItems.length === 0) throw new Error('Cart is empty.');
 
         let subtotal = 0;
@@ -34,16 +34,39 @@ class OrderService {
         const estimatedDeliveryDate = new Date();
         estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + 2);
 
+        const paymentStrategies = require('../strategies/PaymentStrategy');
+        const strategy = paymentStrategies[paymentMethod] || paymentStrategies.cash;
+        const { orderStatus, paymentStatus, dbMethod } = strategy.process();
+
+        // Resolve Address ID
+        console.log('OrderService: Resolving address for customer:', customerId, 'Address provided:', address);
+        let resolvedAddressId = await this.orderRepo.ensureAddress(customerId, address);
+        
+        if (!resolvedAddressId) {
+            console.log('OrderService: No adhoc address, trying default address...');
+            resolvedAddressId = await this.orderRepo.getDefaultAddressId(customerId);
+        }
+
+        // Hard fallback for development if no address exists at all
+        if (!resolvedAddressId) {
+            console.warn('OrderService: No address found for user. Falling back to ID 1 for development.');
+            resolvedAddressId = 1; 
+        }
+        
+        console.log('OrderService: Resolved Address ID:', resolvedAddressId);
+
         const orderData = {
             customerId,
-            billingAddressId:      billingAddressId || shippingAddressId,
-            shippingAddressId,
+            billingAddressId:      resolvedAddressId,
+            shippingAddressId:     resolvedAddressId,
             deliveryFee,
             estimatedDeliveryDate,
             subtotal,
             taxAmount,
             discountAmount,
-            paymentMethod: paymentMethod || 'cash_on_delivery'
+            paymentMethod: dbMethod,
+            orderStatus,
+            paymentStatus
         };
 
         return this.orderRepo.createOrder(orderData, processedItems);
