@@ -26,8 +26,20 @@ router.get('/me', async (req, res, next) => {
     return ctrl.getProfile(req, res, next);
 });
 
+// GET /api/users/profile/:id
+router.get('/profile/:id', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getProfile(req, res, next);
+});
+
 // PUT /api/users/me
 router.put('/me', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.updateProfile(req, res, next);
+});
+
+// PUT /api/users/profile/:id
+router.put('/profile/:id', async (req, res, next) => {
     const ctrl = await getController();
     return ctrl.updateProfile(req, res, next);
 });
