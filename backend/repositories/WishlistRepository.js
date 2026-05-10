@@ -16,8 +16,8 @@ class WishlistRepository extends BaseRepository {
                     p.product_name as name,
                     p.description,
                     p.brand,
-                    p.base_price as originalPrice,
-                    p.sale_price as price,
+                    CASE WHEN p.sale_price IS NOT NULL THEN p.base_price ELSE NULL END as originalPrice,
+                    ISNULL(p.sale_price, p.base_price) as price,
                     p.image_url as image,
                     c.category_name as category,
                     w.added_at

@@ -29,6 +29,13 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<string>('cash');
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressData, setAddressData] = useState({
+    addressLine1: '',
+    city: '',
+    province: 'Punjab'
+  });
 
   const subtotal        = items.reduce((s, i) => s + i.price * i.quantity, 0);
   const tax             = subtotal * 0.08;
@@ -64,12 +71,26 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
   );
 
   const handleCheckout = async () => {
+    if (!showAddressForm) {
+      setShowAddressForm(true);
+      return;
+    }
+
+    if (!addressData.addressLine1 || !addressData.city) {
+      setError('Please fill in your address details');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setError(null);
       
       const checkoutItems = items.map(i => ({ id: i.id, quantity: i.quantity }));
-      await orderApi.createOrder(checkoutItems);
+      await orderApi.createOrder(checkoutItems, selectedPayment, {
+        addressLine1: addressData.addressLine1,
+        city: addressData.city,
+        state: addressData.province
+      });
       
       onClearCart();
       navigate('/previous-orders');
@@ -322,6 +343,49 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
                   </motion.button>
                 </div>
 
+                {/* Address Form */}
+                <AnimatePresence>
+                  {showAddressForm && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden space-y-3 pt-3 border-t border-gray-100"
+                    >
+                      <h3 className="text-sm font-bold text-gray-800">Shipping Address</h3>
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          placeholder="Address Line 1"
+                          value={addressData.addressLine1}
+                          onChange={(e) => setAddressData({ ...addressData, addressLine1: e.target.value })}
+                          className="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--green-primary)] outline-none"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            placeholder="City"
+                            value={addressData.city}
+                            onChange={(e) => setAddressData({ ...addressData, city: e.target.value })}
+                            className="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--green-primary)] outline-none"
+                          />
+                          <select
+                            value={addressData.province}
+                            onChange={(e) => setAddressData({ ...addressData, province: e.target.value })}
+                            className="w-full px-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[var(--green-primary)] outline-none bg-white"
+                          >
+                            <option value="Punjab">Punjab</option>
+                            <option value="Sindh">Sindh</option>
+                            <option value="KPK">KPK</option>
+                            <option value="Balochistan">Balochistan</option>
+                            <option value="ICT">ICT</option>
+                          </select>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Divider */}
                 <div className="pt-3 border-t border-gray-100">
                   <div className="flex justify-between items-center">
@@ -357,15 +421,25 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
               <p className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wide">Accepted Payments</p>
               <div className="flex items-center gap-2 flex-wrap">
                 {[
-                  { icon: '💳', label: 'Card' },
-                  { icon: '📱', label: 'JazzCash' },
-                  { icon: '💵', label: 'Cash' },
-                  { icon: '🏦', label: 'Bank' },
-                ].map(({ icon, label }) => (
-                  <div key={label} className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--beige)]/50 border border-gray-200 rounded-xl text-xs text-gray-600">
+                  { icon: '💳', label: 'Card', id: 'card' },
+                  { icon: '📱', label: 'JazzCash', id: 'jazzcash' },
+                  { icon: '💵', label: 'Cash', id: 'cash' },
+                  { icon: '🏦', label: 'Bank', id: 'bank' },
+                ].map(({ icon, label, id }) => (
+                  <motion.button
+                    key={label}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setSelectedPayment(id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-xl text-xs transition-all ${
+                      selectedPayment === id
+                        ? 'bg-[var(--green-primary)] border-[var(--green-primary)] text-white shadow-md shadow-[var(--green-primary)]/20'
+                        : 'bg-[var(--beige)]/50 border-gray-200 text-gray-600 hover:border-[var(--green-primary)]/30'
+                    }`}
+                  >
                     <span>{icon}</span>
                     <span>{label}</span>
-                  </div>
+                  </motion.button>
                 ))}
               </div>
             </div>

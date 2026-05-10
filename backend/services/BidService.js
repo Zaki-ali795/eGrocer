@@ -82,6 +82,18 @@ class BidService {
     async acceptBid(bidId, requestId) {
         return this.bidRepo.acceptBid(bidId, requestId);
     }
+
+    /**
+     * Returns all requests made by a specific customer.
+     */
+    async getMyRequests(customerId) {
+        if (!customerId || isNaN(Number(customerId))) {
+            const err = new Error('Invalid customer ID.'); err.status = 400; throw err;
+        }
+
+        const rawRows = await this.bidRepo.getRequestsByCustomerId(Number(customerId));
+        return rawRows.map(row => BidFactory.createRequest(row));
+    }
 }
 
 module.exports = BidService;

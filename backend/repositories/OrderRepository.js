@@ -19,18 +19,22 @@ class OrderRepository extends BaseRepository {
             orderReq.input('subtotal',          orderData.subtotal);
             orderReq.input('taxAmount',         orderData.taxAmount);
             orderReq.input('discountAmount',    orderData.discountAmount);
-            orderReq.input('paymentMethod',     orderData.paymentMethod || 'cash_on_delivery');
+            orderReq.input('paymentMethod',     orderData.paymentMethod || 'cash');
+            orderReq.input('orderStatus',       orderData.orderStatus);
+            orderReq.input('paymentStatus',     orderData.paymentStatus);
             orderReq.input('orderNumber',       'ORD-' + Math.floor(100000 + Math.random() * 900000));
 
             const orderResult = await orderReq.query(`
                 INSERT INTO Orders (
                     order_number, customer_id, billing_address_id, promo_id,
-                    subtotal, tax_amount, discount_amount, payment_method
+                    subtotal, tax_amount, discount_amount, payment_method,
+                    order_status, payment_status
                 )
                 OUTPUT inserted.order_id, inserted.order_number
                 VALUES (
                     @orderNumber, @customerId, @billingAddressId, @promoId,
-                    @subtotal, @taxAmount, @discountAmount, @paymentMethod
+                    @subtotal, @taxAmount, @discountAmount, @paymentMethod,
+                    @orderStatus, @paymentStatus
                 );
             `);
 
@@ -80,6 +84,21 @@ class OrderRepository extends BaseRepository {
                 INSERT INTO OrderStatusHistory (order_id, status, notes)
                 VALUES (@orderId, 'pending', 'Order placed successfully');
             `);
+
+            // 5. Create Notifications for Sellers
+            const uniqueSellers = [...new Set(itemsData.map(i => i.sellerId).filter(id => id != null))];
+            for (const sellerId of uniqueSellers) {
+                const notifyReq = transaction.request();
+                notifyReq.input('sellerId', sellerId);
+                notifyReq.input('title',    'New Order Received');
+                notifyReq.input('message',  `You have a new order: ${orderNumber}`);
+                notifyReq.input('refId',    orderId);
+
+                await notifyReq.query(`
+                    INSERT INTO Notifications (user_id, notification_type, title, message, reference_id, is_read)
+                    VALUES (@sellerId, 'order', @title, @message, @refId, 0)
+                `);
+            }
 
             await transaction.commit();
             return { orderId, orderNumber };
@@ -145,6 +164,45 @@ class OrderRepository extends BaseRepository {
             ORDER BY c.customer_id ASC
         `);
         return result.recordset[0] || null;
+    }
+
+    async getDefaultAddressId(userId) {
+        const req = this.pool.request();
+        req.input('userId', userId);
+        const result = await req.query(`
+            SELECT TOP 1 address_id 
+            FROM Addresses 
+            WHERE user_id = @userId 
+            ORDER BY is_default DESC, created_at DESC
+        `);
+        return result.recordset[0]?.address_id || null;
+    }
+
+    async ensureAddress(userId, addressData) {
+        if (!addressData || !addressData.addressLine1) return null;
+
+        const req = this.pool.request();
+        req.input('userId', userId);
+        req.input('addr1',  addressData.addressLine1);
+        req.input('city',   addressData.city);
+        req.input('state',  addressData.state);
+
+        // Try to find existing
+        const check = await req.query(`
+            SELECT TOP 1 address_id FROM Addresses 
+            WHERE user_id = @userId AND address_line1 = @addr1 AND city = @city
+        `);
+
+        if (check.recordset.length > 0) return check.recordset[0].address_id;
+
+        // Otherwise create new
+        const result = await req.query(`
+            INSERT INTO Addresses (user_id, address_type, full_name, phone, address_line1, city, state, postal_code, is_default)
+            OUTPUT inserted.address_id
+            VALUES (@userId, 'home', (SELECT first_name + ' ' + last_name FROM Users WHERE user_id = @userId), 
+                    (SELECT phone FROM Users WHERE user_id = @userId), @addr1, @city, @state, '00000', 0);
+        `);
+        return result.recordset[0].address_id;
     }
 }
 

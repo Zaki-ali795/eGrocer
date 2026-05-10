@@ -11,8 +11,7 @@ class WishlistController {
 
     async getWishlist(req, res, next) {
         try {
-            // Hardcoded for John (customer_id = 3) until full auth is implemented
-            const customerId = 3; 
+            const customerId = req.user.user_id; 
             const wishlist = await this.wishlistRepo.getWishlist(customerId);
             res.json({ success: true, data: wishlist });
         } catch (err) {
@@ -22,7 +21,8 @@ class WishlistController {
 
     async toggleWishlist(req, res, next) {
         try {
-            const customerId = 3;
+            const customerId = req.user?.user_id;
+            if (!customerId) return res.status(401).json({ success: false, message: 'Unauthorized' });
             const { productId } = req.body;
             
             if (!productId) {
@@ -44,7 +44,8 @@ class WishlistController {
 
     async removeFromWishlist(req, res, next) {
         try {
-            const customerId = 3;
+            const customerId = req.user?.user_id;
+            if (!customerId) return res.status(401).json({ success: false, message: 'Unauthorized' });
             const { productId } = req.params;
             await this.wishlistRepo.removeFromWishlist(customerId, productId);
             res.json({ success: true, message: 'Removed from wishlist' });

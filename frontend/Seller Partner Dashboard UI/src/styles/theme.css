@@ -12,7 +12,7 @@
   --card-foreground: #1E293B;
   --popover: #FFFFFF;
   --popover-foreground: #1E293B;
-  --primary: #10B981;
+  --primary: #27AE60;
   --primary-foreground: #FFFFFF;
   --secondary: #F1F5F9;
   --secondary-foreground: #1E293B;
@@ -28,10 +28,15 @@
   --switch-background: #CBD5E1;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #10B981;
+  --ring: #27AE60;
+
+  /* eGrocer brand colors */
+  --green-primary: #27AE60;
+  --green-secondary: #2ECC71;
+  --green-dark: #1E8449;
 
   /* Chart colors */
-  --chart-1: #10B981;
+  --chart-1: #27AE60;
   --chart-2: #F59E0B;
   --chart-3: #FBBF24;
   --chart-4: #6366F1;
@@ -39,19 +44,19 @@
 
   /* Additional utility colors */
   --blue-500: #6366F1;
-  --emerald-500: #10B981;
+  --emerald-500: #27AE60;
   --orange-500: #F59E0B;
   --red-500: #EF4444;
 
   --radius: 0.75rem;
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #1E293B;
-  --sidebar-primary: #10B981;
+  --sidebar: #1E8449; /* Matching green-dark from footer */
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #27AE60;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F1F5F9;
-  --sidebar-accent-foreground: #1E293B;
-  --sidebar-border: #E2E8F0;
-  --sidebar-ring: #10B981;
+  --sidebar-accent: rgba(255, 255, 255, 0.1);
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #27AE60;
 
   /* Custom shadows */
   --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.05);

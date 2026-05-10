@@ -20,29 +20,35 @@ export default function Settings() {
   });
 
   useEffect(() => {
-    async function loadProfile() {
+    async function loadData() {
       if (!sellerId) return;
       try {
         setLoading(true);
 
-        const data = await sellerApi.getProfile(sellerId);
+        const [profile, notifSettings] = await Promise.all([
+          sellerApi.getProfile(sellerId),
+          sellerApi.getNotificationSettings(Number(sellerId))
+        ]);
+
         setProfileData({
-          storeName: data.store_name,
-          contactName: `${data.first_name} ${data.last_name}`,
-          email: data.email,
-          phone: data.phone || 'Not provided',
-          address: 'Main Warehouse', // Placeholder if address not in Sellers table
-          rating: data.store_rating,
-          status: data.verification_status,
-          description: data.store_description || ''
+          storeName: profile.store_name,
+          contactName: `${profile.first_name} ${profile.last_name}`,
+          email: profile.email,
+          phone: profile.phone || 'Not provided',
+          address: 'Main Warehouse',
+          rating: profile.store_rating,
+          status: profile.verification_status,
+          description: profile.store_description || ''
         });
+
+        setNotifications(notifSettings);
       } catch (err: any) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     }
-    loadProfile();
+    loadData();
   }, [sellerId]);
 
   const [notifications, setNotifications] = useState({
@@ -207,29 +213,26 @@ export default function Settings() {
                 </p>
 
                 <div className="space-y-4">
-                  {Object.entries(notifications).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  {[
+                    { key: 'new_orders', label: 'New Orders', desc: 'Get notified when you receive new orders' },
+                    { key: 'low_stock', label: 'Low Stock Alerts', desc: 'Alert when products are running low' },
+                    { key: 'new_customer_requests', label: 'New Customer Requests', desc: 'Notification for new bidding requests' },
+                    { key: 'promotion_updates', label: 'Promotion Updates', desc: 'Updates about your active promotions' },
+                    { key: 'weekly_sales_report', label: 'Weekly Sales Report', desc: 'Receive weekly performance summary' }
+                  ].map((opt) => (
+                    <div key={opt.key} className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
                       <div>
-                        <p className="font-medium text-foreground">
-                          {key === 'newOrders' && 'New Orders'}
-                          {key === 'lowStock' && 'Low Stock Alerts'}
-                          {key === 'newRequests' && 'New Customer Requests'}
-                          {key === 'promotions' && 'Promotion Updates'}
-                          {key === 'weeklyReport' && 'Weekly Sales Report'}
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {key === 'newOrders' && 'Get notified when you receive new orders'}
-                          {key === 'lowStock' && 'Alert when products are running low'}
-                          {key === 'newRequests' && 'Notification for new bidding requests'}
-                          {key === 'promotions' && 'Updates about your active promotions'}
-                          {key === 'weeklyReport' && 'Receive weekly performance summary'}
-                        </p>
+                        <p className="font-medium text-foreground">{opt.label}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{opt.desc}</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={value as boolean}
-                          onChange={(e: any) => setNotifications({ ...notifications, [key]: e.target.checked })}
+                          checked={!!(notifications as any)[opt.key]}
+                          onChange={(e) => {
+                            const newSettings = { ...notifications, [opt.key]: e.target.checked };
+                            setNotifications(newSettings);
+                          }}
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
@@ -241,6 +244,15 @@ export default function Settings() {
                 <div className="flex gap-3 pt-6">
                   <button
                     type="button"
+                    onClick={async () => {
+                      if (!sellerId) return;
+                      try {
+                        await sellerApi.updateNotificationSettings(Number(sellerId), notifications);
+                        alert("Notification preferences saved!");
+                      } catch (err: any) {
+                        alert("Failed to save preferences: " + err.message);
+                      }
+                    }}
                     className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-all shadow-md"
                   >
                     <Save className="w-4 h-4" />

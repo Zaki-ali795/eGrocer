@@ -13,8 +13,8 @@ class SellerService {
         return await this.sellerRepository.getSellerProfile(sellerId);
     }
 
-    async getOpenRequests() {
-        return await this.sellerRepository.getAllProductRequests();
+    async getOpenRequests(sellerId) {
+        return await this.sellerRepository.getAllProductRequests(sellerId);
     }
 
     async placeBid(bidData) {

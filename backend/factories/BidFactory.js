@@ -27,7 +27,7 @@ class BidFactory {
             timeAgo:       BidFactory._timeAgo(row.created_at),
             customerName:  row.customer_name || 'Anonymous',
             bidCount:      row.bid_count     ?? 0,
-            bids:          [],
+            bids:          (row.bids || []).map(BidFactory.createBid),
         };
     }
 

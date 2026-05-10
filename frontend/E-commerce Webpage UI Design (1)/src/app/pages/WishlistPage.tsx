@@ -120,7 +120,7 @@ export default function WishlistPage({ onAddToCart, onWishlistUpdate }: Wishlist
                         <span className="text-xl font-bold text-[var(--green-primary)]">
                           Rs {item.price}
                         </span>
-                        {item.originalPrice && (
+                        {item.originalPrice && item.originalPrice > item.price && (
                           <span className="text-sm text-gray-400 line-through">
                             Rs {item.originalPrice}
                           </span>

@@ -40,6 +40,12 @@ router.post('/requests', async (req, res, next) => {
     return ctrl.submitRequest(req, res, next);
 });
 
+// GET /api/bids/my-requests — list requests submitted by current user
+router.get('/my-requests', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.getMyRequests(req, res, next);
+});
+
 // GET /api/bids/requests   — list all open requests (for the UI bidding section)
 router.get('/requests', async (req, res, next) => {
     const ctrl = await getController();

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Zap, ChevronLeft, ChevronRight, Clock, Loader2, ShoppingCart } from 'lucide-react';
+import { Zap, ChevronLeft, ChevronRight, Clock, Loader2, ShoppingCart, Store } from 'lucide-react';
 import { productApi, FlashDeal, Product } from '../../services/api';
 import { toast } from 'sonner';
 
@@ -17,9 +17,11 @@ export function FlashDeals({ onAddToCart }: FlashDealsProps) {
     const fetchDeals = async () => {
       try {
         const data = await productApi.getFlashDeals();
-        setDeals(data);
+        // Defensive: ensure data is an array
+        setDeals(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Failed to fetch flash deals:', err);
+        setDeals([]);
       } finally {
         setIsLoading(false);
       }
@@ -28,9 +30,13 @@ export function FlashDeals({ onAddToCart }: FlashDealsProps) {
   }, []);
 
   useEffect(() => {
+    if (!deals || !Array.isArray(deals)) return;
+
     const interval = setInterval(() => {
       const newTimeRemaining: {[key: string]: string} = {};
       deals.forEach(deal => {
+        if (!deal || !deal.endsAt) return;
+        
         const now = new Date().getTime();
         const endsAt = new Date(deal.endsAt).getTime();
         const distance = endsAt - now;
@@ -72,11 +78,11 @@ export function FlashDeals({ onAddToCart }: FlashDealsProps) {
               <div className="p-2 bg-gradient-to-br from-[var(--terracotta)] to-orange-500 rounded-2xl">
                 <Zap className="w-6 h-6 text-white" />
               </div>
-              <h2 className="bg-gradient-to-r from-[var(--terracotta)] to-orange-500 bg-clip-text text-transparent">
+              <h2 className="bg-gradient-to-r from-[var(--terracotta)] to-orange-500 bg-clip-text text-transparent text-3xl font-bold">
                 Flash Deals
               </h2>
             </div>
-            <p className="text-gray-600">Limited time offers - grab them before they're gone!</p>
+            <p className="text-gray-600">Limited time offers from our partner stores!</p>
           </motion.div>
 
           <div className="hidden md:flex gap-2">
@@ -109,13 +115,14 @@ export function FlashDeals({ onAddToCart }: FlashDealsProps) {
             <div className="w-full flex justify-center py-12">
               <Loader2 className="w-8 h-8 text-[var(--terracotta)] animate-spin" />
             </div>
-          ) : deals.length === 0 ? (
+          ) : !Array.isArray(deals) || deals.length === 0 ? (
             <div className="w-full text-center py-12 text-gray-500">
               No flash deals active at the moment. Check back later!
             </div>
           ) : deals.map((deal, index) => {
-            const discount = Math.round(((deal.originalPrice - deal.price) / deal.originalPrice) * 100);
-            const stockPercentage = (deal.stock / deal.totalStock) * 100;
+            const denom = deal.originalPrice || 1;
+            const discount = Math.round(((deal.originalPrice - deal.price) / denom) * 100);
+            const stockPercentage = deal.totalStock > 0 ? (deal.stock / deal.totalStock) * 100 : 0;
 
             return (
               <motion.div
@@ -130,7 +137,7 @@ export function FlashDeals({ onAddToCart }: FlashDealsProps) {
                 {/* Image */}
                 <div className="relative aspect-square bg-gradient-to-br from-[var(--beige)] to-[var(--cream)]">
                   <img
-                    src={deal.image}
+                    src={deal.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400'}
                     alt={deal.name}
                     className="w-full h-full object-cover"
                   />
@@ -142,7 +149,7 @@ export function FlashDeals({ onAddToCart }: FlashDealsProps) {
                       transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
                       className="px-4 py-2 bg-gradient-to-r from-[var(--terracotta)] to-orange-500 text-white rounded-full shadow-lg"
                     >
-                      <span className="text-lg">-{discount}%</span>
+                      <span className="text-lg font-bold">-{discount}%</span>
                     </motion.div>
                   </div>
 
@@ -159,23 +166,28 @@ export function FlashDeals({ onAddToCart }: FlashDealsProps) {
 
                 {/* Content */}
                 <div className="p-5">
-                  <h4 className="mb-3 line-clamp-2">{deal.name}</h4>
+                  <div className="flex items-center gap-1.5 text-xs text-[var(--terracotta)] font-medium mb-2">
+                    <Store className="w-3.5 h-3.5" />
+                    <span className="uppercase tracking-wider">{deal.storeName || 'Partner Store'}</span>
+                  </div>
+
+                  <h4 className="mb-3 line-clamp-2 text-gray-800 font-semibold">{deal.productName || deal.name}</h4>
 
                   {/* Price */}
                   <div className="flex items-end gap-2 mb-4">
-                    <span className="text-2xl text-[var(--green-primary)]">
-                      Rs {deal.price.toLocaleString('en-IN')}
+                    <span className="text-2xl font-bold text-[var(--green-primary)]">
+                      Rs {(deal.price || 0).toLocaleString('en-IN')}
                     </span>
                     <span className="text-sm text-gray-400 line-through mb-1">
-                      Rs {deal.originalPrice.toLocaleString('en-IN')}
+                      Rs {(deal.originalPrice || 0).toLocaleString('en-IN')}
                     </span>
                   </div>
 
                   {/* Stock Progress */}
                   <div className="mb-4">
                     <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600">Available</span>
-                      <span className={`${stockPercentage < 30 ? 'text-red-500' : 'text-[var(--green-primary)]'}`}>
+                      <span className="text-gray-600">Available Stock</span>
+                      <span className={`font-semibold ${stockPercentage < 30 ? 'text-red-500' : 'text-[var(--green-primary)]'}`}>
                         {deal.stock}/{deal.totalStock}
                       </span>
                     </div>
@@ -199,16 +211,19 @@ export function FlashDeals({ onAddToCart }: FlashDealsProps) {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
+                      console.log("[FlashDeals] Adding to cart:", deal.productId);
                       onAddToCart({
-                        id: parseInt(deal.productId),
+                        id: Number(deal.productId),
                         name: deal.productName,
                         price: deal.price,
                         image: deal.image,
                         category: '',
+                        inStock: true,
+                        stockQty: deal.stock
                       } as Product);
                       toast.success(`Added ${deal.productName} to cart!`);
                     }}
-                    className="w-full py-3 bg-gradient-to-r from-[var(--terracotta)] to-orange-500 text-white rounded-2xl shadow-lg shadow-[var(--terracotta)]/30 hover:shadow-xl transition-shadow flex items-center justify-center gap-2 font-medium"
+                    className="w-full py-3 bg-gradient-to-r from-[var(--terracotta)] to-orange-500 text-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center gap-2 font-bold"
                   >
                     <ShoppingCart className="w-5 h-5" />
                     Grab Deal Now

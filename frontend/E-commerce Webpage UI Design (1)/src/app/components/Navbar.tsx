@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, ShoppingCart, Heart, User, Menu, X, ChevronDown } from 'lucide-react';
+import { Search, ShoppingCart, Heart, User, Menu, X, ChevronDown, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { QuickAccessMenu } from './QuickAccessMenu';
 import { useNavigate } from 'react-router';
@@ -14,7 +14,12 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');  // ← new
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = 'http://localhost:5176';
+  };
 
   const handleSearch = () => {
     const q = searchQuery.trim();
@@ -132,6 +137,16 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
               <User className="w-6 h-6 text-[var(--green-primary)]" />
             </motion.button>
 
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleLogout}
+              className="hidden sm:flex p-2 hover:bg-red-50 rounded-full transition-colors group"
+              title="Sign Out"
+            >
+              <LogOut className="w-6 h-6 text-red-500 transition-colors" />
+            </motion.button>
+
             {/* Quick Access Menu */}
             <QuickAccessMenu />
 
@@ -193,6 +208,13 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
                 >
                   <User className="w-4 h-4" />
                   My Profile
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-center px-4 py-3 bg-red-50 text-red-600 border border-red-100 rounded-xl font-semibold hover:bg-red-100 transition-all shadow-sm flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
                 </button>
             </div>
           </motion.div>

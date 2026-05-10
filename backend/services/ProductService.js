@@ -116,12 +116,13 @@ class ProductService {
             productId: String(row.product_id),
             productName: row.product_name,
             image: row.image_url,
-            price: parseFloat(row.deal_price),
-            originalPrice: parseFloat(row.original_price),
-            discount: parseFloat(row.discount_percentage),
+            price: parseFloat(row.deal_price) || 0,
+            originalPrice: parseFloat(row.original_price) || 0,
+            discount: parseFloat(row.discount_percentage) || 0,
             stock: row.available_stock,
             totalStock: row.total_stock,
-            endsAt: row.end_datetime
+            endsAt: row.end_datetime,
+            storeName: row.store_name || 'Global Store'
         }));
     }
 

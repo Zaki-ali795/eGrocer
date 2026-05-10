@@ -30,9 +30,11 @@ export default function Orders() {
         if (!groupedOrders[item.order_id]) {
           groupedOrders[item.order_id] = {
             id: item.order_number || `#ORD-${item.order_id}`,
+            realOrderId: item.order_id, // Store the actual database ID
             customerName: item.customer_name,
             orderDate: item.created_at,
             status: item.order_status,
+            paymentMethod: item.payment_method,
             totalPrice: 0,
             items: []
           };
@@ -52,17 +54,12 @@ export default function Orders() {
     }
   }
 
-  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+  const updateOrderStatus = async (orderId: string, realId: number, newStatus: string) => {
     try {
-      // Extract numeric ID if it's in #ORD-ID format
-      const numericId = typeof orderId === 'string' && orderId.includes('-')
-        ? parseInt(orderId.split('-')[1])
-        : parseInt(orderId);
+      await sellerApi.updateOrderStatus(realId, newStatus);
 
-      await sellerApi.updateOrderStatus(numericId, newStatus);
-
-      setOrders(orders.map((o: any) => (o.id === orderId ? { ...o, status: newStatus } : o)));
-      if (selectedOrder?.id === orderId) {
+      setOrders(orders.map((o: any) => (o.realOrderId === realId ? { ...o, status: newStatus } : o)));
+      if (selectedOrder?.realOrderId === realId) {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
       }
     } catch (err: any) {
@@ -229,6 +226,10 @@ export default function Orders() {
                       {format(new Date(selectedOrder.orderDate), 'MMM dd, yyyy HH:mm')}
                     </span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Payment Method:</span>
+                    <span className="font-medium text-foreground uppercase">{selectedOrder.paymentMethod || 'N/A'}</span>
+                  </div>
                   {selectedOrder.deliveryInstructions && (
                     <div>
                       <span className="text-muted-foreground">Delivery Instructions:</span>
@@ -262,7 +263,7 @@ export default function Orders() {
                 <h3 className="font-medium text-foreground mb-3">Update Order Status</h3>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => updateOrderStatus(selectedOrder.id, 'pending')}
+                    onClick={() => updateOrderStatus(selectedOrder.id, selectedOrder.realOrderId, 'pending')}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'pending'
                         ? 'bg-chart-4 text-white'
                         : 'bg-emerald-800 text-white hover:bg-emerald-500'
@@ -271,7 +272,7 @@ export default function Orders() {
                     Pending
                   </button>
                   <button
-                    onClick={() => updateOrderStatus(selectedOrder.id, 'processing')}
+                    onClick={() => updateOrderStatus(selectedOrder.id, selectedOrder.realOrderId, 'processing')}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'processing'
                         ? 'bg-accent text-accent-foreground'
                         : 'bg-emerald-800 text-white hover:bg-emerald-500'
@@ -280,7 +281,7 @@ export default function Orders() {
                     Processing
                   </button>
                   <button
-                    onClick={() => updateOrderStatus(selectedOrder.id, 'delivered')}
+                    onClick={() => updateOrderStatus(selectedOrder.id, selectedOrder.realOrderId, 'delivered')}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'delivered'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-emerald-800 text-white hover:bg-emerald-500'
@@ -289,7 +290,7 @@ export default function Orders() {
                     Delivered
                   </button>
                   <button
-                    onClick={() => updateOrderStatus(selectedOrder.id, 'cancelled')}
+                    onClick={() => updateOrderStatus(selectedOrder.id, selectedOrder.realOrderId, 'cancelled')}
                     className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'cancelled'
                         ? 'bg-destructive text-destructive-foreground'
                         : 'bg-emerald-800 text-white hover:bg-emerald-500'

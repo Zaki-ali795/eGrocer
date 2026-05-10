@@ -16,17 +16,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Pretend to check for a session/token
     const savedId = localStorage.getItem('sellerId');
     const savedUser = localStorage.getItem('user');
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlId = urlParams.get('sellerId');
     
-    if (savedId) {
+    if (urlId) {
+      const newId = parseInt(urlId);
+      setSellerId(newId);
+      localStorage.setItem('sellerId', urlId);
+      // Also clear old user data to force a re-fetch of the new profile
+      localStorage.removeItem('user');
+      setUser(null);
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (savedId) {
       setSellerId(parseInt(savedId));
       setUser(savedUser ? JSON.parse(savedUser) : null);
-    } else {
-      // Default to 2 for now so it doesn't break, but it's now managed here
-      setSellerId(2);
-      localStorage.setItem('sellerId', '2');
     }
     setIsLoading(false);
   }, []);

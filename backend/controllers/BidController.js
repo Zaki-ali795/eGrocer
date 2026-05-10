@@ -21,8 +21,8 @@ class BidController {
      */
     async submitRequest(req, res, next) {
         try {
-            // No auth yet → use first customer as fallback (same pattern as OrderController)
-            const customerId = req.user?.user_id ?? 3;
+            const customerId = req.user?.user_id;
+            if (!customerId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
             const { productName, description, categoryId, quantity, maxBudget } = req.body;
             const result = await this.bidService.submitRequest(customerId, {
@@ -46,6 +46,22 @@ class BidController {
     async getOpenRequests(req, res, next) {
         try {
             const requests = await this.bidService.getOpenRequests();
+            res.json({ success: true, data: requests });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * GET /api/bids/my-requests
+     * List requests submitted by the current user.
+     */
+    async getMyRequests(req, res, next) {
+        try {
+            const customerId = req.user?.user_id;
+            if (!customerId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+            const requests = await this.bidService.getMyRequests(customerId);
             res.json({ success: true, data: requests });
         } catch (error) {
             next(error);
@@ -82,8 +98,8 @@ class BidController {
                 return res.status(400).json({ success: false, message: 'Invalid request ID.' });
             }
 
-            // No auth yet → use seeded seller_id = 2
-            const sellerId = req.user?.user_id ?? 2;
+            const sellerId = req.user?.user_id;
+            if (!sellerId) return res.status(401).json({ success: false, message: 'Unauthorized' });
 
             const { bidPrice, estimatedDeliveryDays, productId } = req.body;
             const result = await this.bidService.submitBid(sellerId, requestId, {
