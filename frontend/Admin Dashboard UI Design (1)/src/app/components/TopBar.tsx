@@ -212,9 +212,8 @@ export function TopBar({ onNavigate, onSearch, currentPage }: {
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white shadow-inner group-hover:scale-105 transition-transform">
                 <User className="w-6 h-6" />
               </div>
-              <div className="text-left hidden lg:block">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none mb-1">Administrator</p>
-                <p className="text-sm font-bold text-gray-800 leading-none">Rehan Ahmed</p>
+              <div className="text-left hidden lg:block pr-2">
+                <p className="text-sm font-bold text-gray-800 leading-none">Rehan</p>
               </div>
               <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -238,14 +237,14 @@ export function TopBar({ onNavigate, onSearch, currentPage }: {
                           <User className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-900">Rehan Ahmed</p>
+                          <p className="text-sm font-bold text-gray-900">Rehan</p>
                           <p className="text-xs text-gray-500">rehan.admin@egrocer.com</p>
                         </div>
                       </div>
                     </div>
                     <div className="p-2">
                       <button 
-                        onClick={() => { setIsUserMenuOpen(false); onNavigate?.('settings'); }}
+                        onClick={() => { setIsUserMenuOpen(false); onNavigate?.('profile'); }}
                         className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-2xl transition-colors"
                       >
                         <User className="w-4 h-4" />

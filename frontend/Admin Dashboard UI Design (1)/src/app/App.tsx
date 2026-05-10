@@ -8,6 +8,7 @@ import { InventoryManagement } from './components/InventoryManagement';
 import { OrdersManagement } from './components/OrdersManagement';
 import { UsersManagement } from './components/UsersManagement';
 import { CustomerRequests } from './components/CustomerRequests';
+import { ProfileManagement } from './components/ProfileManagement';
 import { PromotionsManagement } from './components/PromotionsManagement';
 import { FlashDealsManagement } from './components/FlashDealsManagement';
 import { PaymentsManagement } from './components/PaymentsManagement';
@@ -49,6 +50,8 @@ export default function App() {
         return <PaymentsManagement searchQuery={searchQuery} />;
       case 'reports':
         return <ReportsAnalytics />;
+      case 'profile':
+        return <ProfileManagement />;
       case 'settings':
         return <Settings />;
       default:
