@@ -408,7 +408,7 @@ class AdminRepository extends BaseRepository {
             .input('start', this.sql.DateTime, new Date(data.start))
             .input('end', this.sql.DateTime, new Date(data.end))
             .input('max', this.sql.Int, data.max)
-            .input('adminId', this.sql.Int, data.adminId)
+            .input('adminId', this.sql.Int, (await this.pool.request().query('SELECT TOP 1 admin_id FROM Admins')).recordset[0].admin_id)
             .query(`
                 INSERT INTO FlashDeals (deal_name, description, product_id, discount_percentage, deal_price, start_datetime, end_datetime, max_quantity, created_by)
                 VALUES (@name, @description, @productId, @discount, @price, @start, @end, @max, @adminId)
@@ -433,10 +433,11 @@ class AdminRepository extends BaseRepository {
             .input('limit', this.sql.Int, data.limit)
             .input('start', this.sql.DateTime, new Date(data.start))
             .input('end', this.sql.DateTime, new Date(data.end))
-            .input('adminId', this.sql.Int, data.adminId)
+            .input('maxCap', this.sql.Decimal(10, 2), data.maxCap || null)
+            .input('adminId', this.sql.Int, (await this.pool.request().query('SELECT TOP 1 admin_id FROM Admins')).recordset[0].admin_id)
             .query(`
-                INSERT INTO PromoCodes (code, description, discount_type, discount_value, minimum_order_amount, usage_limit, valid_from, valid_until, created_by)
-                VALUES (@code, @description, @type, @value, @minOrder, @limit, @start, @end, @adminId)
+                INSERT INTO PromoCodes (code, description, discount_type, discount_value, minimum_order_amount, usage_limit, valid_from, valid_until, created_by, max_discount_amount)
+                VALUES (@code, @description, @type, @value, @minOrder, @limit, @start, @end, @adminId, @maxCap)
             `);
         return result.rowsAffected[0] > 0;
     }
