@@ -42,7 +42,7 @@ class BidRepository extends BaseRepository {
     }
 
     /**
-     * Fetch all open requests, newest first, with bid count.
+     * Fetch all open requests, newest first, with their associated bids.
      */
     async getOpenRequests() {
         const result = await this.pool.request().query(`
@@ -55,8 +55,7 @@ class BidRepository extends BaseRepository {
                 pr.request_status,
                 pr.created_at,
                 c.category_name,
-                u.first_name + ' ' + u.last_name AS customer_name,
-                (SELECT COUNT(*) FROM ProductRequestBids b WHERE b.request_id = pr.request_id) AS bid_count
+                u.first_name + ' ' + u.last_name AS customer_name
             FROM ProductRequests pr
             LEFT JOIN Categories c ON pr.category_id = c.category_id
             INNER JOIN Customers cu ON pr.customer_id = cu.customer_id
@@ -64,7 +63,32 @@ class BidRepository extends BaseRepository {
             WHERE pr.request_status = 'open'
             ORDER BY pr.created_at DESC
         `);
-        return result.recordset;
+        
+        const requests = result.recordset;
+        if (requests.length === 0) return [];
+
+        const requestIds = requests.map(r => r.request_id).join(',');
+        const bidsResult = await this.pool.request().query(`
+            SELECT
+                b.bid_id, b.request_id, b.bid_price, b.estimated_delivery_days,
+                b.bid_status, b.created_at,
+                s.store_name, s.store_rating,
+                p.product_name AS linked_product_name, p.image_url AS linked_product_image
+            FROM ProductRequestBids b
+            INNER JOIN Sellers s ON b.seller_id = s.seller_id
+            LEFT JOIN Products p ON b.product_id = p.product_id
+            WHERE b.request_id IN (${requestIds})
+            ORDER BY b.bid_price ASC
+        `);
+
+        const bids = bidsResult.recordset;
+
+        // Group bids by request_id and merge into requests
+        return requests.map(req => ({
+            ...req,
+            bid_count: bids.filter(b => b.request_id === req.request_id).length,
+            bids:      bids.filter(b => b.request_id === req.request_id)
+        }));
     }
 
     /**
@@ -173,6 +197,29 @@ class BidRepository extends BaseRepository {
             await transaction.rollback();
             throw err;
         }
+    }
+
+    /**
+     * Fetch all requests submitted by a specific customer.
+     */
+    async getRequestsByCustomerId(customerId) {
+        const req = this.pool.request();
+        req.input('customerId', customerId);
+
+        const result = await req.query(`
+            SELECT 
+                pr.request_id, pr.product_name, pr.description, pr.quantity, pr.max_budget, pr.request_status, pr.created_at,
+                c.category_name,
+                u.first_name + ' ' + u.last_name as customer_name,
+                (SELECT COUNT(*) FROM ProductRequestBids prb WHERE prb.request_id = pr.request_id) as bid_count
+            FROM ProductRequests pr
+            INNER JOIN Categories c ON pr.category_id = c.category_id
+            INNER JOIN Users u ON pr.customer_id = u.user_id
+            WHERE pr.customer_id = @customerId
+            ORDER BY pr.created_at DESC
+        `);
+
+        return result.recordset;
     }
 }
 
