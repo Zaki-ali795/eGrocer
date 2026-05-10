@@ -56,6 +56,17 @@ export function FlashDealsManagement() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (formData.productId && products.length > 0) {
+      const product = products.find(p => p.id === formData.productId);
+      if (product) {
+        const discount = parseFloat(formData.discount) || 0;
+        const calculatedPrice = product.price * (1 - discount / 100);
+        setFormData(prev => ({ ...prev, price: calculatedPrice.toFixed(2) }));
+      }
+    }
+  }, [formData.productId, formData.discount, products]);
+
   const handleOpenModal = (deal: FlashDeal | null = null) => {
     if (deal) {
       setEditingDeal(deal);
@@ -332,14 +343,7 @@ export function FlashDealsManagement() {
                   <select
                     required
                     value={formData.productId}
-                    onChange={e => {
-                      const prod = products.find(p => p.id === e.target.value);
-                      setFormData({ 
-                        ...formData, 
-                        productId: e.target.value,
-                        price: prod ? (prod.price * (1 - parseFloat(formData.discount) / 100)).toString() : ''
-                      });
-                    }}
+                    onChange={e => setFormData({ ...formData, productId: e.target.value })}
                     className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#ff6b35]/20 focus:outline-none"
                   >
                     <option value="">Select Product</option>
@@ -363,11 +367,10 @@ export function FlashDealsManagement() {
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-gray-700">Deal Price</label>
                     <input
-                      required
+                      readOnly
                       type="number"
                       value={formData.price}
-                      onChange={e => setFormData({ ...formData, price: e.target.value })}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#ff6b35]/20 focus:outline-none"
+                      className="w-full px-4 py-3 bg-gray-100 border-2 border-transparent rounded-xl focus:outline-none cursor-not-allowed font-bold text-emerald-700"
                     />
                   </div>
                 </div>

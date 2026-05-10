@@ -401,8 +401,8 @@ class AdminRepository extends BaseRepository {
             .input('productId', this.sql.Int, data.productId)
             .input('discount', this.sql.Decimal(5, 2), data.discount)
             .input('price', this.sql.Decimal(10, 2), data.price)
-            .input('start', this.sql.DateTime, data.start)
-            .input('end', this.sql.DateTime, data.end)
+            .input('start', this.sql.DateTime, new Date(data.start))
+            .input('end', this.sql.DateTime, new Date(data.end))
             .input('max', this.sql.Int, data.max)
             .input('adminId', this.sql.Int, data.adminId)
             .query(`
@@ -427,8 +427,8 @@ class AdminRepository extends BaseRepository {
             .input('value', this.sql.Decimal(10, 2), data.value)
             .input('minOrder', this.sql.Decimal(10, 2), data.minOrder)
             .input('limit', this.sql.Int, data.limit)
-            .input('start', this.sql.DateTime, data.start)
-            .input('end', this.sql.DateTime, data.end)
+            .input('start', this.sql.DateTime, new Date(data.start))
+            .input('end', this.sql.DateTime, new Date(data.end))
             .input('adminId', this.sql.Int, data.adminId)
             .query(`
                 INSERT INTO PromoCodes (code, description, discount_type, discount_value, minimum_order_amount, usage_limit, valid_from, valid_until, created_by)
