@@ -112,7 +112,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             </div>
             <div className="flex gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-[#064e3b] rounded-full"></div>
+                <div className="w-3 h-3 bg-[#10b981] rounded-full"></div>
                 <span className="font-['Manrope'] text-sm text-gray-600">Revenue</span>
               </div>
               <div className="flex items-center gap-2">
@@ -125,12 +125,12 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             <AreaChart data={revenueHistory}>
               <defs>
                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#064e3b" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#064e3b" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
                   <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#34d399" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#34d399" stopOpacity={0}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
@@ -144,8 +144,8 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
                   boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
                 }}
               />
-              <Area type="monotone" dataKey="revenue" stroke="#064e3b" strokeWidth={3} fill="url(#colorRevenue)" />
-              <Area type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={3} fill="url(#colorOrders)" />
+              <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} fill="url(#colorRevenue)" />
+              <Area type="monotone" dataKey="orders" stroke="#34d399" strokeWidth={3} fill="url(#colorOrders)" />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
@@ -171,7 +171,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
               />
-              <Bar dataKey="sales" fill="#064e3b" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="sales" fill="#10b981" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -190,7 +190,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
           </div>
           <button 
             onClick={() => onNavigate('orders')}
-            className="font-['Manrope'] text-sm text-[#064e3b] hover:text-[#10b981] font-semibold"
+            className="font-['Manrope'] text-sm text-[#10b981] hover:text-[#059669] font-semibold"
           >
             View All
           </button>

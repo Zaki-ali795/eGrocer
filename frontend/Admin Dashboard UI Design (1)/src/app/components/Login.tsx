@@ -10,18 +10,41 @@ export function Login({ onLogin }: LoginProps) {
   const [email, setEmail] = useState('rehan.admin@egrocer.com');
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setLoading(false);
-    onLogin();
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        if (result.data.user.user_type !== 'admin') {
+          throw new Error('Access denied. Admin account required.');
+        }
+        localStorage.setItem('admin_user', JSON.stringify(result.data.user));
+        localStorage.setItem('admin_token', result.data.token);
+        onLogin();
+      } else {
+        throw new Error(result.message || 'Login failed');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#064e3b] flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[#10b981] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-full">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/20 rounded-full blur-[120px]"></div>
@@ -44,9 +67,19 @@ export function Login({ onLogin }: LoginProps) {
             >
               <Warehouse className="w-10 h-10 text-white" />
             </motion.div>
-            <h1 className="font-['Crimson_Pro'] text-4xl font-bold text-white mb-2">eGrocer Admin</h1>
+          <h1 className="font-['Crimson_Pro'] text-4xl font-bold text-white mb-2">eGrocer Admin</h1>
             <p className="font-['Manrope'] text-emerald-100/60 font-medium tracking-wide uppercase text-xs">Secure Portal Login</p>
           </div>
+
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-2xl text-red-100 text-sm font-medium text-center"
+            >
+              {error}
+            </motion.div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">

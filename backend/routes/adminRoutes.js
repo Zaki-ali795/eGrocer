@@ -19,10 +19,12 @@ async function getController() {
 
 // Helper to wrap controller methods with lazy initialization and error handling
 const handle = (method) => async (req, res, next) => {
+    console.log(`[AdminRoutes] Handling ${req.method} ${req.url} with method ${method}`);
     try {
         const ctrl = await getController();
         await ctrl[method](req, res, next);
     } catch (err) {
+        console.error(`[AdminRoutes] Error in ${method}:`, err);
         next(err);
     }
 };
@@ -63,5 +65,10 @@ router.put('/users/:id/status', handle('toggleUserStatus'));
 router.put('/settings', handle('updateSettings'));
 router.put('/change-password', handle('changePassword'));
 router.put('/update-profile', handle('updateAdminProfile'));
+
+router.use((req, res, next) => {
+    console.log(`[AdminRoutes] Catch-all: ${req.method} ${req.url}`);
+    next();
+});
 
 module.exports = router;

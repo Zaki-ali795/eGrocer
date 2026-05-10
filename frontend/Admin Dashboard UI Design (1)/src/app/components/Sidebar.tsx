@@ -13,6 +13,7 @@ import {
   Zap
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import logo from '../../assets/logo.png';
 
 interface SidebarProps {
   currentPage: string;
@@ -65,7 +66,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="w-64 h-screen bg-gradient-to-b from-[#064e3b] via-[#064e3b] to-[#022c22] sticky top-0 flex flex-col shadow-2xl z-50 border-r border-white/5"
+      className="w-64 h-screen bg-gradient-to-b from-[#10b981] via-[#059669] to-[#064e3b] sticky top-0 flex flex-col shadow-2xl z-50 border-r border-white/5"
     >
       <div className="p-6">
         <motion.div
@@ -74,8 +75,8 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
           transition={{ delay: 0.2, duration: 0.5 }}
           className="flex items-center gap-3"
         >
-          <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <Warehouse className="text-white w-6 h-6" />
+          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 overflow-hidden">
+            <img src={logo} alt="eGrocer Logo" className="w-8 h-8 object-contain" />
           </div>
           <div>
             <h1 className="font-['Crimson_Pro'] text-2xl text-white tracking-tight font-bold">eGrocer</h1>
