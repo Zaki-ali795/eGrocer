@@ -35,7 +35,7 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
 }
 
 export const sellerApi = {
-  getRequests: () => fetchApi('/sellers/requests'),
+  getRequests: (sellerId: number) => fetchApi(`/sellers/requests?sellerId=${sellerId}`),
   submitBid: (bidData: any) => fetchApi('/sellers/bid', {
     method: 'POST',
     body: JSON.stringify(bidData),
@@ -79,4 +79,15 @@ export const sellerApi = {
   }),
   getCategories: () => fetchApi('/sellers/categories'),
   getEarnings: (sellerId: number) => fetchApi(`/sellers/earnings/${sellerId}`),
+  getNotifications: (userId: number) => fetchApi(`/notifications/${userId}`),
+  markNotificationRead: (notificationId: number) => fetchApi(`/notifications/read/${notificationId}`, { method: 'PATCH' }),
+  markAllNotificationsRead: (userId: number) => fetchApi('/notifications/read-all', {
+    method: 'POST',
+    body: JSON.stringify({ userId })
+  }),
+  getNotificationSettings: (userId: number) => fetchApi(`/notification-config/${userId}`),
+  updateNotificationSettings: (userId: number, settings: any) => fetchApi(`/notification-config/${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify(settings)
+  }),
 };
