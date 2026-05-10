@@ -3,7 +3,17 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
-  const res = await fetch(`${BASE_URL}${path}`, options);
+  const userId = localStorage.getItem('userId') || '3';
+  const headers: any = {
+    'X-User-Id': userId,
+    ...options?.headers,
+  };
+  
+  if (options?.body && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
   const json = await res.json();
   if (!json.success) throw new Error(json.message || 'API error');
   return json.data as T;
@@ -55,6 +65,7 @@ export interface FlashDeal {
   stock: number;
   totalStock: number;
   endsAt: string;
+  storeName: string;
 }
 
 // ─── Search Filters type ─────────────────────────────────────────
@@ -162,16 +173,11 @@ export interface TrackingOrder {
 
 // ─── Order API calls ─────────────────────────────────────────────
 export const orderApi = {
-  createOrder: async (items: CheckoutRequestItem[], shippingAddressId?: number) => {
-    const res = await fetch(`${BASE_URL}/orders/checkout`, {
+  createOrder: (items: CheckoutRequestItem[], paymentMethod: string = 'cash', address?: any) => 
+    request<any>('/orders/checkout', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, shippingAddressId }),
-    });
-    const json = await res.json();
-    if (!json.success) throw new Error(json.message || 'Failed to place order');
-    return json.data;
-  },
+      body: JSON.stringify({ items, paymentMethod, address }),
+    }),
 
   getPreviousOrders: () => request<Order[]>('/orders/me'),
   getTrackingData: () => request<TrackingOrder[]>('/orders/tracking'),
@@ -213,40 +219,7 @@ export interface SubmitRequestPayload {
   maxBudget?: number;
 }
 
-// ─── Bid API calls ────────────────────────────────────────────────────────────
-export const bidApi = {
-  /** Fetch all open product requests (displayed on homepage & requests page) */
-  getOpenRequests: () => request<ProductRequest[]>('/bids/requests'),
-
-  /** Fetch a single request with all its bids */
-  getRequestWithBids: (requestId: number) =>
-    request<ProductRequest>(`/bids/requests/${requestId}`),
-
-  /** Customer submits a new product request */
-  submitRequest: async (payload: SubmitRequestPayload) => {
-    const res = await fetch(`${BASE_URL}/bids/requests`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    if (!json.success) throw new Error(json.message || 'Failed to submit request');
-    return json.data;
-  },
-
-  /** Accept a bid on a request (customer action) */
-  acceptBid: async (requestId: number, bidId: number) => {
-    const res = await fetch(`${BASE_URL}/bids/requests/${requestId}/bids/${bidId}/accept`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const json = await res.json();
-    if (!json.success) throw new Error(json.message || 'Failed to accept bid');
-    return json.data;
-  },
-};
-
-// ─── User Profile API calls ────────────────────────────────────────────────────────────
+// ─── User Profile Types ────────────────────────────────────────────────────────
 export interface UserProfile {
   id?: number;
   firstName: string;
@@ -259,34 +232,90 @@ export interface UserProfile {
   postalCode: string;
 }
 
+// ─── Cart Types ───────────────────────────────────────────────────────────────
+export interface CartItem {
+  cart_item_id: number;
+  id: number;       // product_id
+  name: string;
+  price: number;
+  image: string;
+  quantity: number;
+}
+
+// ─── Bid API calls ────────────────────────────────────────────────────────────
+export const bidApi = {
+  /** Fetch all open product requests (displayed on homepage & requests page) */
+  getOpenRequests: () => request<ProductRequest[]>('/bids/requests'),
+
+  /** Fetch a single request with all its bids */
+  getRequestWithBids: (requestId: number) =>
+    request<ProductRequest>(`/bids/requests/${requestId}`),
+
+  /** Customer submits a new product request */
+  submitRequest: (payload: SubmitRequestPayload) => 
+    request<any>('/bids/requests', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  /** Accept a bid on a request (customer action) */
+  acceptBid: (requestId: number, bidId: number) => 
+    request<any>(`/bids/requests/${requestId}/bids/${bidId}/accept`, {
+      method: 'PATCH',
+    }),
+
+  /** Fetch requests submitted by the current user */
+  getMyRequests: () => request<ProductRequest[]>('/bids/my-requests'),
+};
+
+// ─── User Profile API calls ────────────────────────────────────────────────────────────
 export const userApi = {
-  getProfile: () => request<UserProfile>('/users/me'),
-  updateProfile: async (profileData: UserProfile) => {
-    const res = await fetch(`${BASE_URL}/users/me`, {
+  getProfile: () => {
+    const userId = localStorage.getItem('userId');
+    return request<UserProfile>(`/users/profile/${userId || 1}`);
+  },
+  updateProfile: (profileData: UserProfile) => {
+    const userId = localStorage.getItem('userId');
+    return request<UserProfile>(`/users/profile/${userId || 1}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(profileData),
     });
-    const json = await res.json();
-    if (!json.success) throw new Error(json.message || 'Failed to update profile');
-    return json.data as UserProfile;
   },
 };
 
 // ─── Wishlist API calls ────────────────────────────────────────────────────────────
 export const wishlistApi = {
   getWishlist: () => request<Product[]>('/wishlist'),
-  toggleWishlist: async (productId: number) => {
-    const res = await fetch(`${BASE_URL}/wishlist/toggle`, {
+  toggleWishlist: (productId: number) => 
+    request<any>('/wishlist/toggle', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ productId }),
-    });
-    const json = await res.json();
-    if (!json.success) throw new Error(json.message || 'Failed to toggle wishlist');
-    return json.action as 'added' | 'removed';
-  },
+    }).then(res => res.action),
   removeFromWishlist: (productId: number) =>
     request<void>(`/wishlist/${productId}`, { method: 'DELETE' } as any),
+};
+
+// ─── Cart API calls ────────────────────────────────────────────────────────────
+export const cartApi = {
+  getCart: () => request<CartItem[]>('/cart'),
+  
+  addItem: (productId: number, quantity: number = 1) => 
+    request<any>('/cart/items', {
+      method: 'POST',
+      body: JSON.stringify({ productId, quantity }),
+    }),
+
+  updateQuantity: (productId: number, quantity: number) => 
+    request<any>(`/cart/items/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ quantity }),
+    }),
+
+  removeItem: (productId: number) => 
+    request<any>(`/cart/items/${productId}`, {
+      method: 'DELETE',
+    }),
+
+  clearCart: () => request<void>('/cart', { method: 'DELETE' } as any),
 };
 
