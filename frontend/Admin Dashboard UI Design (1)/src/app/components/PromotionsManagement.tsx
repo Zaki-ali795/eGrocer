@@ -13,6 +13,7 @@ interface Promo {
   usage: number;
   expiry: string;
   status: string;
+  maxCap?: number;
 }
 
 export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: string }) {
@@ -29,6 +30,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
     value: '',
     minOrder: '0',
     limit: '100',
+    maxCap: '',
     expiry: ''
   });
 
@@ -57,6 +59,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
         value: promo.value.toString(),
         minOrder: promo.minOrder.toString(),
         limit: promo.limit.toString(),
+        maxCap: promo.maxCap?.toString() || '',
         expiry: promo.expiry.split('T')[0]
       });
     } else {
@@ -67,6 +70,7 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
         value: '',
         minOrder: '0',
         limit: '100',
+        maxCap: '',
         expiry: ''
       });
     }
@@ -77,14 +81,18 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
     e.preventDefault();
     try {
       const data = {
-        ...formData,
+        code: formData.code,
+        type: formData.type === 'fixed' ? 'fixed_amount' : 'percentage',
         value: parseFloat(formData.value),
         minOrder: parseFloat(formData.minOrder),
-        limit: parseInt(formData.limit)
+        limit: parseInt(formData.limit),
+        maxCap: formData.maxCap ? parseFloat(formData.maxCap) : null,
+        description: '',
+        start: new Date().toISOString(),
+        end: formData.expiry
       };
-      
+
       if (editingPromo) {
-        // await adminApi.updatePromotion(editingPromo.id, data);
         alert('Update functionality coming soon in backend');
       } else {
         await adminApi.createPromotion(data);
@@ -154,11 +162,10 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
           <button
             key={status}
             onClick={() => setFilter(status)}
-            className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${
-              filter === status
-                ? 'bg-[#064e3b] text-white shadow-lg'
-                : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
-            }`}
+            className={`px-6 py-3 rounded-2xl font-['Manrope'] font-semibold transition-all ${filter === status
+              ? 'bg-[#064e3b] text-white shadow-lg'
+              : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+              }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </button>
@@ -176,18 +183,16 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + index * 0.05 }}
-              className={`bg-white rounded-3xl p-6 shadow-lg border-2 transition-all hover:shadow-xl ${
-                promo.status === 'active' ? 'border-emerald-200' : 'border-gray-200'
-              }`}
+              className={`bg-white rounded-3xl p-6 shadow-lg border-2 transition-all hover:shadow-xl ${promo.status === 'active' ? 'border-emerald-200' : 'border-gray-200'
+                }`}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 bg-gradient-to-br from-[#064e3b] to-[#10b981] rounded-xl flex items-center justify-center">
                     <Tag className="w-5 h-5 text-white" />
                   </div>
-                  <span className={`px-2 py-1 rounded-lg text-xs font-['Manrope'] font-semibold ${
-                    promo.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
-                  }`}>
+                  <span className={`px-2 py-1 rounded-lg text-xs font-['Manrope'] font-semibold ${promo.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
                     {promo.status === 'active' ? 'Active' : 'Inactive'}
                   </span>
                 </div>
@@ -196,9 +201,9 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
                   <p className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">{promo.code}</p>
-                  <button 
+                  <button
                     onClick={() => navigator.clipboard.writeText(promo.code)}
-                    className="p-1 hover:bg-gray-100 rounded transition-colors" 
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
                     title="Copy Code"
                   >
                     <Copy className="w-4 h-4 text-gray-500" />
@@ -240,24 +245,23 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min(usagePercentage, 100)}%` }}
                     transition={{ delay: 0.3 + index * 0.05, duration: 0.8 }}
-                    className={`h-full rounded-full ${
-                      usagePercentage >= 90 ? 'bg-red-500' :
+                    className={`h-full rounded-full ${usagePercentage >= 90 ? 'bg-red-500' :
                       usagePercentage >= 70 ? 'bg-orange-500' :
-                      'bg-emerald-500'
-                    }`}
+                        'bg-emerald-500'
+                      }`}
                   />
                 </div>
               </div>
 
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={() => handleOpenModal(promo)}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-gray-200 transition-colors"
                 >
                   <Edit className="w-4 h-4" />
                   Edit
                 </button>
-                <button 
+                <button
                   onClick={() => handleDelete(promo.id)}
                   className="px-4 py-2 bg-red-50 text-red-700 rounded-xl font-['Manrope'] text-sm font-medium hover:bg-red-100 transition-colors"
                 >
@@ -351,6 +355,16 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
                       value={formData.limit}
                       onChange={e => setFormData({ ...formData, limit: e.target.value })}
                       className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Max Discount Cap (Rs)</label>
+                    <input
+                      type="number"
+                      value={formData.maxCap}
+                      onChange={e => setFormData({ ...formData, maxCap: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-[#064e3b]/20 focus:outline-none"
+                      placeholder="Optional cap e.g. 500"
                     />
                   </div>
                 </div>

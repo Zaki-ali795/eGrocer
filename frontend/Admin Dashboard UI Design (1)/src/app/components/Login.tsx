@@ -7,17 +7,53 @@ interface LoginProps {
 }
 
 export function Login({ onLogin }: LoginProps) {
-  const [email, setEmail] = useState('rehan.admin@egrocer.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // On mount, check if user is already logged in from the login-sign-up app
+  useState(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.user_type === 'admin') {
+          onLogin();
+        }
+      } catch {}
+    }
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setLoading(false);
-    onLogin();
+    setError('');
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || 'Login failed');
+      }
+      // Verify this is an admin user
+      const user = result.data.user;
+      if (user.user_type !== 'admin') {
+        throw new Error('Access denied. This portal is for administrators only.');
+      }
+      // Store auth data
+      localStorage.setItem('token', result.data.token);
+      localStorage.setItem('user', JSON.stringify(user));
+      onLogin();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,6 +84,12 @@ export function Login({ onLogin }: LoginProps) {
             <p className="font-['Manrope'] text-emerald-100/60 font-medium tracking-wide uppercase text-xs">Secure Portal Login</p>
           </div>
 
+          {error && (
+            <div className="mb-4 p-4 bg-red-500/20 border border-red-400/30 rounded-2xl">
+              <p className="font-['Manrope'] text-sm text-red-200 font-medium">{error}</p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label className="font-['Manrope'] text-sm font-bold text-emerald-100 ml-1">Email Address</label>
@@ -67,9 +109,8 @@ export function Login({ onLogin }: LoginProps) {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
+              <div className="px-1">
                 <label className="font-['Manrope'] text-sm font-bold text-emerald-100">Password</label>
-                <button type="button" className="text-xs font-bold text-emerald-400 hover:text-emerald-300">Forgot?</button>
               </div>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-white transition-colors">
@@ -83,6 +124,15 @@ export function Login({ onLogin }: LoginProps) {
                   className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-['Manrope'] placeholder:text-emerald-100/30 focus:outline-none focus:bg-white/10 focus:border-emerald-400/50 transition-all"
                   placeholder="••••••••••••"
                 />
+              </div>
+              <div className="flex justify-end px-1">
+                <button 
+                  type="button" 
+                  onClick={() => alert('Administrative Password Recovery:\n\nPlease contact your System Administrator or IT Department to reset your portal credentials. For security reasons, admin passwords cannot be reset via email.')}
+                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  Forgot password?
+                </button>
               </div>
             </div>
 

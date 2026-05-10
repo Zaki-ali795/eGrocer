@@ -396,7 +396,7 @@ CREATE TABLE Orders (
     discount_amount DECIMAL(10,2) DEFAULT 0,
     tax_amount DECIMAL(10,2) DEFAULT 0,
     order_status VARCHAR(20) DEFAULT 'pending'
-        CHECK (order_status IN ('pending', 'confirmed', 'processing', 'cancelled', 'refunded')),
+        CHECK (order_status IN ('pending', 'confirmed', 'processing', 'delivered', 'cancelled', 'refunded')),
     payment_status VARCHAR(20) DEFAULT 'pending'
         CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded')),
     payment_method VARCHAR(50)

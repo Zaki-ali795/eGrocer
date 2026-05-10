@@ -1,4 +1,4 @@
-import { Search, Download, Eye, Package, Truck, CheckCircle, XCircle, Loader2, ArrowUpRight, Clock, ShieldCheck, ShoppingBag, RefreshCw, ChevronDown } from 'lucide-react';
+import { Search, Download, Eye, Package, CheckCircle, XCircle, Loader2, ArrowUpRight, Clock, ShieldCheck, ShoppingBag, RefreshCw, ChevronDown } from 'lucide-react';
 import { motion } from 'motion/react';
 import { adminApi } from '../services/api';
 import { useState, useEffect } from 'react';
@@ -17,7 +17,7 @@ const statusConfig: any = {
   pending: { label: 'Pending', color: 'bg-amber-100 text-amber-700', icon: Package },
   confirmed: { label: 'Confirmed', color: 'bg-blue-100 text-blue-700', icon: Package },
   processing: { label: 'Processing', color: 'bg-indigo-100 text-indigo-700', icon: Package },
-  shipped: { label: 'Shipped', color: 'bg-purple-100 text-purple-700', icon: Truck },
+
   delivered: { label: 'Delivered', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
   cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700', icon: XCircle },
   refunded: { label: 'Refunded', color: 'bg-gray-100 text-gray-700', icon: XCircle },

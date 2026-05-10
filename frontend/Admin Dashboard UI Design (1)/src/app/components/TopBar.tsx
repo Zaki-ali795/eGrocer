@@ -23,6 +23,15 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false);
   const [localSearch, setLocalSearch] = useState('');
+  
+  const getUserData = () => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  };
+  const userData = getUserData();
 
   useEffect(() => {
     // Sync local state if parent clears it (on navigation)
@@ -215,7 +224,7 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
                 <User className="w-6 h-6" />
               </div>
               <div className="text-left hidden lg:block pr-2">
-                <p className="text-sm font-bold text-gray-800 leading-none">Rehan</p>
+                <p className="text-sm font-bold text-gray-800 leading-none">{userData.first_name || 'Admin'}</p>
               </div>
               <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -239,8 +248,8 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
                           <User className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-900">Rehan</p>
-                          <p className="text-xs text-gray-500">rehan.admin@egrocer.com</p>
+                          <p className="text-sm font-bold text-gray-900">{userData.first_name} {userData.last_name || ''}</p>
+                          <p className="text-xs text-gray-500">{userData.email || 'admin@egrocer.com'}</p>
                         </div>
                       </div>
                     </div>
@@ -251,13 +260,6 @@ export function TopBar({ onNavigate, onSearch, currentPage, onSignOut }: {
                       >
                         <User className="w-4 h-4" />
                         View Profile
-                      </button>
-                      <button 
-                        onClick={() => { setIsUserMenuOpen(false); onNavigate?.('settings'); }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-2xl transition-colors"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Account Settings
                       </button>
                     </div>
                     <div className="p-2 border-t border-gray-50">
