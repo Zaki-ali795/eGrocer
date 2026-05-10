@@ -109,15 +109,8 @@ export function Login({ onLogin }: LoginProps) {
             </div>
 
             <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
+              <div className="px-1">
                 <label className="font-['Manrope'] text-sm font-bold text-emerald-100">Password</label>
-                <button 
-                  type="button" 
-                  onClick={() => alert('Administrative Password Recovery:\n\nPlease contact your System Administrator or IT Department to reset your portal credentials. For security reasons, admin passwords cannot be reset via email.')}
-                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
-                >
-                  Forgot password
-                </button>
               </div>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-white transition-colors">
@@ -131,6 +124,15 @@ export function Login({ onLogin }: LoginProps) {
                   className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-['Manrope'] placeholder:text-emerald-100/30 focus:outline-none focus:bg-white/10 focus:border-emerald-400/50 transition-all"
                   placeholder="••••••••••••"
                 />
+              </div>
+              <div className="flex justify-end px-1">
+                <button 
+                  type="button" 
+                  onClick={() => alert('Administrative Password Recovery:\n\nPlease contact your System Administrator or IT Department to reset your portal credentials. For security reasons, admin passwords cannot be reset via email.')}
+                  className="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  Forgot password?
+                </button>
               </div>
             </div>
 
