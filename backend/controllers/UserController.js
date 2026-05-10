@@ -10,8 +10,7 @@ class UserController {
 
     async getProfile(req, res, next) {
         try {
-            // Mock authentication, hardcode user 1
-            const userId = 1;
+            const userId = req.params.id || req.query.userId || 1;
             const profile = await this.userService.getUserProfile(userId);
             res.json({ success: true, data: profile });
         } catch (err) {
@@ -21,7 +20,7 @@ class UserController {
 
     async updateProfile(req, res, next) {
         try {
-            const userId = 1; // Mock auth
+            const userId = req.params.id || req.body.userId || 1;
             const updatedProfile = await this.userService.updateUserProfile(userId, req.body);
             res.json({ success: true, data: updatedProfile });
         } catch (err) {
