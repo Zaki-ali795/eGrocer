@@ -52,9 +52,42 @@ export default function EGrocerAuthUI() {
     },
   ];
 
+  const [passwordStrength, setPasswordStrength] = useState(0);
+
+  const getPasswordStrength = (pass) => {
+    let score = 0;
+    if (!pass) return 0;
+    if (pass.length >= 8) score++;
+    if (/[a-z]/.test(pass) && /[A-Z]/.test(pass)) score++;
+    if (/\d/.test(pass)) score++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(pass)) score++;
+    return score;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "password") {
+      setPasswordStrength(getPasswordStrength(value));
+    }
+  };
+
+  const validateForm = () => {
+    if (mode === "signup") {
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        return "Please enter a valid email address.";
+      }
+
+      // Phone validation (+92XXXXXXXXXX)
+      const phoneRegex = /^\+92\d{10}$/;
+      if (formData.phone && !phoneRegex.test(formData.phone)) {
+        return "Phone number must be in format +923004249190 (Total 13 characters).";
+      }
+    }
+    return null;
   };
 
   const handleSubmit = async (e) => {
@@ -62,13 +95,20 @@ export default function EGrocerAuthUI() {
     setIsLoading(true);
     setError("");
 
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      setIsLoading(false);
+      return;
+    }
+
     const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/signup";
     const payload = mode === "login" 
       ? { email: formData.email, password: formData.password }
       : { ...formData, userType: role };
 
     try {
-      const response = await fetch(`http://localhost:5001${endpoint}`, {
+      const response = await fetch(`http://localhost:5000${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -80,6 +120,9 @@ export default function EGrocerAuthUI() {
         throw new Error(result.message || "Something went wrong");
       }
 
+      // Clear any old session data from other sellers
+      localStorage.clear();
+      
       // Save token and user info
       localStorage.setItem("token", result.data.token);
       localStorage.setItem("user", JSON.stringify(result.data.user));
@@ -89,9 +132,9 @@ export default function EGrocerAuthUI() {
       // Redirect based on role
       const userType = result.data.user.user_type || role;
       if (userType === "customer") {
-        window.location.href = "http://localhost:5173"; // Customer dashboard (default vite port)
+        window.location.href = `http://localhost:5173?userId=${result.data.user.user_id}`; // Customer dashboard with dynamic ID
       } else if (userType === "seller") {
-        window.location.href = "http://localhost:5174"; // Seller dashboard
+        window.location.href = `http://localhost:5174?sellerId=${result.data.user.user_id}`; // Seller dashboard with dynamic ID
       } else if (userType === "admin") {
         window.location.href = "http://localhost:5175"; // Admin dashboard
       }
@@ -180,8 +223,8 @@ export default function EGrocerAuthUI() {
 
           {/* ROLE SELECTOR */}
           {mode === "signup" && (
-            <div className="grid md:grid-cols-3 gap-4 mb-8">
-              {roleCards.map((item) => (
+            <div className="grid md:grid-cols-2 gap-4 mb-8">
+              {roleCards.filter(item => item.id !== "admin").map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setRole(item.id)}
@@ -275,7 +318,7 @@ export default function EGrocerAuthUI() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="+92 300 1234567"
+                    placeholder="+923004249190"
                     className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -336,22 +379,7 @@ export default function EGrocerAuthUI() {
               </>
             )}
 
-            {/* ADMIN EXTRA */}
-            {mode === "signup" && role === "admin" && (
-              <div>
-                <label className="text-sm font-semibold text-gray-700">
-                  Department
-                </label>
-                <input
-                  type="text"
-                  name="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  placeholder="Operations"
-                  className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-            )}
+            {/* ADMIN EXTRA fields removed as Admin role is no longer selectable in signup */}
 
             {/* PASSWORD */}
             <div>
@@ -370,6 +398,46 @@ export default function EGrocerAuthUI() {
                   required
                 />
               </div>
+              
+              {/* STRENGTH BAR */}
+              {mode === "signup" && formData.password && (
+                <div className="mt-3">
+                  <div className="flex gap-1 h-1.5">
+                    {[1, 2, 3, 4].map((level) => (
+                      <div
+                        key={level}
+                        className={`flex-1 rounded-full transition-all duration-500 ${
+                          passwordStrength >= level
+                            ? passwordStrength <= 1
+                              ? "bg-red-500"
+                              : passwordStrength <= 2
+                              ? "bg-yellow-500"
+                              : passwordStrength <= 3
+                              ? "bg-blue-500"
+                              : "bg-green-500"
+                            : "bg-gray-100"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex justify-between items-center mt-1.5">
+                    <p className={`text-[10px] font-bold uppercase tracking-wider ${
+                      passwordStrength <= 1 ? "text-red-500" :
+                      passwordStrength <= 2 ? "text-yellow-600" :
+                      passwordStrength <= 3 ? "text-blue-600" : "text-green-600"
+                    }`}>
+                      {passwordStrength === 0 && "Enter Password"}
+                      {passwordStrength === 1 && "Very Weak"}
+                      {passwordStrength === 2 && "Fair"}
+                      {passwordStrength === 3 && "Strong"}
+                      {passwordStrength === 4 && "Excellent"}
+                    </p>
+                    <p className="text-[10px] text-gray-400 italic">
+                      Use Uppercase, Digits & Special Chars
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* LOGIN OPTIONS */}
