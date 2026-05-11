@@ -32,7 +32,8 @@ export default function Requests() {
         location: 'Local Delivery', 
         requestDate: r.created_at,
         status: r.request_status === 'open' ? 'pending' : r.request_status,
-        yourOffer: r.your_bid_price
+        yourOffer: r.your_bid_price,
+        maxBudget: r.max_budget
       }));
       setRequests(mappedRequests);
     } catch (err: any) {
@@ -221,11 +222,23 @@ export default function Requests() {
                   </p>
                 </div>
               </div>
+              
+              {request.maxBudget && (
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                    <span className="text-emerald-600 font-bold text-[10px]">Rs.</span>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Max Budget</p>
+                    <p className="font-bold text-emerald-600">Rs. {request.maxBudget.toLocaleString('en-IN')}</p>
+                  </div>
+                </div>
+              )}
 
               {request.yourOffer && (
                 <div className="flex items-center gap-3 text-sm">
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <DollarSign className="w-4 h-4 text-primary" />
+                    <span className="text-primary font-bold text-[10px]">Rs.</span>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Your Offer</p>
@@ -290,6 +303,12 @@ export default function Requests() {
                   <span className="text-muted-foreground">Location:</span>
                   <span className="font-medium text-foreground">{selectedRequest.location}</span>
                 </div>
+                {selectedRequest.maxBudget && (
+                  <div className="flex justify-between text-sm pt-2 border-t border-border/50">
+                    <span className="text-emerald-600 font-bold">Max Budget:</span>
+                    <span className="font-bold text-emerald-600 underline decoration-2">Rs. {selectedRequest.maxBudget.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
               </div>
 
               {/* Offer Price */}
@@ -298,7 +317,9 @@ export default function Requests() {
                   Your Price Offer (per unit) *
                 </label>
                 <div className="relative">
-                  <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">
+                    Rs.
+                  </div>
                   <input
                     type="number"
                     step="0.01"

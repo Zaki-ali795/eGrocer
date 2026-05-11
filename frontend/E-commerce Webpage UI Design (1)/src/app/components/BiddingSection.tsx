@@ -450,14 +450,16 @@ export function BiddingSection() {
                       Max Budget (Rs) <span className="text-gray-400 font-normal">(optional)</span>
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--green-primary)]/60" />
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--green-primary)] font-bold text-sm">
+                        Rs.
+                      </div>
                       <input
                         type="number"
                         min={0}
                         value={form.maxBudget}
                         onChange={e => setForm(f => ({ ...f, maxBudget: e.target.value }))}
                         placeholder="e.g. 500"
-                        className="w-full pl-11 pr-4 py-3.5 bg-[var(--beige)]/40 border-2 border-transparent rounded-2xl focus:border-[var(--green-primary)] outline-none transition-all text-gray-800 placeholder-gray-400"
+                        className="w-full pl-12 pr-4 py-3.5 bg-[var(--beige)]/40 border-2 border-transparent rounded-2xl focus:border-[var(--green-primary)] outline-none transition-all text-gray-800 placeholder-gray-400"
                       />
                     </div>
                   </div>
