@@ -8,3 +8,6 @@ Thumbs.db
 .idea/
 *.log
 logs/
+frontend.zip
+backend.zip
+*.zip
