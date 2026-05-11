@@ -43,7 +43,8 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = 'http://localhost:5178';
+    const hostname = window.location.hostname;
+    window.location.href = `http://${hostname}:3003`;
   };
 
   const handleSearch = () => {

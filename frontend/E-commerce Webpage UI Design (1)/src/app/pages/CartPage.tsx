@@ -5,7 +5,8 @@ import {
   ShoppingBag, Trash2, Heart, Plus, Minus,
   Tag, ChevronRight, PackageCheck, Truck, CreditCard, Loader2
 } from 'lucide-react';
-import { orderApi, promoApi } from '../../services/api';
+import { toast } from 'sonner';
+import { orderApi, promoApi, Product } from '../../services/api';
 
 interface CartItem {
   id: string;
@@ -23,9 +24,11 @@ interface CartPageProps {
   onUpdateQuantity: (id: string, qty: number) => void;
   onRemoveItem: (id: string) => void;
   onClearCart: () => void;
+  onWishlistToggle: (productId: number) => Promise<'added' | 'removed'>;
+  wishlistItems: Product[];
 }
 
-export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }: CartPageProps) {
+export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, onWishlistToggle, wishlistItems }: CartPageProps) {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +81,7 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
   const handleCheckout = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please login to place an order.');
+      toast.error('Please login to place an order.');
       const hostname = window.location.hostname;
       window.location.href = `http://${hostname}:3003`;
       return;
@@ -106,6 +109,7 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
       });
       
       onClearCart();
+      toast.success('Order placed successfully! 🚚');
       navigate('/previous-orders');
     } catch (err: any) {
       setError(err.message || 'Failed to place order');
@@ -133,6 +137,7 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
       }
       
       setPromoDiscount(discountAmount);
+      toast.success(`Promo code applied! You saved Rs ${Math.round(discountAmount)}`);
     } catch (err: any) {
       setPromoError(err.message || 'Invalid code');
       setPromoDiscount(0);
@@ -291,10 +296,15 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
                         <motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          className="p-2 text-gray-400 hover:text-red-400 transition-colors rounded-xl hover:bg-red-50"
+                          onClick={() => onWishlistToggle(Number(item.id))}
+                          className={`p-2 transition-colors rounded-xl ${
+                            wishlistItems.some(w => String(w.id) === String(item.id))
+                              ? 'text-red-500 bg-red-50'
+                              : 'text-gray-400 hover:text-red-400 hover:bg-red-50'
+                          }`}
                           title="Save for later"
                         >
-                          <Heart className="w-4 h-4" />
+                          <Heart className={`w-4 h-4 ${wishlistItems.some(w => String(w.id) === String(item.id)) ? 'fill-current' : ''}`} />
                         </motion.button>
 
                         {/* Remove */}

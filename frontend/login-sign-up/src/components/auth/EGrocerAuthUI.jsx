@@ -128,8 +128,8 @@ export default function EGrocerAuthUI() {
       const userType = result.data.user.user_type || role;
 
       if (userType === "admin") {
-        localStorage.clear();
-        throw new Error("admin cant access from here");
+        window.location.href = `http://${hostname}:3002?userId=${result.data.user.user_id}&token=${result.data.token}`;
+        return;
       }
 
       if (userType === "customer") {

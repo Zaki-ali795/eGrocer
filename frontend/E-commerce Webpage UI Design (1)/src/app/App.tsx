@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
 import { motion } from 'motion/react';
+import { Toaster } from 'sonner';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
@@ -145,6 +146,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="top-center" richColors />
       <ScrollToTop />
       <div className="min-h-screen bg-[var(--background)]">
         <Navbar
@@ -157,7 +159,7 @@ export default function App() {
           <Route path="/categories" element={<CategoryBrowsePage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
           <Route path="/product/:productId" element={<ProductDetailPage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} />} />
           <Route path="/search" element={<SearchResultsPage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
-          <Route path="/cart" element={<CartPage items={cartItems} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} onClearCart={handleClearCart} />} />
+          <Route path="/cart" element={<CartPage items={cartItems} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} onClearCart={handleClearCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
           <Route path="/wishlist" element={<WishlistPage onAddToCart={handleAddToCart} items={wishlistItems} onWishlistUpdate={refreshWishlist} />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/tracking" element={<TrackingPage />} />
