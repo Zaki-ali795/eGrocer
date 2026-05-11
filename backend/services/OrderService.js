@@ -36,7 +36,7 @@ class OrderService {
 
         const paymentStrategies = require('../strategies/PaymentStrategy');
         const strategy = paymentStrategies[paymentMethod] || paymentStrategies.cash;
-        const { orderStatus, paymentStatus, dbMethod } = strategy.process();
+        const { orderStatus, paymentStatus, dbMethod, transactionReference } = strategy.process();
 
         // Resolve Address ID
         console.log('OrderService: Resolving address for customer:', customerId, 'Address provided:', address);
@@ -66,7 +66,8 @@ class OrderService {
             discountAmount,
             paymentMethod: dbMethod,
             orderStatus,
-            paymentStatus
+            paymentStatus,
+            transactionReference
         };
 
         return this.orderRepo.createOrder(orderData, processedItems);

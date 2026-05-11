@@ -100,6 +100,35 @@ class OrderRepository extends BaseRepository {
                 `);
             }
 
+            // 6. Insert into PaymentTransactions
+            const payReq = transaction.request();
+            payReq.input('orderId', orderId);
+            payReq.input('gateway', orderData.paymentMethod);
+            payReq.input('ref',     orderData.transactionReference || 'N/A');
+            payReq.input('amount',  orderData.subtotal + orderData.taxAmount + orderData.deliveryFee - orderData.discountAmount);
+            payReq.input('status',  orderData.paymentStatus === 'paid' ? 'completed' : 'pending');
+
+            await payReq.query(`
+                INSERT INTO PaymentTransactions (order_id, gateway, transaction_reference, amount, status)
+                VALUES (@orderId, @gateway, @ref, @amount, @status);
+            `);
+
+            // 7. If Paid, Generate Invoice
+            if (orderData.paymentStatus === 'paid') {
+                const invReq = transaction.request();
+                invReq.input('orderId', orderId);
+                invReq.input('invNum',  'INV-' + orderNumber.split('-')[1]);
+                invReq.input('sub',     orderData.subtotal);
+                invReq.input('tax',     orderData.taxAmount);
+                invReq.input('disc',    orderData.discountAmount);
+                invReq.input('method',  orderData.paymentMethod);
+
+                await invReq.query(`
+                    INSERT INTO Invoices (order_id, invoice_number, subtotal, tax_amount, discount_amount, payment_method)
+                    VALUES (@orderId, @invNum, @sub, @tax, @disc, @method);
+                `);
+            }
+
             await transaction.commit();
             return { orderId, orderNumber };
         } catch (err) {

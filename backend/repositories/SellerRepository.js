@@ -365,6 +365,7 @@ class SellerRepository extends BaseRepository {
             const notes = status === 'processing' ? 'Order is being prepared' : 
                          status === 'confirmed'  ? 'Order has been confirmed' :
                          status === 'dispatched' ? 'Order is on its way' :
+                         status === 'delivered'  ? 'Order delivered successfully' :
                          `Order status updated to ${status}`;
                          
             req.input('notes', notes);
@@ -372,6 +373,35 @@ class SellerRepository extends BaseRepository {
                 INSERT INTO OrderStatusHistory (order_id, status, notes)
                 VALUES (@orderId, @status, @notes)
             `);
+
+            // 4. If delivered, ensure payment is marked as paid (for COD) and invoice exists
+            if (status === 'delivered') {
+                await transaction.request()
+                    .input('orderId', orderId)
+                    .query(`
+                        UPDATE Orders 
+                        SET payment_status = 'paid', updated_at = GETDATE() 
+                        WHERE order_id = @orderId AND payment_status = 'pending';
+
+                        UPDATE PaymentTransactions
+                        SET status = 'completed'
+                        WHERE order_id = @orderId AND status = 'pending';
+
+                        IF NOT EXISTS (SELECT 1 FROM Invoices WHERE order_id = @orderId)
+                        BEGIN
+                            INSERT INTO Invoices (order_id, invoice_number, subtotal, tax_amount, discount_amount, payment_method)
+                            SELECT 
+                                order_id, 
+                                'INV-' + SUBSTRING(order_number, 5, 10), 
+                                subtotal, 
+                                tax_amount, 
+                                discount_amount, 
+                                payment_method
+                            FROM Orders 
+                            WHERE order_id = @orderId;
+                        END
+                    `);
+            }
 
             await transaction.commit();
         } catch (err) {
