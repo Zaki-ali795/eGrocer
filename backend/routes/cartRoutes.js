@@ -37,4 +37,9 @@ router.delete('/', async (req, res, next) => {
     return ctrl.clearCart(req, res, next);
 });
 
+router.post('/merge', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.mergeCart(req, res, next);
+});
+
 module.exports = router;

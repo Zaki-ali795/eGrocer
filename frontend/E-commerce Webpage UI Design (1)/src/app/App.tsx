@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
 import { motion } from 'motion/react';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -22,6 +22,14 @@ interface CartItem {
   price: number;
   quantity: number;
   image: string;
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
 }
 
 export default function App() {
@@ -57,24 +65,28 @@ export default function App() {
     // 1. Capture userId from URL if coming from login redirect
     const urlParams = new URLSearchParams(window.location.search);
     const urlId = urlParams.get('userId');
+    const urlToken = urlParams.get('token');
     
     if (urlId) {
+      // If we were previously using a guest ID, merge the carts
+      const guestId = localStorage.getItem('userId') || '3';
+      
+      // We set the token FIRST so the mergeCart request is authenticated as the NEW user
+      if (urlToken) localStorage.setItem('token', urlToken);
       localStorage.setItem('userId', urlId);
+
+      // Trigger merge in background
+      cartApi.mergeCart(guestId).then(() => {
+        refreshCart();
+      }).catch(err => console.warn('Cart merge failed:', err));
+
       // Clear old session data
       localStorage.removeItem('user');
       // Clean URL without reloading
       window.history.replaceState({}, '', window.location.pathname);
     }
 
-    // 2. Auth Guard: Redirect to login if no userId
-    const currentUserId = localStorage.getItem('userId');
-    if (!currentUserId && !urlId) {
-      // Redirect to the login-sign-up app (assuming it runs on port 5175 or similar)
-      window.location.href = 'http://localhost:5175'; 
-      return;
-    }
-
-    // 3. Initial fetch
+    // 2. Initial fetch
     refreshWishlist();
     refreshCart();
   }, []);
@@ -133,6 +145,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div className="min-h-screen bg-[var(--background)]">
         <Navbar
           cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}

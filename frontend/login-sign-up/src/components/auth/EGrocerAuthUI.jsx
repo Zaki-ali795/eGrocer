@@ -102,7 +102,8 @@ export default function EGrocerAuthUI() {
       : { ...formData, userType: role };
 
     try {
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const hostname = window.location.hostname;
+      const response = await fetch(`http://${hostname}:5001${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -132,11 +133,9 @@ export default function EGrocerAuthUI() {
       }
 
       if (userType === "customer") {
-        window.location.href = `http://localhost:5173?userId=${result.data.user.user_id}`; // Customer dashboard
+        window.location.href = `http://${hostname}:3000?userId=${result.data.user.user_id}&token=${result.data.token}`;
       } else if (userType === "seller") {
-        window.location.href = `http://localhost:5179?sellerId=${result.data.user.user_id}`; // Seller dashboard
-      } else if (userType === "admin") {
-        window.location.href = `http://localhost:5180?adminId=${result.data.user.user_id}`; // Admin dashboard
+        window.location.href = `http://${hostname}:3001?sellerId=${result.data.user.user_id}&token=${result.data.token}`;
       }
     } catch (err) {
       setError(err.message);

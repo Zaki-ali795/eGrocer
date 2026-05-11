@@ -5,7 +5,7 @@ import {
   ShoppingBag, Trash2, Heart, Plus, Minus,
   Tag, ChevronRight, PackageCheck, Truck, CreditCard, Loader2
 } from 'lucide-react';
-import { orderApi } from '../../services/api';
+import { orderApi, promoApi } from '../../services/api';
 
 interface CartItem {
   id: string;
@@ -36,12 +36,17 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
     city: '',
     province: 'Punjab'
   });
+  const [voucherCode, setVoucherCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoInfo, setPromoInfo] = useState<any>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
 
   const subtotal        = items.reduce((s, i) => s + i.price * i.quantity, 0);
   const tax             = subtotal * 0.08;
   const delivery        = subtotal > 5000 ? 0 : 499;
-  const cardDiscount    = subtotal * 0.05;
-  const total           = subtotal + tax + delivery - cardDiscount;
+  const cardDiscount    = selectedPayment === 'card' ? subtotal * 0.05 : 0;
+  const total           = subtotal + tax + delivery - cardDiscount - promoDiscount;
   const itemCount       = items.reduce((s, i) => s + i.quantity, 0);
   const freeDeliveryGap = Math.max(0, 5000 - subtotal);
 
@@ -71,6 +76,14 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
   );
 
   const handleCheckout = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login to place an order.');
+      const hostname = window.location.hostname;
+      window.location.href = `http://${hostname}:3003`;
+      return;
+    }
+
     if (!showAddressForm) {
       setShowAddressForm(true);
       return;
@@ -98,6 +111,34 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
       setError(err.message || 'Failed to place order');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleApplyVoucher = async () => {
+    if (!voucherCode) return;
+    try {
+      setIsApplyingVoucher(true);
+      setPromoError(null);
+      const res = await promoApi.validateCode(voucherCode, subtotal);
+      setPromoInfo(res);
+      
+      let discountAmount = 0;
+      if (res.discount_type === 'percentage') {
+        discountAmount = (subtotal * res.discount_value) / 100;
+        if (res.max_discount_amount && discountAmount > res.max_discount_amount) {
+          discountAmount = res.max_discount_amount;
+        }
+      } else {
+        discountAmount = res.discount_value;
+      }
+      
+      setPromoDiscount(discountAmount);
+    } catch (err: any) {
+      setPromoError(err.message || 'Invalid code');
+      setPromoDiscount(0);
+      setPromoInfo(null);
+    } finally {
+      setIsApplyingVoucher(false);
     }
   };
 
@@ -325,22 +366,35 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart }:
                 </div>
 
                 {/* Voucher */}
-                <div className="flex gap-2 pt-1">
-                  <div className="flex-1 flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-xl bg-[var(--beige)]/30">
-                    <Tag className="w-4 h-4 text-gray-400 shrink-0" />
-                    <input
-                      type="text"
-                      placeholder="Enter voucher code"
-                      className="flex-1 bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none"
-                    />
+                <div className="pt-1">
+                  <div className="flex gap-2">
+                    <div className={`flex-1 flex items-center gap-2 px-3 py-2.5 border rounded-xl bg-[var(--beige)]/30 transition-colors ${promoError ? 'border-red-300' : 'border-gray-200'}`}>
+                      <Tag className="w-4 h-4 text-gray-400 shrink-0" />
+                      <input
+                        type="text"
+                        placeholder="Enter voucher code"
+                        value={voucherCode}
+                        onChange={(e) => setVoucherCode(e.target.value)}
+                        className="flex-1 bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none"
+                      />
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={handleApplyVoucher}
+                      disabled={isApplyingVoucher || !voucherCode}
+                      className="px-4 py-2.5 bg-[var(--green-primary)] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+                    >
+                      {isApplyingVoucher ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                    </motion.button>
                   </div>
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="px-4 py-2.5 bg-[var(--green-primary)] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity"
-                  >
-                    Apply
-                  </motion.button>
+                  {promoError && <p className="text-xs text-red-500 mt-1 ml-1">{promoError}</p>}
+                  {promoInfo && !promoError && (
+                    <div className="flex justify-between items-center mt-2 px-3 py-2 bg-[var(--green-primary)]/10 border border-[var(--green-primary)]/20 rounded-xl">
+                      <span className="text-xs text-[var(--green-dark)] font-medium">Applied: {promoInfo.code}</span>
+                      <span className="text-xs text-[var(--green-primary)] font-bold">-Rs {Math.round(promoDiscount).toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Address Form */}

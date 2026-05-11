@@ -112,15 +112,40 @@ class CartRepository extends BaseRepository {
     }
 
     /**
-     * Clear the entire cart.
+     * Merge items from a guest cart into a logged-in user's cart.
      */
-    async clearCart(customerId) {
-        const cartId = await this._getOrCreateCart(customerId);
+    async mergeCarts(guestId, loggedInId) {
+        if (guestId === loggedInId) return;
+
+        const guestCartId = await this._getOrCreateCart(guestId);
+        const loggedInCartId = await this._getOrCreateCart(loggedInId);
 
         const req = this.pool.request();
-        req.input('cartId', cartId);
+        req.input('guestCartId', guestCartId);
+        req.input('loggedInCartId', loggedInCartId);
 
-        await req.query('DELETE FROM CartItems WHERE cart_id = @cartId');
+        await req.query(`
+            -- Update existing items in the logged-in cart by adding quantities from the guest cart
+            UPDATE li
+            SET li.quantity = li.quantity + g.quantity
+            FROM CartItems li
+            JOIN CartItems g ON li.product_id = g.product_id
+            WHERE li.cart_id = @loggedInCartId AND g.cart_id = @guestCartId;
+
+            -- Insert items that exist in guest cart but not in logged-in cart
+            INSERT INTO CartItems (cart_id, product_id, quantity)
+            SELECT @loggedInCartId, g.product_id, g.quantity
+            FROM CartItems g
+            WHERE g.cart_id = @guestCartId
+            AND g.product_id NOT IN (
+                SELECT li.product_id 
+                FROM CartItems li 
+                WHERE li.cart_id = @loggedInCartId
+            );
+
+            -- Clear the guest cart items after migration
+            DELETE FROM CartItems WHERE cart_id = @guestCartId;
+        `);
     }
 }
 

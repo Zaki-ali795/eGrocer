@@ -14,12 +14,24 @@ export function getLoggedInSellerId(): number | null {
 
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const url = `${API_BASE_URL.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+  const token = localStorage.getItem('token');
+  const sellerId = getLoggedInSellerId();
+
+  const headers: any = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  if (sellerId) {
+    headers['X-User-Id'] = String(sellerId);
+  }
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {

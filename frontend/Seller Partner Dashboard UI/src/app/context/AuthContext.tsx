@@ -20,11 +20,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const savedUser = localStorage.getItem('user');
     const urlParams = new URLSearchParams(window.location.search);
     const urlId = urlParams.get('sellerId');
+    const urlToken = urlParams.get('token');
     
     if (urlId) {
       const newId = parseInt(urlId);
       setSellerId(newId);
       localStorage.setItem('sellerId', urlId);
+      if (urlToken) localStorage.setItem('token', urlToken);
       // Also clear old user data to force a re-fetch of the new profile
       localStorage.removeItem('user');
       setUser(null);
