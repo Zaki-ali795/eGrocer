@@ -66,7 +66,15 @@ export default function App() {
       window.history.replaceState({}, '', window.location.pathname);
     }
 
-    // 2. Initial fetch
+    // 2. Auth Guard: Redirect to login if no userId
+    const currentUserId = localStorage.getItem('userId');
+    if (!currentUserId && !urlId) {
+      // Redirect to the login-sign-up app (assuming it runs on port 5175 or similar)
+      window.location.href = 'http://localhost:5175'; 
+      return;
+    }
+
+    // 3. Initial fetch
     refreshWishlist();
     refreshCart();
   }, []);

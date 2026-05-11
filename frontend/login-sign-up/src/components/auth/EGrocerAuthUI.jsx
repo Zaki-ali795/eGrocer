@@ -132,9 +132,11 @@ export default function EGrocerAuthUI() {
       }
 
       if (userType === "customer") {
-        window.location.href = `http://localhost:5173?userId=${result.data.user.user_id}`; // Customer dashboard with dynamic ID
+        window.location.href = `http://localhost:5173?userId=${result.data.user.user_id}`; // Customer dashboard
       } else if (userType === "seller") {
-        window.location.href = `http://localhost:5179?sellerId=${result.data.user.user_id}`; // Seller dashboard with dynamic ID
+        window.location.href = `http://localhost:5179?sellerId=${result.data.user.user_id}`; // Seller dashboard
+      } else if (userType === "admin") {
+        window.location.href = `http://localhost:5180?adminId=${result.data.user.user_id}`; // Admin dashboard
       }
     } catch (err) {
       setError(err.message);
