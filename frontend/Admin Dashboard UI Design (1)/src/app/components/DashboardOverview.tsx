@@ -1,4 +1,4 @@
-import { Users, ShoppingCart, DollarSign, Zap, Package, TrendingUp, TrendingDown, Clock, Loader2 } from 'lucide-react';
+import { Users, ShoppingCart, IndianRupee, Zap, Package, TrendingUp, TrendingDown, Clock, Loader2 } from 'lucide-react';
 import { KPICard } from './KPICard';
 import { motion } from 'motion/react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';

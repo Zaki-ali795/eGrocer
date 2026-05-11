@@ -74,4 +74,5 @@ export const adminApi = {
   updateProfile: (data: any) => fetchApi('/admin/update-profile', { method: 'PUT', body: JSON.stringify(data) }),
   getMe: () => fetchApi('/users/me'),
   processRefund: (orderId: string, reason: string) => fetchApi('/admin/orders/refund', { method: 'POST', body: JSON.stringify({ orderId, reason }) }),
+  getRequestBids: (requestId: string) => fetchApi(`/bids/requests/${requestId}`),
 };

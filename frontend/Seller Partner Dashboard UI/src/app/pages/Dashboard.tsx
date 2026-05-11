@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowUp, ArrowDown, DollarSign, ShoppingBag, AlertCircle, Package, Loader2 } from 'lucide-react';
+import { ArrowUp, ArrowDown, IndianRupee, ShoppingBag, AlertCircle, Package, Loader2 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { salesData, categoryData, mockOrders } from '../data/mockData';
 import { Link } from 'react-router';
@@ -96,7 +96,7 @@ export default function Dashboard() {
           title="Total Sales (All Time)"
           value={`Rs.${totalSalesValue.toLocaleString()}`}
           change="+0%"
-          icon={DollarSign}
+          icon={IndianRupee}
           trend="up"
           color="indigo"
         />

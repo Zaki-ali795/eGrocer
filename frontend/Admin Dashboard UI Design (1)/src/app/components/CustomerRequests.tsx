@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, Eye, Trash2, DollarSign, Clock, Users, Loader2, Package, Gavel, CheckCircle, ChevronRight, ShoppingBag, Search } from 'lucide-react';
+import { MessageSquare, Eye, Trash2, IndianRupee, Clock, Users, Loader2, Package, Gavel, CheckCircle, ChevronRight, ShoppingBag, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { adminApi } from '../services/api';
 
@@ -10,7 +10,8 @@ interface Request {
   description: string;
   budget: string;
   status: string;
-  posted: string;
+  date: string;
+  bids: number;
 }
 
 export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string }) {
@@ -18,6 +19,10 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'open' | 'active' | 'closed'>('all');
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
+  const [bids, setBids] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [fetchingBids, setFetchingBids] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -40,6 +45,20 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                          req.product.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
+  
+  const handleViewBids = async (request: Request) => {
+    try {
+      setSelectedRequest(request);
+      setFetchingBids(true);
+      setIsModalOpen(true);
+      const data = await adminApi.getRequestBids(request.id);
+      setBids(data.bids || []);
+    } catch (err: any) {
+      console.error('Failed to fetch bids:', err);
+    } finally {
+      setFetchingBids(false);
+    }
+  };
 
   const stats = {
     open: requests.filter(r => r.status.toLowerCase() === 'open').length,
@@ -181,7 +200,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                 <div className="flex flex-wrap items-center gap-8 pt-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[var(--primary)]/5 rounded-xl flex items-center justify-center text-[var(--primary)]">
-                      <DollarSign className="w-5 h-5" />
+                      <IndianRupee className="w-5 h-5" />
                     </div>
                     <div>
                       <p className="font-['Manrope'] text-[10px] font-bold text-gray-400 uppercase tracking-widest">Customer Budget</p>
@@ -196,7 +215,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                     <div>
                       <p className="font-['Manrope'] text-[10px] font-bold text-gray-400 uppercase tracking-widest">Posted On</p>
                       <p className="font-['Manrope'] text-lg font-bold text-gray-900">
-                        {new Date(request.posted).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {new Date(request.date).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                     </div>
                   </div>
@@ -207,7 +226,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                     </div>
                     <div>
                       <p className="font-['Manrope'] text-[10px] font-bold text-gray-400 uppercase tracking-widest">Current Bids</p>
-                      <p className="font-['Manrope'] text-lg font-bold text-gray-900">4 Active Offers</p>
+                      <p className="font-['Manrope'] text-lg font-bold text-gray-900">{request.bids || 0} Active Offers</p>
                     </div>
                   </div>
                 </div>
@@ -215,6 +234,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
 
               <div className="flex flex-row md:flex-col gap-3">
                 <button 
+                  onClick={() => handleViewBids(request)}
                   className="flex items-center justify-center gap-2 px-6 py-4 bg-[var(--green-dark)] text-white rounded-2xl font-['Manrope'] font-bold hover:bg-[var(--green-primary)] transition-all shadow-lg shadow-[var(--green-dark)]/10"
                 >
                   View Bids
@@ -229,6 +249,100 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
           </motion.div>
         ))}
       </div>
+
+      {/* Bids Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+          >
+            {/* Modal Header */}
+            <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div>
+                <h2 className="font-['Crimson_Pro'] text-3xl font-bold text-gray-900">Bids for {selectedRequest?.product}</h2>
+                <p className="font-['Manrope'] text-gray-500 text-sm">Request ID: {selectedRequest?.id} • Customer: {selectedRequest?.customer}</p>
+              </div>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-all text-gray-400 hover:text-gray-600"
+              >
+                <Trash2 className="w-5 h-5 rotate-45" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              {fetchingBids ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
+                  <p className="font-['Manrope'] text-gray-400 font-medium">Fetching live bids from sellers...</p>
+                </div>
+              ) : bids.length === 0 ? (
+                <div className="text-center py-20 bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-100">
+                  <Gavel className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+                  <h3 className="font-['Crimson_Pro'] text-2xl font-bold text-gray-400">No Bids Yet</h3>
+                  <p className="font-['Manrope'] text-gray-500">Wait for sellers to place their offers.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {bids.map((bid, i) => (
+                    <motion.div
+                      key={bid.bid_id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="group flex items-center justify-between p-6 bg-white border border-gray-100 rounded-3xl hover:border-[var(--primary)]/30 hover:shadow-xl hover:shadow-gray-100 transition-all"
+                    >
+                      <div className="flex items-center gap-6">
+                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl flex items-center justify-center text-emerald-600 font-bold border border-emerald-100 group-hover:from-emerald-500 group-hover:to-teal-500 group-hover:text-white transition-all duration-500">
+                          {bid.store_name?.charAt(0) || 'S'}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-3 mb-1">
+                            <h4 className="font-['Crimson_Pro'] text-xl font-bold text-gray-900">{bid.store_name}</h4>
+                            <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold border border-amber-100">
+                              ★ {bid.store_rating || '5.0'}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                            <span className="flex items-center gap-1.5">
+                              <Clock className="w-3.5 h-3.5" />
+                              {bid.estimated_delivery_days} days delivery
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              {bid.bid_status}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="font-['Manrope'] text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Offer Price</p>
+                        <p className="font-['Crimson_Pro'] text-3xl font-bold text-[var(--green-dark)]">
+                          Rs. {bid.bid_price.toLocaleString('en-IN')}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-8 bg-gray-50/50 border-t border-gray-100 flex justify-end">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="px-8 py-3 bg-white border border-gray-200 text-gray-600 rounded-2xl font-['Manrope'] font-bold hover:bg-gray-100 transition-all shadow-sm"
+              >
+                Close View
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, RefreshCw, CreditCard, Smartphone, Calendar, Loader2 } from 'lucide-react';
+import { IndianRupee, TrendingUp, RefreshCw, CreditCard, Smartphone, Calendar, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { adminApi } from '../services/api';
@@ -86,7 +86,7 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center">
-              <DollarSign className="w-7 h-7 text-white" />
+              <IndianRupee className="w-7 h-7 text-white" />
             </div>
             <div>
               <p className="font-['Manrope'] text-xs text-emerald-700">Completed</p>
