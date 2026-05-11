@@ -12,10 +12,10 @@ class AdminRepository extends BaseRepository {
             SELECT 
                 (SELECT COUNT(*) FROM Users WHERE user_type = 'customer') as customer_count,
                 (SELECT COUNT(*) FROM Sellers) as seller_count,
-                (SELECT COUNT(*) FROM Orders WHERE CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)) as today_orders,
+                (SELECT COUNT(*) FROM Orders WHERE CAST(created_at AS DATE) = CAST(GETDATE() AS DATE) AND order_status NOT IN ('cancelled', 'refunded')) as today_orders,
                 (SELECT COUNT(*) FROM Orders WHERE order_status = 'processing' AND CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)) as today_processing,
                 (SELECT COUNT(*) FROM Orders WHERE order_status = 'delivered' AND CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)) as today_delivered,
-                ISNULL((SELECT SUM(subtotal - discount_amount + tax_amount) FROM Orders WHERE created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)), 0) as monthly_revenue,
+                ISNULL((SELECT SUM(subtotal - discount_amount + tax_amount) FROM Orders WHERE created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0) AND order_status NOT IN ('cancelled', 'refunded')), 0) as monthly_revenue,
                 (SELECT COUNT(*) FROM FlashDeals WHERE is_active = 1 AND end_datetime > GETDATE()) as active_flash_deals,
                 (SELECT COUNT(*) FROM Inventory i INNER JOIN Products p ON i.product_id = p.product_id WHERE i.quantity_in_stock < 20 AND p.is_active = 1) as low_stock_count,
                 (SELECT COUNT(*) FROM ProductRequests WHERE request_status = 'open') as pending_refunds_count
@@ -31,6 +31,7 @@ class AdminRepository extends BaseRepository {
                 COUNT(order_id) as orders
             FROM Orders
             WHERE created_at >= DATEADD(month, -7, GETDATE())
+              AND order_status NOT IN ('cancelled', 'refunded')
             GROUP BY FORMAT(created_at, 'MMM'), MONTH(created_at), YEAR(created_at)
             ORDER BY YEAR(created_at) ASC, MONTH(created_at) ASC
         `);
@@ -45,6 +46,8 @@ class AdminRepository extends BaseRepository {
             FROM OrderItems oi
             INNER JOIN Products p ON oi.product_id = p.product_id
             INNER JOIN Categories c ON p.category_id = c.category_id
+            INNER JOIN Orders o ON oi.order_id = o.order_id
+            WHERE o.order_status NOT IN ('cancelled', 'refunded')
             GROUP BY c.category_name
             ORDER BY sales DESC
         `);
@@ -107,9 +110,12 @@ class AdminRepository extends BaseRepository {
                 FROM Users u
                 INNER JOIN Sellers s ON u.user_id = s.seller_id
                 LEFT JOIN (
-                    SELECT seller_id, SUM(quantity * unit_price) AS total_revenue
-                    FROM OrderItems
-                    GROUP BY seller_id
+                    SELECT s.seller_id, SUM(oi.quantity * oi.unit_price) AS total_revenue
+                    FROM Sellers s
+                    INNER JOIN OrderItems oi ON s.seller_id = oi.seller_id
+                    INNER JOIN Orders o ON oi.order_id = o.order_id
+                    WHERE o.order_status NOT IN ('cancelled', 'refunded')
+                    GROUP BY s.seller_id
                 ) sr ON s.seller_id = sr.seller_id
             ) combined
             ORDER BY joined DESC

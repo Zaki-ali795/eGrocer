@@ -168,8 +168,16 @@ class SellerRepository extends BaseRepository {
             .input('sellerId', sellerId)
             .query(`
                 SELECT 
-                    ISNULL((SELECT SUM(quantity * unit_price) FROM OrderItems WHERE seller_id = @sellerId), 0) AS total_revenue,
-                    (SELECT COUNT(DISTINCT order_id) FROM OrderItems WHERE seller_id = @sellerId) AS total_orders,
+                    ISNULL((SELECT SUM(oi.quantity * oi.unit_price) 
+                            FROM OrderItems oi 
+                            INNER JOIN Orders o ON oi.order_id = o.order_id 
+                            WHERE oi.seller_id = @sellerId 
+                              AND o.order_status NOT IN ('cancelled', 'refunded')), 0) AS total_revenue,
+                    (SELECT COUNT(DISTINCT oi.order_id) 
+                     FROM OrderItems oi 
+                     INNER JOIN Orders o ON oi.order_id = o.order_id 
+                     WHERE oi.seller_id = @sellerId 
+                       AND o.order_status NOT IN ('cancelled', 'refunded')) AS total_orders,
                     (SELECT COUNT(*) FROM ProductRequests WHERE request_status = 'open') AS pending_requests,
                     (SELECT COUNT(*) FROM Inventory i INNER JOIN Products p ON i.product_id = p.product_id WHERE p.seller_id = @sellerId AND p.is_active = 1 AND i.quantity_in_stock < 20) AS low_stock_count
             `);
@@ -210,6 +218,7 @@ class SellerRepository extends BaseRepository {
                 FROM OrderItems oi
                 INNER JOIN Orders o ON oi.order_id = o.order_id
                 WHERE oi.seller_id = @sellerId 
+                  AND o.order_status NOT IN ('cancelled', 'refunded')
                   AND o.created_at >= DATEADD(day, -30, GETDATE())
                 GROUP BY CAST(o.created_at AS DATE)
                 ORDER BY date ASC
@@ -457,6 +466,7 @@ class SellerRepository extends BaseRepository {
                 FROM OrderItems oi
                 INNER JOIN Orders o ON oi.order_id = o.order_id
                 WHERE oi.seller_id = @sellerId
+                  AND o.order_status NOT IN ('cancelled', 'refunded')
                 ORDER BY o.created_at DESC
             `);
         return result.recordset;
