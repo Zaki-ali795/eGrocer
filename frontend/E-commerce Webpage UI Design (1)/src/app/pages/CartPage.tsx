@@ -243,11 +243,11 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
                       {/* Price row */}
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-lg font-bold text-[var(--green-primary)]">
-                          Rs {item.price.toLocaleString('en-IN')}
+                          Rs. {item.price.toLocaleString('en-IN')}
                         </span>
                         {item.originalPrice && item.originalPrice > item.price && (
                           <span className="text-sm text-gray-400 line-through">
-                            Rs {item.originalPrice.toLocaleString('en-IN')}
+                            Rs. {item.originalPrice.toLocaleString('en-IN')}
                           </span>
                         )}
                         {item.originalPrice && item.originalPrice > item.price && (
@@ -285,7 +285,7 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
                         {/* Item total */}
                         <span className="text-sm text-gray-500">
                           = <span className="font-semibold text-gray-700">
-                              Rs {(item.price * item.quantity).toLocaleString('en-IN')}
+                              Rs. {(item.price * item.quantity).toLocaleString('en-IN')}
                             </span>
                         </span>
 
@@ -351,16 +351,16 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal ({itemCount} item{itemCount !== 1 ? 's' : ''})</span>
-                  <span className="font-medium text-gray-800">Rs {subtotal.toLocaleString('en-IN')}</span>
+                  <span className="font-medium text-gray-800">Rs. {subtotal.toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Tax (8%)</span>
-                  <span className="font-medium text-gray-800">Rs {Math.round(tax).toLocaleString('en-IN')}</span>
+                  <span className="font-medium text-gray-800">Rs. {Math.round(tax).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery</span>
                   <span className={`font-medium ${delivery === 0 ? 'text-[var(--green-primary)]' : 'text-gray-800'}`}>
-                    {delivery === 0 ? 'FREE' : `Rs ${delivery.toLocaleString('en-IN')}`}
+                    {delivery === 0 ? 'FREE' : `Rs. ${delivery.toLocaleString('en-IN')}`}
                   </span>
                 </div>
 
@@ -371,7 +371,7 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
                     <span>Card Discount (5%)</span>
                   </div>
                   <span className="text-[var(--green-primary)] font-semibold">
-                    -Rs {Math.round(cardDiscount).toLocaleString('en-IN')}
+                    -Rs. {Math.round(cardDiscount).toLocaleString('en-IN')}
                   </span>
                 </div>
 
@@ -402,7 +402,7 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
                   {promoInfo && !promoError && (
                     <div className="flex justify-between items-center mt-2 px-3 py-2 bg-[var(--green-primary)]/10 border border-[var(--green-primary)]/20 rounded-xl">
                       <span className="text-xs text-[var(--green-dark)] font-medium">Applied: {promoInfo.code}</span>
-                      <span className="text-xs text-[var(--green-primary)] font-bold">-Rs {Math.round(promoDiscount).toLocaleString('en-IN')}</span>
+                      <span className="text-xs text-[var(--green-primary)] font-bold">-Rs. {Math.round(promoDiscount).toLocaleString('en-IN')}</span>
                     </div>
                   )}
                 </div>
@@ -455,7 +455,7 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
                   <div className="flex justify-between items-center">
                     <span className="text-base font-bold text-gray-800">Total</span>
                     <span className="text-2xl font-bold text-[var(--green-primary)]">
-                      Rs {Math.round(total).toLocaleString('en-IN')}
+                      Rs. {Math.round(total).toLocaleString('en-IN')}
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 mt-1">Inclusive of all taxes</p>

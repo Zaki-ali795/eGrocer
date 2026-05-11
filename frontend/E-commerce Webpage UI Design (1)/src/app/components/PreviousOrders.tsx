@@ -80,7 +80,7 @@ export function PreviousOrders({ orders, isLoading, onReorder }: PreviousOrdersP
                     <div className="text-left sm:text-right">
                       <p className="text-sm text-gray-500 mb-1">Total</p>
                       <p className="text-xl font-bold text-[var(--green-primary)]">
-                        Rs {order.total_amount.toLocaleString('en-IN')}
+                        Rs. {order.total_amount.toLocaleString('en-IN')}
                       </p>
                     </div>
                   </div>
@@ -140,7 +140,7 @@ export function PreviousOrders({ orders, isLoading, onReorder }: PreviousOrdersP
                               Qty: {item.quantity}
                             </p>
                             <p className="text-sm font-bold text-[var(--green-primary)]">
-                              Rs {item.unit_price.toLocaleString('en-IN')}
+                              Rs. {item.unit_price.toLocaleString('en-IN')}
                             </p>
                           </div>
                         </div>

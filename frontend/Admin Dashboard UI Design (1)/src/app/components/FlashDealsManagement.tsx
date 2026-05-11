@@ -239,10 +239,10 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
 
               <div className="flex items-center gap-2 mb-4">
                 <span className="font-['Manrope'] text-lg font-bold text-gray-900">
-                  Rs {Math.round(deal.originalPrice * (1 - deal.discount / 100))}
+                  Rs. {Math.round(deal.originalPrice * (1 - deal.discount / 100))}
                 </span>
                 <span className="font-['Manrope'] text-sm text-gray-500 line-through">
-                  Rs {deal.originalPrice}
+                  Rs. {deal.originalPrice}
                 </span>
               </div>
 
@@ -352,7 +352,7 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
                   >
                     <option value="">Select Product</option>
                     {products.map(prod => (
-                      <option key={prod.id} value={prod.id}>{prod.name} (Rs {prod.price})</option>
+                      <option key={prod.id} value={prod.id}>{prod.name} (Rs. {prod.price})</option>
                     ))}
                   </select>
                 </div>

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   MessageSquare, TrendingDown, CheckCircle2, Store, Clock,
   Loader2, PackageSearch, ChevronDown, ChevronUp,
-  IndianRupee, Tag, ShoppingBag, Sparkles, Send, AlertCircle,
+  Banknote, Tag, ShoppingBag, Sparkles, Send, AlertCircle,
   Star, Truck, Award,
 } from 'lucide-react';
 import { bidApi, ProductRequest } from '../../services/api';
@@ -119,8 +119,8 @@ function RequestCard({
             )}
             {request.maxBudget && (
               <div className="flex items-center gap-1 mt-2">
-                <IndianRupee className="w-3.5 h-3.5 text-[var(--green-primary)]" />
-                <span className="text-xs text-gray-500">Max budget: <strong className="text-gray-700">Rs {request.maxBudget.toLocaleString('en-IN')}</strong></span>
+                <Banknote className="w-3.5 h-3.5 text-[var(--green-primary)]" />
+                <span className="text-xs text-gray-500">Max budget: <strong className="text-gray-700">Rs. {request.maxBudget.toLocaleString('en-IN')}</strong></span>
               </div>
             )}
           </div>

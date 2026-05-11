@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Handshake, MapPin, Calendar, IndianRupee, Send, CheckCircle, XCircle, Clock, X, Package, Loader2 } from 'lucide-react';
+import { Handshake, MapPin, Calendar, Send, CheckCircle, XCircle, Clock, X, Package, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sellerApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';

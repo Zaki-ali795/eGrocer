@@ -148,11 +148,11 @@ export function ProductCard({ product, onAddToCart, onWishlistToggle, initialIsW
         {/* Price */}
         <div className="flex items-end gap-2 mb-4">
           <span className="text-2xl text-[var(--green-primary)]">
-            Rs {product.price.toLocaleString('en-IN')}
+            Rs. {product.price.toLocaleString('en-IN')}
           </span>
           {product.originalPrice && product.originalPrice > product.price && (
             <span className="text-sm text-gray-400 line-through mb-1">
-              Rs {product.originalPrice.toLocaleString('en-IN')}
+              Rs. {product.originalPrice.toLocaleString('en-IN')}
             </span>
           )}
         </div>

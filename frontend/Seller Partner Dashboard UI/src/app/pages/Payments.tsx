@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { IndianRupee, TrendingUp, Clock, CheckCircle, Download, Loader2 } from 'lucide-react';
+import { Wallet, Banknote, TrendingUp, Clock, CheckCircle, Download, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { sellerApi } from '../services/api';
@@ -63,7 +63,7 @@ export default function Payments() {
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-              <IndianRupee className="w-6 h-6" />
+              <Wallet className="w-6 h-6" />
             </div>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function Payments() {
               <p className="text-sm text-muted-foreground mt-2">This month</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
-              <IndianRupee className="w-6 h-6 text-destructive" />
+              <Banknote className="w-6 h-6 text-destructive" />
             </div>
           </div>
         </div>
@@ -133,7 +133,7 @@ export default function Payments() {
             <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                  <IndianRupee className="w-5 h-5 text-white" />
+                  <Wallet className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <p className="font-medium text-foreground">eGrocer Wallet</p>
@@ -146,7 +146,7 @@ export default function Payments() {
             <div className="flex items-center justify-between p-4 bg-emerald-100 rounded-lg">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                  <IndianRupee className="w-5 h-5 text-muted-foreground" />
+                  <Banknote className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
                   <p className="font-medium text-foreground">Bank Transfer</p>

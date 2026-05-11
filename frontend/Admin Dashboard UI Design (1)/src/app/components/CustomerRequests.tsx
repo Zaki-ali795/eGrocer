@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, Eye, Trash2, IndianRupee, Clock, Users, Loader2, Package, Gavel, CheckCircle, ChevronRight, ShoppingBag, Search } from 'lucide-react';
+import { MessageSquare, Eye, Trash2, Banknote, Clock, Users, Loader2, Package, Gavel, CheckCircle, ChevronRight, ShoppingBag, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { adminApi } from '../services/api';
 
@@ -52,9 +52,12 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
       setFetchingBids(true);
       setIsModalOpen(true);
       const data = await adminApi.getRequestBids(request.id);
-      setBids(data.bids || []);
+      // Handle various response formats (array vs object with bids property)
+      const bidsList = Array.isArray(data) ? data : (data?.bids || []);
+      setBids(bidsList);
     } catch (err: any) {
       console.error('Failed to fetch bids:', err);
+      setBids([]);
     } finally {
       setFetchingBids(false);
     }
@@ -200,7 +203,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                 <div className="flex flex-wrap items-center gap-8 pt-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[var(--primary)]/5 rounded-xl flex items-center justify-center text-[var(--primary)]">
-                      <IndianRupee className="w-5 h-5" />
+                      <Banknote className="w-5 h-5" />
                     </div>
                     <div>
                       <p className="font-['Manrope'] text-[10px] font-bold text-gray-400 uppercase tracking-widest">Customer Budget</p>
@@ -215,7 +218,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                     <div>
                       <p className="font-['Manrope'] text-[10px] font-bold text-gray-400 uppercase tracking-widest">Posted On</p>
                       <p className="font-['Manrope'] text-lg font-bold text-gray-900">
-                        {new Date(request.date).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {request.date ? new Date(request.date).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -289,7 +292,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                 <div className="grid grid-cols-1 gap-4">
                   {bids.map((bid, i) => (
                     <motion.div
-                      key={bid.bid_id}
+                      key={bid.bid_id || bid.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.1 }}
@@ -297,23 +300,23 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                     >
                       <div className="flex items-center gap-6">
                         <div className="w-16 h-16 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl flex items-center justify-center text-emerald-600 font-bold border border-emerald-100 group-hover:from-emerald-500 group-hover:to-teal-500 group-hover:text-white transition-all duration-500">
-                          {bid.store_name?.charAt(0) || 'S'}
+                          {(bid.store_name || bid.storeName)?.charAt(0) || 'S'}
                         </div>
                         <div>
                           <div className="flex items-center gap-3 mb-1">
-                            <h4 className="font-['Crimson_Pro'] text-xl font-bold text-gray-900">{bid.store_name}</h4>
+                            <h4 className="font-['Crimson_Pro'] text-xl font-bold text-gray-900">{bid.store_name || bid.storeName}</h4>
                             <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold border border-amber-100">
-                              ★ {bid.store_rating || '5.0'}
+                              ★ {bid.store_rating || bid.storeRating || '5.0'}
                             </div>
                           </div>
                           <div className="flex items-center gap-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                             <span className="flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5" />
-                              {bid.estimated_delivery_days} days delivery
+                              {bid.estimated_delivery_days || bid.estimatedDeliveryDays || '—'} days delivery
                             </span>
                             <span className="flex items-center gap-1.5">
                               <CheckCircle className="w-3.5 h-3.5" />
-                              {bid.bid_status}
+                              {bid.bid_status || bid.status || 'Pending'}
                             </span>
                           </div>
                         </div>
@@ -322,7 +325,7 @@ export function CustomerRequests({ searchQuery = '' }: { searchQuery?: string })
                       <div className="text-right">
                         <p className="font-['Manrope'] text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Offer Price</p>
                         <p className="font-['Crimson_Pro'] text-3xl font-bold text-[var(--green-dark)]">
-                          Rs. {bid.bid_price.toLocaleString('en-IN')}
+                          Rs. {(bid.bid_price || bid.bidPrice || 0).toLocaleString()}
                         </p>
                       </div>
                     </motion.div>

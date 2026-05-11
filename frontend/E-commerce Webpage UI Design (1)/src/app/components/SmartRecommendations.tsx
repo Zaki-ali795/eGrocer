@@ -147,7 +147,7 @@ export function SmartRecommendations({ onAddToCart }: SmartRecommendationsProps)
             },
             {
               title: 'Similar Price Range',
-              description: 'Products within Rs 200 of your budget',
+              description: 'Products within Rs. 200 of your budget',
               icon: '💰',
             },
             {
