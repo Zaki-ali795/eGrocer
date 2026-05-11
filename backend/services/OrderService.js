@@ -153,6 +153,11 @@ class OrderService {
         return Array.from(orderMap.values());
     }
 
+    async processRefund(orderId, adminId, reason) {
+        console.log(`[OrderService] Processing refund for Order ID: ${orderId}, Approved by: ${adminId}`);
+        return await this.orderRepo.refundOrder(orderId, adminId, reason);
+    }
+
     async getDummyCustomerAndAddress() {
         return this.orderRepo.getDummyCustomerAndAddress();
     }

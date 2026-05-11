@@ -233,6 +233,104 @@ class OrderRepository extends BaseRepository {
         `);
         return result.recordset[0].address_id;
     }
+    async refundOrder(orderId, adminId, reason) {
+        const transaction = this.pool.transaction();
+        try {
+            await transaction.begin();
+
+            // 1. Get Order Items to restore stock
+            const itemsReq = transaction.request();
+            itemsReq.input('orderId', orderId);
+            const itemsResult = await itemsReq.query(`
+                SELECT product_id, quantity, seller_id 
+                FROM OrderItems 
+                WHERE order_id = @orderId
+            `);
+            const items = itemsResult.recordset;
+
+            if (items.length === 0) throw new Error('Order not found or has no items.');
+
+            // 2. Restore Stock
+            for (const item of items) {
+                const invReq = transaction.request();
+                invReq.input('qty',    item.quantity);
+                invReq.input('prodId', item.product_id);
+                await invReq.query(`
+                    UPDATE Inventory
+                    SET quantity_in_stock = quantity_in_stock + @qty
+                    WHERE product_id = @prodId;
+                `);
+            }
+
+            // 3. Update Order and Payment status
+            const updateReq = transaction.request();
+            updateReq.input('orderId', orderId);
+            await updateReq.query(`
+                UPDATE Orders 
+                SET order_status = 'refunded', 
+                    payment_status = 'refunded',
+                    updated_at = GETDATE()
+                WHERE order_id = @orderId;
+            `);
+
+            // 4. Record Refund Transaction
+            const refundPayReq = transaction.request();
+            refundPayReq.input('orderId', orderId);
+            refundPayReq.input('amount',  (await itemsReq.query(`SELECT subtotal + tax_amount + ISNULL((SELECT SUM(delivery_fee) FROM Deliveries WHERE order_id = @orderId), 0) - discount_amount AS total FROM Orders WHERE order_id = @orderId`)).recordset[0].total);
+            
+            await refundPayReq.query(`
+                INSERT INTO PaymentTransactions (order_id, gateway, transaction_reference, amount, status)
+                SELECT order_id, gateway, 'REF-' + transaction_reference, -@amount, 'refunded'
+                FROM PaymentTransactions 
+                WHERE order_id = @orderId AND status = 'completed';
+            `);
+
+            // 5. Log History
+            const histReq = transaction.request();
+            histReq.input('orderId', orderId);
+            histReq.input('adminId', adminId);
+            histReq.input('notes',   reason || 'Refund processed by admin');
+            await histReq.query(`
+                INSERT INTO OrderStatusHistory (order_id, status, notes, updated_by)
+                VALUES (@orderId, 'refunded', @notes, @adminId);
+            `);
+
+            // 6. Notify Customer and Sellers
+            const orderInfo = await itemsReq.query(`SELECT order_number, customer_id FROM Orders WHERE order_id = @orderId`);
+            const { order_number, customer_id } = orderInfo.recordset[0];
+
+            // Notify Customer
+            const notifyCustReq = transaction.request();
+            notifyCustReq.input('userId', customer_id);
+            notifyCustReq.input('title',  'Refund Processed');
+            notifyCustReq.input('msg',    `Your refund for order ${order_number} has been processed.`);
+            notifyCustReq.input('refId',  orderId);
+            await notifyCustReq.query(`
+                INSERT INTO Notifications (user_id, notification_type, title, message, reference_id)
+                VALUES (@userId, 'refund', @title, @msg, @refId)
+            `);
+
+            // Notify Sellers
+            const uniqueSellers = [...new Set(items.map(i => i.seller_id).filter(id => id != null))];
+            for (const sellerId of uniqueSellers) {
+                const notifySellerReq = transaction.request();
+                notifySellerReq.input('sellerId', sellerId);
+                notifySellerReq.input('title',    'Order Refunded');
+                notifySellerReq.input('msg',      `Order ${order_number} has been refunded. Stock has been restored.`);
+                notifySellerReq.input('refId',    orderId);
+                await notifySellerReq.query(`
+                    INSERT INTO Notifications (user_id, notification_type, title, message, reference_id)
+                    VALUES (@sellerId, 'refund', @title, @msg, @refId)
+                `);
+            }
+
+            await transaction.commit();
+            return { success: true, orderId };
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
+    }
 }
 
 module.exports = OrderRepository;
