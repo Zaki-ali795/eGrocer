@@ -331,6 +331,40 @@ class OrderRepository extends BaseRepository {
             throw err;
         }
     }
+
+    async requestRefund(orderId, customerId, reason) {
+        const transaction = this.pool.transaction();
+        try {
+            await transaction.begin();
+
+            const updateReq = transaction.request();
+            updateReq.input('orderId', orderId);
+            updateReq.input('customerId', customerId);
+            const updateResult = await updateReq.query(`
+                UPDATE Orders 
+                SET order_status = 'refund_requested', updated_at = GETDATE()
+                WHERE order_id = @orderId AND customer_id = @customerId;
+            `);
+
+            if (updateResult.rowsAffected[0] === 0) {
+                throw new Error('Order not found or unauthorized');
+            }
+
+            const histReq = transaction.request();
+            histReq.input('orderId', orderId);
+            histReq.input('notes', reason || 'Customer requested refund');
+            await histReq.query(`
+                INSERT INTO OrderStatusHistory (order_id, status, notes)
+                VALUES (@orderId, 'refund_requested', @notes);
+            `);
+
+            await transaction.commit();
+            return { success: true };
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
+    }
 }
 
 module.exports = OrderRepository;

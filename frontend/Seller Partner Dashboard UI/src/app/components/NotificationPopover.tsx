@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, Settings, CheckCheck, Clock, ShoppingBag, AlertTriangle, MessageSquare, Tag } from 'lucide-react';
+import { useNavigate, Link } from 'react-router';
 import { sellerApi } from '../services/api';
 
 interface NotificationPopoverProps {
@@ -12,6 +13,7 @@ interface NotificationPopoverProps {
 export function NotificationPopover({ isOpen, onClose, userId }: NotificationPopoverProps) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isOpen) {
@@ -114,9 +116,13 @@ export function NotificationPopover({ isOpen, onClose, userId }: NotificationPop
             </div>
 
             <div className="p-4 bg-gray-50 border-t border-gray-50 text-center">
-              <button className="text-xs font-bold text-[var(--green-primary)] hover:underline">
+              <Link 
+                to="/notifications"
+                onClick={onClose}
+                className="text-xs font-bold text-[var(--green-primary)] hover:underline inline-block w-full"
+              >
                 View All Activity
-              </button>
+              </Link>
             </div>
           </motion.div>
         </>

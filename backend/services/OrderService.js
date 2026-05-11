@@ -161,6 +161,11 @@ class OrderService {
     async getDummyCustomerAndAddress() {
         return this.orderRepo.getDummyCustomerAndAddress();
     }
+
+    async requestRefund(orderId, customerId, reason) {
+        console.log(`[OrderService] Customer ${customerId} requested refund for Order ${orderId}`);
+        return await this.orderRepo.requestRefund(orderId, customerId, reason);
+    }
 }
 
 module.exports = OrderService;

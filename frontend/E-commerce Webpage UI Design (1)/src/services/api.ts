@@ -187,6 +187,11 @@ export const orderApi = {
 
   getPreviousOrders: () => request<Order[]>('/orders/me'),
   getTrackingData: () => request<TrackingOrder[]>('/orders/tracking'),
+  requestRefund: (orderId: number, reason: string) => 
+    request<any>('/orders/refund-request', {
+      method: 'POST',
+      body: JSON.stringify({ orderId, reason }),
+    }),
 };
 
 // ─── Bid / Product Request Types ─────────────────────────────────────────────

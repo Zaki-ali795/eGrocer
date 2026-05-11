@@ -1,5 +1,6 @@
 import { Search, Download, Eye, Package, CheckCircle, XCircle, Loader2, ArrowUpRight, Clock, ShieldCheck, ShoppingBag, RefreshCw, ChevronDown } from 'lucide-react';
 import { motion } from 'motion/react';
+import { toast } from 'sonner';
 import { adminApi } from '../services/api';
 import { useState, useEffect } from 'react';
 
@@ -20,6 +21,7 @@ const statusConfig: any = {
 
   delivered: { label: 'Delivered', color: 'bg-[var(--primary)]/10 text-[var(--green-dark)]', icon: CheckCircle },
   cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700', icon: XCircle },
+  refund_requested: { label: 'Refund Requested', color: 'bg-orange-100 text-orange-700', icon: RefreshCw },
   refunded: { label: 'Refunded', color: 'bg-gray-100 text-gray-700', icon: XCircle },
 };
 
@@ -72,9 +74,21 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     try {
       await adminApi.updateOrderStatus(id, newStatus);
+      toast.success('Order status updated');
       loadData();
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
+    }
+  };
+
+  const handleRefund = async (orderId: string) => {
+    if (!window.confirm('Are you sure you want to refund this order? This will restore inventory and reverse payment status.')) return;
+    try {
+      await adminApi.processRefund(orderId, 'Approved by admin');
+      toast.success('Order refunded successfully');
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message);
     }
   };
 
@@ -245,9 +259,22 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
                           onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
                           className={`appearance-none pl-10 pr-8 py-2 rounded-xl text-xs font-bold uppercase tracking-wider ${statusInfo.color} border-none focus:ring-4 focus:ring-[var(--primary)]/10 cursor-pointer transition-all hover:scale-105`}
                         >
-                          {Object.keys(statusConfig).map(statusKey => (
-                            <option key={statusKey} value={statusKey}>{statusConfig[statusKey].label}</option>
-                          ))}
+                          {Object.keys(statusConfig).map(statusKey => {
+                            const isCurrent = statusKey === order.status;
+                            const isRefundRequest = order.status === 'refund_requested';
+                            
+                            // Administrative actions (always allowed)
+                            const isAdminAction = ['cancelled', 'refunded'].includes(statusKey);
+                            
+                            // If it's a refund request, allow moving it back to 'delivered' (Reject Refund)
+                            const isRefundRejection = isRefundRequest && statusKey === 'delivered';
+                            
+                            if (isCurrent || isAdminAction || isRefundRejection) {
+                              const label = isRefundRejection ? 'Reject Refund (Back to Delivered)' : statusConfig[statusKey].label;
+                              return <option key={statusKey} value={statusKey}>{label}</option>;
+                            }
+                            return null;
+                          })}
                         </select>
                         <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                           <StatusIcon className="w-4 h-4" />
@@ -262,9 +289,16 @@ export function OrdersManagement({ searchQuery = '' }: { searchQuery?: string })
                     </td>
                     <td className="py-5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 group-hover:bg-[var(--primary)]/10 group-hover:text-[var(--primary)] transition-colors">
-                          <Eye className="w-4 h-4" />
-                        </div>
+                        <button 
+                          onClick={() => handleRefund(order.id)}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                            order.status === 'refunded' ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : 'bg-red-50 text-red-500 hover:bg-red-100'
+                          }`}
+                          disabled={order.status === 'refunded'}
+                          title="Process Refund"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </button>
                         <button className="text-xs font-bold text-[var(--primary)] hover:underline">
                           View Items
                         </button>

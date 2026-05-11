@@ -45,6 +45,19 @@ class OrderController {
             next(error);
         }
     }
+
+    async requestRefund(req, res, next) {
+        try {
+            const customerId = req.user?.user_id;
+            if (!customerId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+            const { orderId, reason } = req.body;
+            const result = await this.orderService.requestRefund(orderId, customerId, reason);
+            res.json({ success: true, message: 'Refund request submitted', data: result });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = OrderController;

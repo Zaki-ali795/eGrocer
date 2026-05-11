@@ -168,16 +168,16 @@ class SellerRepository extends BaseRepository {
             .input('sellerId', sellerId)
             .query(`
                 SELECT 
-                    ISNULL((SELECT SUM(oi.quantity * oi.unit_price) 
+                    ISNULL((SELECT SUM(CASE WHEN o.order_status = 'refunded' THEN -(oi.quantity * oi.unit_price) ELSE (oi.quantity * oi.unit_price) END) 
                             FROM OrderItems oi 
                             INNER JOIN Orders o ON oi.order_id = o.order_id 
                             WHERE oi.seller_id = @sellerId 
-                              AND o.order_status NOT IN ('cancelled', 'refunded')), 0) AS total_revenue,
+                              AND o.order_status != 'cancelled'), 0) AS total_revenue,
                     (SELECT COUNT(DISTINCT oi.order_id) 
                      FROM OrderItems oi 
                      INNER JOIN Orders o ON oi.order_id = o.order_id 
                      WHERE oi.seller_id = @sellerId 
-                       AND o.order_status NOT IN ('cancelled', 'refunded')) AS total_orders,
+                       AND o.order_status != 'cancelled') AS total_orders,
                     (SELECT COUNT(*) FROM ProductRequests WHERE request_status = 'open') AS pending_requests,
                     (SELECT COUNT(*) FROM Inventory i INNER JOIN Products p ON i.product_id = p.product_id WHERE p.seller_id = @sellerId AND p.is_active = 1 AND i.quantity_in_stock < 20) AS low_stock_count
             `);
@@ -213,12 +213,12 @@ class SellerRepository extends BaseRepository {
             .query(`
                 SELECT 
                     CAST(o.created_at AS DATE) as date,
-                    SUM(oi.quantity * oi.unit_price) as sales,
+                    SUM(CASE WHEN o.order_status = 'refunded' THEN -(oi.quantity * oi.unit_price) ELSE (oi.quantity * oi.unit_price) END) as sales,
                     COUNT(DISTINCT o.order_id) as orders
                 FROM OrderItems oi
                 INNER JOIN Orders o ON oi.order_id = o.order_id
                 WHERE oi.seller_id = @sellerId 
-                  AND o.order_status NOT IN ('cancelled', 'refunded')
+                  AND o.order_status != 'cancelled'
                   AND o.created_at >= DATEADD(day, -30, GETDATE())
                 GROUP BY CAST(o.created_at AS DATE)
                 ORDER BY date ASC
@@ -438,10 +438,10 @@ class SellerRepository extends BaseRepository {
                 WHERE seller_id = @sellerId;
                 
                 UPDATE Users 
-                SET first_name = @firstName,
-                    last_name = @lastName,
-                    email = @email,
-                    phone = @phone 
+                SET first_name = ISNULL(NULLIF(@firstName, ''), first_name),
+                    last_name = ISNULL(NULLIF(@lastName, ''), last_name),
+                    email = ISNULL(NULLIF(@email, ''), email),
+                    phone = ISNULL(NULLIF(@phone, ''), phone) 
                 WHERE user_id = @sellerId;
             `);
     }
@@ -460,13 +460,19 @@ class SellerRepository extends BaseRepository {
                     oi.order_item_id AS transaction_id,
                     oi.order_id,
                     o.created_at AS date,
-                    oi.quantity * oi.unit_price AS amount,
+                    CASE 
+                        WHEN o.order_status = 'refunded' THEN -(oi.quantity * oi.unit_price)
+                        ELSE (oi.quantity * oi.unit_price)
+                    END AS amount,
                     o.order_status AS status,
-                    'payment' AS type
+                    CASE 
+                        WHEN o.order_status = 'refunded' THEN 'refund'
+                        ELSE 'payment'
+                    END AS type
                 FROM OrderItems oi
                 INNER JOIN Orders o ON oi.order_id = o.order_id
                 WHERE oi.seller_id = @sellerId
-                  AND o.order_status NOT IN ('cancelled', 'refunded')
+                  AND o.order_status != 'cancelled'
                 ORDER BY o.created_at DESC
             `);
         return result.recordset;

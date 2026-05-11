@@ -40,4 +40,10 @@ router.get('/tracking', async (req, res, next) => {
     return ctrl.getTracking(req, res, next);
 });
 
+// POST /api/orders/refund-request
+router.post('/refund-request', async (req, res, next) => {
+    const ctrl = await getController();
+    return ctrl.requestRefund(req, res, next);
+});
+
 module.exports = router;

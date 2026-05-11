@@ -29,14 +29,15 @@ export default function Payments() {
   }
 
   const totalEarnings = transactions
-    .filter((t: any) => t.type === 'payment' && t.status === 'delivered')
     .reduce((sum: number, t: any) => sum + t.amount, 0);
 
   const pendingPayments = transactions
     .filter((t: any) => t.status === 'pending' || t.status === 'processing')
     .reduce((sum: number, t: any) => sum + t.amount, 0);
 
-  const refunds = 0; // Mocked for now as we don't have refunds in schema yet
+  const refunds = transactions
+    .filter((t: any) => t.type === 'refund')
+    .reduce((sum: number, t: any) => Math.abs(t.amount) + sum, 0);
 
   if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
@@ -208,7 +209,7 @@ export default function Payments() {
                     </span>
                   </td>
                   <td className="py-4 px-6 font-medium text-emerald-900">
-                    {transaction.type === 'payment' ? '+' : '-'}Rs.{transaction.amount.toFixed(2)}
+                    {transaction.amount >= 0 ? '+' : ''}Rs.{transaction.amount.toFixed(2)}
                   </td>
                   <td className="py-4 px-6">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1.5 ${

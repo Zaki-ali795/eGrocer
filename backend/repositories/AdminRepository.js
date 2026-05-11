@@ -18,7 +18,7 @@ class AdminRepository extends BaseRepository {
                 ISNULL((SELECT SUM(subtotal - discount_amount + tax_amount) FROM Orders WHERE created_at >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0) AND order_status NOT IN ('cancelled', 'refunded')), 0) as monthly_revenue,
                 (SELECT COUNT(*) FROM FlashDeals WHERE is_active = 1 AND end_datetime > GETDATE()) as active_flash_deals,
                 (SELECT COUNT(*) FROM Inventory i INNER JOIN Products p ON i.product_id = p.product_id WHERE i.quantity_in_stock < 20 AND p.is_active = 1) as low_stock_count,
-                (SELECT COUNT(*) FROM ProductRequests WHERE request_status = 'open') as pending_refunds_count
+                (SELECT COUNT(*) FROM Orders WHERE order_status = 'refund_requested') as pending_refunds_count
         `);
         return stats.recordset[0];
     }

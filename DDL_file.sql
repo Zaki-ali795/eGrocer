@@ -88,6 +88,7 @@ CREATE TABLE Customers (
     loyalty_points INT DEFAULT 0,
     default_address_id INT,            -- convenience FK, set after Addresses exist
     created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
     CONSTRAINT FK_Customer_User FOREIGN KEY (customer_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 
@@ -111,6 +112,7 @@ CREATE TABLE Sellers (
     verification_status VARCHAR(20) DEFAULT 'pending'
         CHECK (verification_status IN ('pending', 'verified', 'suspended')),
     created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
     CONSTRAINT FK_Seller_User FOREIGN KEY (seller_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 
@@ -129,6 +131,7 @@ CREATE TABLE Admins (
         CHECK (role_level IN ('standard', 'super', 'readonly')),
     department VARCHAR(100),
     created_at DATETIME DEFAULT GETDATE(),
+    updated_at DATETIME DEFAULT GETDATE(),
     CONSTRAINT FK_Admin_User FOREIGN KEY (admin_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 
@@ -577,6 +580,20 @@ CREATE TABLE Notifications (
     is_read BIT DEFAULT 0,
     created_at DATETIME DEFAULT GETDATE(),
     CONSTRAINT FK_Notification_User FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+-- =============================================================================
+-- 25. Notification Settings
+-- =============================================================================
+CREATE TABLE NotificationSettings (
+    user_id INT PRIMARY KEY,
+    new_orders BIT DEFAULT 1,
+    low_stock BIT DEFAULT 1,
+    new_customer_requests BIT DEFAULT 1,
+    promotion_updates BIT DEFAULT 1,
+    weekly_sales_report BIT DEFAULT 1,
+    updated_at DATETIME DEFAULT GETDATE(),
+    CONSTRAINT FK_NotificationSettings_User FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 GO
 
