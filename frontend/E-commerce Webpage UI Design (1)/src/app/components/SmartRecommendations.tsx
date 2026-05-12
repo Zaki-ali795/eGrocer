@@ -19,9 +19,11 @@ interface Product {
 
 interface SmartRecommendationsProps {
   onAddToCart: (product: Product) => void;
+  onWishlistToggle: (productId: number) => Promise<'added' | 'removed'>;
+  wishlistItems?: Product[];
 }
 
-export function SmartRecommendations({ onAddToCart }: SmartRecommendationsProps) {
+export function SmartRecommendations({ onAddToCart, onWishlistToggle, wishlistItems = [] }: SmartRecommendationsProps) {
   const outOfStockProduct = {
     name: 'Organic Blueberries (250g)',
     category: 'Fresh Fruits',
@@ -30,7 +32,7 @@ export function SmartRecommendations({ onAddToCart }: SmartRecommendationsProps)
 
   const alternatives: Product[] = [
     {
-      id: 'alt-1',
+      id: '1001',
       name: 'Organic Blackberries (250g)',
       category: 'Fresh Fruits',
       price: 599,
@@ -43,7 +45,7 @@ export function SmartRecommendations({ onAddToCart }: SmartRecommendationsProps)
       nutritionHighlights: ['High in antioxidants', 'Vitamin C rich', 'Low calorie'],
     },
     {
-      id: 'alt-2',
+      id: '1002',
       name: 'Fresh Strawberries (500g)',
       category: 'Fresh Fruits',
       price: 649,
@@ -55,7 +57,7 @@ export function SmartRecommendations({ onAddToCart }: SmartRecommendationsProps)
       nutritionHighlights: ['Vitamin C powerhouse', 'Heart healthy', 'Natural sweetness'],
     },
     {
-      id: 'alt-3',
+      id: '1003',
       name: 'Mixed Berry Box (400g)',
       category: 'Fresh Fruits',
       price: 899,
@@ -127,7 +129,12 @@ export function SmartRecommendations({ onAddToCart }: SmartRecommendationsProps)
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <ProductCard product={product} onAddToCart={onAddToCart} />
+              <ProductCard
+                product={product}
+                onAddToCart={onAddToCart}
+                onWishlistToggle={onWishlistToggle}
+                initialIsWishlisted={wishlistItems.some(item => String(item.id) === product.id)}
+              />
             </motion.div>
           ))}
         </div>
