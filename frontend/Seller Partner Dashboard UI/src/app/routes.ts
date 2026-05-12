@@ -8,6 +8,7 @@ import Requests from './pages/Requests';
 import Promotions from './pages/Promotions';
 import Payments from './pages/Payments';
 import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
 
 export const router = createBrowserRouter([
   {
@@ -21,7 +22,8 @@ export const router = createBrowserRouter([
       { path: 'requests', Component: Requests },
       { path: 'promotions', Component: Promotions },
       { path: 'payments', Component: Payments },
-      { path: 'settings', Component: Settings }
+      { path: 'settings', Component: Settings },
+      { path: 'notifications', Component: Notifications }
     ]
   }
 ]);

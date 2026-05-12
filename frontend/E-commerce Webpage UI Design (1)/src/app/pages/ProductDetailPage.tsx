@@ -212,15 +212,15 @@ export function ProductDetailPage({ onAddToCart, onWishlistToggle }: ProductDeta
             {/* Price */}
             <div className="flex items-end gap-3 pb-4 border-b border-gray-100">
               <span className="text-4xl font-bold text-[var(--green-primary)]">
-                Rs {product.price.toLocaleString('en-IN')}
+                Rs. {product.price.toLocaleString('en-IN')}
               </span>
               {product.originalPrice && (
                 <>
                   <span className="text-xl text-gray-400 line-through mb-1">
-                    Rs {product.originalPrice.toLocaleString('en-IN')}
+                    Rs. {product.originalPrice.toLocaleString('en-IN')}
                   </span>
                   <span className="mb-1 px-2 py-0.5 bg-[var(--terracotta)]/10 text-[var(--terracotta)] text-sm rounded-lg font-medium">
-                    Save Rs {(product.originalPrice - product.price).toLocaleString('en-IN')}
+                    Save Rs. {(product.originalPrice - product.price).toLocaleString('en-IN')}
                   </span>
                 </>
               )}

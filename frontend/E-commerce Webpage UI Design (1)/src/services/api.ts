@@ -1,13 +1,19 @@
 // src/services/api.ts
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
+  const token = localStorage.getItem('token');
   const userId = localStorage.getItem('userId') || '3';
+  
   const headers: any = {
     'X-User-Id': userId,
     ...options?.headers,
   };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
   
   if (options?.body && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
@@ -181,6 +187,11 @@ export const orderApi = {
 
   getPreviousOrders: () => request<Order[]>('/orders/me'),
   getTrackingData: () => request<TrackingOrder[]>('/orders/tracking'),
+  requestRefund: (orderId: number, reason: string) => 
+    request<any>('/orders/refund-request', {
+      method: 'POST',
+      body: JSON.stringify({ orderId, reason }),
+    }),
 };
 
 // ─── Bid / Product Request Types ─────────────────────────────────────────────
@@ -317,5 +328,19 @@ export const cartApi = {
     }),
 
   clearCart: () => request<void>('/cart', { method: 'DELETE' } as any),
+  
+  mergeCart: (guestId: string) => 
+    request<any>('/cart/merge', {
+      method: 'POST',
+      body: JSON.stringify({ guestId }),
+    }),
+};
+
+export const promoApi = {
+  validateCode: (code: string, orderAmount: number) => 
+    request<any>('/promo/validate', {
+      method: 'POST',
+      body: JSON.stringify({ code, orderAmount }),
+    }),
 };
 

@@ -15,31 +15,63 @@ class PaymentStrategy {
 
 class CashPaymentStrategy extends PaymentStrategy {
     process() {
-        return { orderStatus: 'pending', paymentStatus: 'pending', dbMethod: 'cash_on_delivery' };
+        return { 
+            orderStatus: 'pending', 
+            paymentStatus: 'pending', 
+            dbMethod: 'cash_on_delivery',
+            transactionReference: 'COD-' + Math.random().toString(36).substr(2, 9).toUpperCase()
+        };
     }
 }
 
 class CardPaymentStrategy extends PaymentStrategy {
     process() {
-        return { orderStatus: 'confirmed', paymentStatus: 'paid', dbMethod: 'credit_card' };
+        return { 
+            orderStatus: 'confirmed', 
+            paymentStatus: 'paid', 
+            dbMethod: 'credit_card',
+            transactionReference: 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase()
+        };
     }
 }
 
 class JazzCashPaymentStrategy extends PaymentStrategy {
     process() {
-        return { orderStatus: 'confirmed', paymentStatus: 'paid', dbMethod: 'digital_wallet' };
+        return { 
+            orderStatus: 'confirmed', 
+            paymentStatus: 'paid', 
+            dbMethod: 'digital_wallet',
+            transactionReference: 'JC-' + Math.random().toString(36).substr(2, 9).toUpperCase()
+        };
     }
 }
 
 class BankPaymentStrategy extends PaymentStrategy {
     process() {
-        return { orderStatus: 'confirmed', paymentStatus: 'paid', dbMethod: 'bank_transfer' };
+        return { 
+            orderStatus: 'confirmed', 
+            paymentStatus: 'paid', 
+            dbMethod: 'bank_transfer',
+            transactionReference: 'BANK-' + Math.random().toString(36).substr(2, 9).toUpperCase()
+        };
+    }
+}
+
+class EasypaisaPaymentStrategy extends PaymentStrategy {
+    process() {
+        return { 
+            orderStatus: 'confirmed', 
+            paymentStatus: 'paid', 
+            dbMethod: 'digital_wallet',
+            transactionReference: 'EP-' + Math.random().toString(36).substr(2, 9).toUpperCase()
+        };
     }
 }
 
 module.exports = {
-    cash:     new CashPaymentStrategy(),
-    card:     new CardPaymentStrategy(),
-    jazzcash: new JazzCashPaymentStrategy(),
-    bank:     new BankPaymentStrategy()
+    cash:      new CashPaymentStrategy(),
+    card:      new CardPaymentStrategy(),
+    jazzcash:  new JazzCashPaymentStrategy(),
+    easypaisa: new EasypaisaPaymentStrategy(),
+    bank:      new BankPaymentStrategy()
 };

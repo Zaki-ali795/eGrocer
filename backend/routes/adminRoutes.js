@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { getPool } = require('../config/db');
 const AdminRepository = require('../repositories/AdminRepository');
+const OrderRepository = require('../repositories/OrderRepository');
 const AdminService = require('../services/AdminService');
 const AdminController = require('../controllers/AdminController');
 
@@ -11,8 +12,9 @@ let controller = null;
 async function getController() {
     if (controller) return controller;
     const pool = await getPool();
-    const repo = new AdminRepository(pool);
-    const service = new AdminService(repo);
+    const adminRepo = new AdminRepository(pool);
+    const orderRepo = new OrderRepository(pool);
+    const service = new AdminService(adminRepo, orderRepo);
     controller = new AdminController(service);
     return controller;
 }
@@ -65,6 +67,7 @@ router.put('/users/:id/status', handle('toggleUserStatus'));
 router.put('/settings', handle('updateSettings'));
 router.put('/change-password', handle('changePassword'));
 router.put('/update-profile', handle('updateAdminProfile'));
+router.post('/orders/refund', handle('processRefund'));
 
 router.use((req, res, next) => {
     console.log(`[AdminRoutes] Catch-all: ${req.method} ${req.url}`);

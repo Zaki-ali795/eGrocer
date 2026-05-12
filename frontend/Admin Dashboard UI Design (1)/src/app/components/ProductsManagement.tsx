@@ -149,7 +149,7 @@ export function ProductsManagement({ initialCategory, searchQuery = '' }: Produc
                   <td className="py-4 px-4"><span className="font-['Manrope'] text-sm text-gray-700">{product.category}</span></td>
                   <td className="py-4 px-4"><span className="font-['Manrope'] text-sm text-gray-700">{product.brand}</span></td>
                   <td className="py-4 px-4"><span className="font-['Manrope'] text-sm text-gray-700">{product.seller || '—'}</span></td>
-                  <td className="py-4 px-4"><span className="font-['Manrope'] font-semibold text-gray-900">Rs {product.price}</span></td>
+                  <td className="py-4 px-4"><span className="font-['Manrope'] font-semibold text-gray-900">Rs. {product.price}</span></td>
                   <td className="py-4 px-4">
                     <span className={`font-['Manrope'] font-medium ${product.stock === 0 ? 'text-red-600' : product.stock < 50 ? 'text-orange-600' : 'text-gray-900'}`}>
                       {product.stock}

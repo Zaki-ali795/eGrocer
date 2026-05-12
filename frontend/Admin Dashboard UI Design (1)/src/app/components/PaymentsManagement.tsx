@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, RefreshCw, CreditCard, Smartphone, Calendar, Loader2 } from 'lucide-react';
+import { Wallet, Banknote, TrendingUp, RefreshCw, CreditCard, Smartphone, Calendar, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { adminApi } from '../services/api';
@@ -86,11 +86,11 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
         >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center">
-              <DollarSign className="w-7 h-7 text-white" />
+              <Wallet className="w-7 h-7 text-white" />
             </div>
             <div>
               <p className="font-['Manrope'] text-xs text-emerald-700">Completed</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">Rs {totalRevenue.toLocaleString()}</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-emerald-900">Rs. {totalRevenue.toLocaleString()}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-emerald-700">
@@ -114,7 +114,7 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
             </div>
             <div>
               <p className="font-['Manrope'] text-xs text-amber-700">Pending</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-amber-900">Rs {pendingAmount.toLocaleString()}</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-amber-900">Rs. {pendingAmount.toLocaleString()}</p>
             </div>
           </div>
           <p className="font-['Manrope'] text-sm text-amber-700">
@@ -137,7 +137,7 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
             </div>
             <div>
               <p className="font-['Manrope'] text-xs text-red-700">Refunded</p>
-              <p className="font-['Crimson_Pro'] text-3xl font-bold text-red-900">Rs {refundedAmount.toLocaleString()}</p>
+              <p className="font-['Crimson_Pro'] text-3xl font-bold text-red-900">Rs. {refundedAmount.toLocaleString()}</p>
             </div>
           </div>
           <p className="font-['Manrope'] text-sm text-red-700">
@@ -220,7 +220,7 @@ export function PaymentsManagement({ searchQuery = '' }: { searchQuery?: string 
                     <span className="font-['Manrope'] font-semibold text-gray-900">{txn.orderId}</span>
                   </td>
                   <td className="py-4 px-4">
-                    <span className="font-['Manrope'] font-bold text-gray-900">Rs {txn.amount.toLocaleString()}</span>
+                    <span className="font-['Manrope'] font-bold text-gray-900">Rs. {txn.amount.toLocaleString()}</span>
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-2">

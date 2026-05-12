@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
-import { RotateCcw, Calendar, ShoppingBag, Loader2 } from 'lucide-react';
-import { Order } from '../../services/api';
+import { RotateCcw, Calendar, ShoppingBag, Loader2, RefreshCcw } from 'lucide-react';
+import { toast } from 'sonner';
+import { Order, orderApi } from '../../services/api';
 
 interface PreviousOrdersProps {
   orders: Order[];
@@ -9,6 +10,20 @@ interface PreviousOrdersProps {
 }
 
 export function PreviousOrders({ orders, isLoading, onReorder }: PreviousOrdersProps) {
+
+  const handleRefundRequest = async (orderId: number) => {
+    const reason = window.prompt('Please provide a reason for the refund:');
+    if (!reason) return;
+
+    try {
+      await orderApi.requestRefund(orderId, reason);
+      toast.success('Refund request submitted successfully');
+      // Refreshing the page or state would be ideal, but for now just toast
+      window.location.reload(); 
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to submit refund request');
+    }
+  };
 
 
   return (
@@ -65,20 +80,41 @@ export function PreviousOrders({ orders, isLoading, onReorder }: PreviousOrdersP
                     <div className="text-left sm:text-right">
                       <p className="text-sm text-gray-500 mb-1">Total</p>
                       <p className="text-xl font-bold text-[var(--green-primary)]">
-                        Rs {order.total_amount.toLocaleString('en-IN')}
+                        Rs. {order.total_amount.toLocaleString('en-IN')}
                       </p>
                     </div>
                   </div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => onReorder(order.order_number)}
-                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-[var(--green-primary)] to-[var(--green-secondary)] text-white rounded-xl hover:shadow-lg hover:shadow-[var(--green-primary)]/30 font-semibold transition-all flex items-center justify-center gap-2"
-                  >
-                    <RotateCcw className="w-5 h-5" />
-                    Reorder All Items
-                  </motion.button>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => onReorder(order.order_number)}
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-[var(--green-primary)] to-[var(--green-secondary)] text-white rounded-xl hover:shadow-lg hover:shadow-[var(--green-primary)]/30 font-semibold transition-all flex items-center justify-center gap-2"
+                      >
+                        <RotateCcw className="w-5 h-5" />
+                        Reorder All Items
+                      </motion.button>
+
+                      {order.order_status === 'delivered' && order.payment_status === 'paid' && (
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleRefundRequest(order.order_id)}
+                          className="px-6 py-3 bg-white border-2 border-red-100 text-red-500 rounded-xl hover:bg-red-50 font-semibold transition-all flex items-center justify-center gap-2"
+                        >
+                          <RefreshCcw className="w-5 h-5" />
+                          Request Refund
+                        </motion.button>
+                      )}
+                      
+                      {order.order_status === 'refund_requested' && (
+                        <div className="px-6 py-3 bg-orange-50 text-orange-600 rounded-xl font-semibold flex items-center justify-center gap-2 border border-orange-100">
+                          <RefreshCcw className="w-5 h-5 animate-spin-slow" />
+                          Refund Requested
+                        </div>
+                      )}
+                    </div>
                 </div>
 
                 {/* Order Items */}
@@ -104,7 +140,7 @@ export function PreviousOrders({ orders, isLoading, onReorder }: PreviousOrdersP
                               Qty: {item.quantity}
                             </p>
                             <p className="text-sm font-bold text-[var(--green-primary)]">
-                              Rs {item.unit_price.toLocaleString('en-IN')}
+                              Rs. {item.unit_price.toLocaleString('en-IN')}
                             </p>
                           </div>
                         </div>
