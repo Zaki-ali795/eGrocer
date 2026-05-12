@@ -23,7 +23,7 @@ export default defineConfig({
     // Tailwind is not being actively used – do not remove them
     react(),
     tailwindcss(),
-  ],
+  ] as any,
   resolve: {
     alias: {
       // Alias @ to the src directory
@@ -34,7 +34,7 @@ export default defineConfig({
     port: 3002,
     proxy: {
       '/api': {
-        target: 'http://localhost:5001',
+        target: 'http://localhost:5000',
         changeOrigin: true,
       },
     },

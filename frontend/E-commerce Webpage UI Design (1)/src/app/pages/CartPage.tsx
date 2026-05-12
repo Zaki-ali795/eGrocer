@@ -267,7 +267,7 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
 
   const subtotal        = items.reduce((s, i) => s + i.price * i.quantity, 0);
   const tax             = subtotal * 0.08;
-  const delivery        = subtotal > 5000 ? 0 : 499;
+  const delivery        = subtotal > 5000 ? 0 : 100;
   const cardDiscount    = selectedPayment === 'card' ? subtotal * 0.05 : 0;
   const total           = subtotal + tax + delivery - cardDiscount - promoDiscount;
   const itemCount       = items.reduce((s, i) => s + i.quantity, 0);

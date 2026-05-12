@@ -103,7 +103,7 @@ export default function EGrocerAuthUI() {
 
     try {
       const hostname = window.location.hostname;
-      const response = await fetch(`http://${hostname}:5001${endpoint}`, {
+      const response = await fetch(`http://${hostname}:5000${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
