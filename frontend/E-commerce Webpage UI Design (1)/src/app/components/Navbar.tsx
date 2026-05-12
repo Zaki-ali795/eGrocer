@@ -41,8 +41,15 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'));
+  }, []);
+
   const handleLogout = () => {
     localStorage.clear();
+    setIsLoggedIn(false);
     const hostname = window.location.hostname;
     window.location.href = `http://${hostname}:3003`;
   };
@@ -86,12 +93,6 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-3">
-            <button
-              onClick={() => navigate('/')}
-              className="px-6 py-2.5 text-[var(--green-dark)] font-semibold hover:text-[var(--green-primary)] transition-all flex items-center gap-1"
-            >
-              Home
-            </button>
             <button
               onClick={() => navigate('/categories')}
               className="px-6 py-2.5 bg-gradient-to-r from-[var(--green-primary)]/10 to-[var(--green-secondary)]/10 text-[var(--green-dark)] border border-[var(--green-primary)]/20 rounded-full font-semibold transition-all hover:from-[var(--green-primary)] hover:to-[var(--green-secondary)] hover:text-white hover:shadow-lg hover:shadow-[var(--green-primary)]/30 flex items-center gap-1"
@@ -277,15 +278,6 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
             className="lg:hidden border-t border-[var(--green-primary)]/10 overflow-hidden bg-white"
           >
             <div className="px-4 py-4 space-y-2">
-                <button
-                  onClick={() => {
-                    navigate('/');
-                    setIsMenuOpen(false);
-                  }}
-                  className="w-full text-center px-4 py-3 bg-gray-50 text-[var(--green-dark)] border border-gray-100 rounded-xl font-semibold hover:bg-gray-100 transition-all shadow-sm"
-                >
-                  Home
-                </button>
                 <button
                   onClick={() => {
                     navigate('/categories');
