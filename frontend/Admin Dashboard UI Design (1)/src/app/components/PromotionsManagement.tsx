@@ -273,7 +273,6 @@ export function PromotionsManagement({ searchQuery = '' }: { searchQuery?: strin
         })}
       </div>
 
-      {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

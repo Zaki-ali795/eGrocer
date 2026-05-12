@@ -109,7 +109,6 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
       };
 
       if (editingDeal) {
-        // await adminApi.updateFlashDeal(editingDeal.id, data);
         alert('Update functionality coming soon in backend');
       } else {
         await adminApi.createFlashDeal(data);
@@ -304,7 +303,6 @@ export function FlashDealsManagement({ searchQuery = '' }: { searchQuery?: strin
         ))}
       </div>
 
-      {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

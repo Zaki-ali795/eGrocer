@@ -69,7 +69,6 @@ export default function EGrocerAuthUI() {
 
   const validateForm = () => {
     if (mode === "signup") {
-      // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
         return "Please enter a valid email address.";
@@ -117,13 +116,11 @@ export default function EGrocerAuthUI() {
       // Clear any old session data from other sellers
       localStorage.clear();
 
-      // Save token and user info
       localStorage.setItem("token", result.data.token);
       localStorage.setItem("user", JSON.stringify(result.data.user));
 
       alert(mode === "login" ? "Login successful!" : "Signup successful!");
 
-      // Redirect based on role
       const userType = result.data.user.user_type || role;
 
       if (userType === "admin") {
@@ -145,7 +142,6 @@ export default function EGrocerAuthUI() {
 
   return (
     <div className="min-h-screen bg-[#f5f8f5] flex">
-      {/* LEFT SIDE */}
       <div
         className="hidden lg:flex lg:w-1/2 relative bg-cover bg-center"
         style={{
@@ -185,10 +181,8 @@ export default function EGrocerAuthUI() {
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-8">
-          {/* TOP BAR */}
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-3xl font-bold text-gray-900">
@@ -212,14 +206,12 @@ export default function EGrocerAuthUI() {
             </button>
           </div>
 
-          {/* ERROR MESSAGE */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-xl">
               {error}
             </div>
           )}
 
-          {/* ROLE SELECTOR */}
           {mode === "signup" && (
             <div className="grid md:grid-cols-2 gap-4 mb-8">
               {roleCards.map((item) => (
@@ -241,9 +233,7 @@ export default function EGrocerAuthUI() {
             </div>
           )}
 
-          {/* FORM */}
           <form className="space-y-5" onSubmit={handleSubmit}>
-            {/* NAME ROW */}
             {mode === "signup" && (
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -283,7 +273,6 @@ export default function EGrocerAuthUI() {
               </div>
             )}
 
-            {/* EMAIL */}
             <div>
               <label className="text-sm font-semibold text-gray-700">
                 Email Address
@@ -302,7 +291,6 @@ export default function EGrocerAuthUI() {
               </div>
             </div>
 
-            {/* PHONE */}
             {mode === "signup" && (
               <div>
                 <label className="text-sm font-semibold text-gray-700">
@@ -322,7 +310,6 @@ export default function EGrocerAuthUI() {
               </div>
             )}
 
-            {/* SELLER FIELDS */}
             {mode === "signup" && role === "seller" && (
               <>
                 <div>
@@ -378,7 +365,6 @@ export default function EGrocerAuthUI() {
 
             {/* ADMIN EXTRA fields removed as Admin role is no longer selectable in signup */}
 
-            {/* PASSWORD */}
             <div>
               <label className="text-sm font-semibold text-gray-700">
                 Password
@@ -396,7 +382,6 @@ export default function EGrocerAuthUI() {
                 />
               </div>
 
-              {/* STRENGTH BAR */}
               {mode === "signup" && formData.password && (
                 <div className="mt-3">
                   <div className="flex gap-1 h-1.5">
@@ -435,7 +420,6 @@ export default function EGrocerAuthUI() {
               )}
             </div>
 
-            {/* LOGIN OPTIONS */}
             {mode === "login" && (
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-2 text-gray-600">
@@ -448,7 +432,6 @@ export default function EGrocerAuthUI() {
               </div>
             )}
 
-            {/* SUBMIT */}
             <button
               type="submit"
               disabled={isLoading}
@@ -459,7 +442,6 @@ export default function EGrocerAuthUI() {
             </button>
           </form>
 
-          {/* FOOTER */}
           <div className="mt-8 text-center text-gray-500 text-sm">
             By continuing you agree to our Terms &amp; Privacy Policy.
           </div>

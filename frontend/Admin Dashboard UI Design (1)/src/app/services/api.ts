@@ -1,4 +1,3 @@
-// src/app/services/api.ts
 const API_BASE_URL = '/api';
 
 export async function fetchApi(endpoint: string, options: RequestInit = {}) {
@@ -48,7 +47,6 @@ export const adminApi = {
   getPayments: () => fetchApi('/admin/payments'),
   getProductRequests: () => fetchApi('/admin/product-requests'),
 
-  // Write Operations
   createProduct: (data: any) => fetchApi('/admin/products', { method: 'POST', body: JSON.stringify(data) }),
   updateProduct: (id: string, data: any) => fetchApi(`/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteProduct: (id: string) => fetchApi(`/admin/products/${id}`, { method: 'DELETE' }),
