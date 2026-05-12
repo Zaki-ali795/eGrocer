@@ -260,45 +260,45 @@ export default function Orders() {
 
               {/* Update Status */}
               <div>
-                <h3 className="font-medium text-foreground mb-3">Update Order Status</h3>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => updateOrderStatus(selectedOrder.id, selectedOrder.realOrderId, 'pending')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'pending'
-                        ? 'bg-chart-4 text-white'
-                        : 'bg-emerald-800 text-white hover:bg-emerald-500'
-                      }`}
-                  >
-                    Pending
-                  </button>
-                  <button
-                    onClick={() => updateOrderStatus(selectedOrder.id, selectedOrder.realOrderId, 'processing')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'processing'
-                        ? 'bg-accent text-accent-foreground'
-                        : 'bg-emerald-800 text-white hover:bg-emerald-500'
-                      }`}
-                  >
-                    Processing
-                  </button>
-                  <button
-                    onClick={() => updateOrderStatus(selectedOrder.id, selectedOrder.realOrderId, 'delivered')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'delivered'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-emerald-800 text-white hover:bg-emerald-500'
-                      }`}
-                  >
-                    Delivered
-                  </button>
-                  <button
-                    onClick={() => updateOrderStatus(selectedOrder.id, selectedOrder.realOrderId, 'cancelled')}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${selectedOrder.status === 'cancelled'
-                        ? 'bg-destructive text-destructive-foreground'
-                        : 'bg-emerald-800 text-white hover:bg-emerald-500'
-                      }`}
-                  >
-                    Cancelled
-                  </button>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-foreground">Update Order Status</h3>
+                  {['delivered', 'cancelled', 'refunded'].includes(selectedOrder.status) && (
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-sidebar-accent px-2 py-1 rounded-md border border-border">
+                      Order Locked
+                    </span>
+                  )}
                 </div>
+                <div className="flex gap-2">
+                  {[
+                    { id: 'pending', label: 'Pending', activeClass: 'bg-chart-4 text-white' },
+                    { id: 'processing', label: 'Processing', activeClass: 'bg-accent text-accent-foreground' },
+                    { id: 'delivered', label: 'Delivered', activeClass: 'bg-primary text-primary-foreground' },
+                    { id: 'cancelled', label: 'Cancelled', activeClass: 'bg-destructive text-destructive-foreground' }
+                  ].map((btn) => {
+                    const isCurrent = selectedOrder.status === btn.id;
+                    const isFinal = ['delivered', 'cancelled', 'refunded'].includes(selectedOrder.status);
+                    
+                    return (
+                      <button
+                        key={btn.id}
+                        disabled={isFinal}
+                        onClick={() => updateOrderStatus(selectedOrder.id, selectedOrder.realOrderId, btn.id)}
+                        className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                          isCurrent ? btn.activeClass : 
+                          isFinal ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50' : 
+                          'bg-emerald-800 text-white hover:bg-emerald-500'
+                        }`}
+                      >
+                        {btn.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {['delivered', 'cancelled', 'refunded'].includes(selectedOrder.status) && (
+                  <p className="text-[11px] text-muted-foreground mt-3 italic">
+                    * This order has reached a final state and its status can no longer be modified.
+                  </p>
+                )}
               </div>
             </div>
           </div>

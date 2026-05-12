@@ -57,9 +57,21 @@ class BankPaymentStrategy extends PaymentStrategy {
     }
 }
 
+class EasypaisaPaymentStrategy extends PaymentStrategy {
+    process() {
+        return { 
+            orderStatus: 'confirmed', 
+            paymentStatus: 'paid', 
+            dbMethod: 'digital_wallet',
+            transactionReference: 'EP-' + Math.random().toString(36).substr(2, 9).toUpperCase()
+        };
+    }
+}
+
 module.exports = {
-    cash:     new CashPaymentStrategy(),
-    card:     new CardPaymentStrategy(),
-    jazzcash: new JazzCashPaymentStrategy(),
-    bank:     new BankPaymentStrategy()
+    cash:      new CashPaymentStrategy(),
+    card:      new CardPaymentStrategy(),
+    jazzcash:  new JazzCashPaymentStrategy(),
+    easypaisa: new EasypaisaPaymentStrategy(),
+    bank:      new BankPaymentStrategy()
 };

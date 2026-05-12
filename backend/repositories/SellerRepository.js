@@ -346,6 +346,18 @@ class SellerRepository extends BaseRepository {
     }
 
     async updateOrderStatus(orderId, status) {
+        // Validation: Prevent updates if order is in a final state
+        const currentStatusResult = await this.pool.request()
+            .input('orderId', orderId)
+            .query('SELECT order_status FROM Orders WHERE order_id = @orderId');
+        
+        const currentStatus = currentStatusResult.recordset[0]?.order_status;
+        const finalStates = ['delivered', 'cancelled', 'refunded'];
+        
+        if (finalStates.includes(currentStatus)) {
+            throw new Error(`Order is already ${currentStatus} and cannot be modified.`);
+        }
+
         const transaction = this.pool.transaction();
         try {
             await transaction.begin();

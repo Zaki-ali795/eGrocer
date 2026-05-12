@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router';
 import {
   ShoppingBag, Trash2, Heart, Plus, Minus,
-  Tag, ChevronRight, PackageCheck, Truck, CreditCard, Loader2
+  Tag, ChevronRight, PackageCheck, Truck, CreditCard, Loader2,
+  Smartphone, Landmark, CheckCircle, ShieldCheck, HelpCircle, ArrowRight, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { orderApi, promoApi, Product } from '../../services/api';
@@ -28,11 +29,230 @@ interface CartPageProps {
   wishlistItems: Product[];
 }
 
+const PaymentSimulationModal = ({ 
+  isOpen, onClose, onConfirm, step, setStep, paymentType, total 
+}: any) => {
+  const [formData, setFormData] = useState({ card: '', expiry: '', cvv: '', phone: '', otp: '' });
+  const [otpSent, setOtpSent] = useState(false);
+
+  if (!isOpen) return null;
+
+  const isCardValid = formData.card.replace(/\s/g, '').length === 16 && 
+                     formData.expiry.length === 5 && 
+                     formData.cvv.length === 3;
+  
+  const isWalletValid = formData.phone.length >= 10 && (!otpSent || formData.otp.length === 4);
+  
+  const isValid = paymentType === 'card' ? isCardValid : (paymentType === 'bank' ? true : isWalletValid);
+
+  const handleAction = () => {
+    if (!isValid) return;
+    if ((paymentType === 'jazzcash' || paymentType === 'easypaisa') && !otpSent) {
+      const simulatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+      setOtpSent(true);
+      toast.info(`SMS FROM 8080: Your eGrocer verification code is ${simulatedOTP}`, {
+        duration: 10000,
+        description: "SIMULATION: Use this code to proceed"
+      });
+      return;
+    }
+    onConfirm();
+  };
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          className="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden relative"
+        >
+          {/* Header */}
+          <div className="bg-gradient-to-r from-[var(--green-primary)] to-[var(--green-secondary)] p-6 text-white text-center relative">
+            <button 
+              onClick={onClose} 
+              className="absolute right-6 top-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-bold font-['Crimson_Pro']">
+              {step === 'success' ? 'Payment Success' : 'Secure Checkout'}
+            </h3>
+            <p className="text-white/80 text-xs mt-1">Order Total: Rs. {Math.round(total).toLocaleString()}</p>
+          </div>
+
+          <div className="p-8">
+            {step === 'input' && (
+              <div className="space-y-5">
+                {/* Payment Method Specific Content */}
+                {paymentType === 'card' && (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Card Number</label>
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          placeholder="0000 0000 0000 0000" 
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none transition-all ${formData.card.length > 0 && formData.card.replace(/\s/g, '').length !== 16 ? 'border-red-200' : 'border-gray-100 focus:border-[var(--green-primary)]'}`}
+                          value={formData.card}
+                          onChange={(e) => setFormData({...formData, card: e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19)})}
+                        />
+                        <CreditCard className="absolute right-4 top-3.5 w-5 h-5 text-gray-300" />
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1 space-y-2">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Expiry</label>
+                        <input 
+                          type="text" 
+                          placeholder="MM/YY" 
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none ${formData.expiry.length > 0 && formData.expiry.length !== 5 ? 'border-red-200' : 'border-gray-100 focus:border-[var(--green-primary)]'}`}
+                          value={formData.expiry}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            if (val.length >= 2) val = val.slice(0, 2) + '/' + val.slice(2, 4);
+                            setFormData({...formData, expiry: val.slice(0, 5)});
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">CVV</label>
+                        <input 
+                          type="password" 
+                          placeholder="***" 
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none ${formData.cvv.length > 0 && formData.cvv.length !== 3 ? 'border-red-200' : 'border-gray-100 focus:border-[var(--green-primary)]'}`}
+                          maxLength={3}
+                          value={formData.cvv}
+                          onChange={(e) => setFormData({...formData, cvv: e.target.value.replace(/\D/g, '')})}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {(paymentType === 'jazzcash' || paymentType === 'easypaisa') && (
+                  <>
+                    <div className="flex justify-center mb-4">
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${paymentType === 'jazzcash' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                        <Smartphone className="w-8 h-8" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Mobile Number</label>
+                      <input 
+                        type="text" 
+                        placeholder="03xx xxxxxxx" 
+                        className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none ${formData.phone.length > 0 && formData.phone.length < 10 ? 'border-red-200' : 'border-gray-100 focus:border-[var(--green-primary)]'}`}
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '')})}
+                      />
+                    </div>
+                    {otpSent && (
+                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Enter 4-Digit OTP</label>
+                        <input 
+                          type="text" 
+                          placeholder="----" 
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:border-[var(--green-primary)] outline-none text-center text-2xl tracking-[1rem] font-bold"
+                          maxLength={4}
+                          value={formData.otp}
+                          onChange={(e) => setFormData({...formData, otp: e.target.value.replace(/\D/g, '')})}
+                        />
+                      </motion.div>
+                    )}
+                  </>
+                )}
+
+                {paymentType === 'bank' && (
+                  <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-5 space-y-4">
+                    <div className="flex items-center gap-3 text-blue-600">
+                      <Landmark className="w-5 h-5" />
+                      <span className="font-bold text-sm">Official Bank Account</span>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[9px] font-bold text-blue-400 uppercase tracking-wider">Account Title</p>
+                        <p className="text-sm font-bold text-blue-900">eGrocer Private Limited</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-bold text-blue-400 uppercase tracking-wider">IBAN Number</p>
+                        <p className="text-sm font-bold text-blue-900">PK64 BANK 0000 0123 4567 8910</p>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-blue-500 italic">Please upload receipt after transfer to finalize order.</p>
+                  </div>
+                )}
+
+                <div className="pt-4">
+                  <button 
+                    onClick={handleAction}
+                    disabled={!isValid}
+                    className={`w-full py-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition-all ${isValid ? 'bg-gradient-to-r from-[var(--green-primary)] to-[var(--green-secondary)] text-white shadow-[var(--green-primary)]/30 hover:translate-y-[-2px]' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                  >
+                    <ShieldCheck className="w-5 h-5" />
+                    {paymentType === 'bank' ? 'I Have Transferred' : (otpSent ? 'Verify & Pay' : 'Pay Securely')}
+                  </button>
+                  <p className="text-center text-[10px] text-gray-400 mt-4 flex items-center justify-center gap-1">
+                    <ShieldCheck className="w-3 h-3" />
+                    SSL Secured & Encrypted Transaction
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {step === 'processing' && (
+              <div className="text-center py-10 space-y-6">
+                <div className="relative w-24 h-24 mx-auto">
+                  <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                    className="absolute inset-0 border-4 border-t-[var(--green-primary)] rounded-full"
+                  ></motion.div>
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-gray-800">Processing Payment</h4>
+                  <p className="text-sm text-gray-500">Contacting your financial institution...</p>
+                </div>
+              </div>
+            )}
+
+            {step === 'success' && (
+              <div className="text-center py-10 space-y-6">
+                <motion.div 
+                  initial={{ scale: 0 }} 
+                  animate={{ scale: 1 }} 
+                  className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto"
+                >
+                  <CheckCircle className="w-12 h-12 text-green-600" />
+                </motion.div>
+                <div>
+                  <h4 className="text-2xl font-bold text-gray-800 font-['Crimson_Pro']">Payment Success!</h4>
+                  <p className="text-sm text-gray-500">Your order #EGR-{Math.floor(Math.random()*90000+10000)} is confirmed.</p>
+                </div>
+                <button 
+                  onClick={() => window.location.href = '/previous-orders'}
+                  className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all"
+                >
+                  View My Orders
+                </button>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
+
 export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, onWishlistToggle, wishlistItems }: CartPageProps) {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPayment, setSelectedPayment] = useState<string>('cash');
+  const [selectedPayment, setSelectedPayment] = useState<string>('card');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentStep, setPaymentStep] = useState('input');
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressData, setAddressData] = useState({
     addressLine1: '',
@@ -97,6 +317,15 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
       return;
     }
 
+    if (selectedPayment === 'cash') {
+      await finalizeOrder();
+    } else {
+      setPaymentStep('input');
+      setShowPaymentModal(true);
+    }
+  };
+
+  const finalizeOrder = async () => {
     try {
       setIsSubmitting(true);
       setError(null);
@@ -108,14 +337,25 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
         state: addressData.province
       });
       
-      onClearCart();
-      toast.success('Order placed successfully! 🚚');
-      navigate('/previous-orders');
+      await onClearCart();
+      if (selectedPayment !== 'cash') setPaymentStep('success');
+      else {
+        toast.success('Order placed successfully! 🚚');
+        navigate('/previous-orders');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to place order');
+      setShowPaymentModal(false);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSimulatedPayment = () => {
+    setPaymentStep('processing');
+    setTimeout(() => {
+      finalizeOrder();
+    }, 2000);
   };
 
   const handleApplyVoucher = async () => {
@@ -487,6 +727,7 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
                 {[
                   { icon: '💳', label: 'Card', id: 'card' },
                   { icon: '📱', label: 'JazzCash', id: 'jazzcash' },
+                  { icon: '💸', label: 'Easypaisa', id: 'easypaisa' },
                   { icon: '💵', label: 'Cash', id: 'cash' },
                   { icon: '🏦', label: 'Bank', id: 'bank' },
                 ].map(({ icon, label, id }) => (
@@ -511,6 +752,16 @@ export function CartPage({ items, onUpdateQuantity, onRemoveItem, onClearCart, o
 
         </div>
       </div>
+
+      <PaymentSimulationModal 
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onConfirm={handleSimulatedPayment}
+        step={paymentStep}
+        setStep={setPaymentStep}
+        paymentType={selectedPayment}
+        total={total}
+      />
     </div>
   );
 }
