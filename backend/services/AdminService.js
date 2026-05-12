@@ -1,8 +1,14 @@
 // services/AdminService.js
 
 class AdminService {
-    constructor(adminRepository) {
+    constructor(adminRepository, orderRepository) {
         this.adminRepository = adminRepository;
+        this.orderRepository = orderRepository;
+    }
+
+    async processRefund(orderId, adminId, reason) {
+        console.log(`[AdminService] Processing refund for Order ID: ${orderId}, Approved by: ${adminId}`);
+        return await this.orderRepository.refundOrder(orderId, adminId, reason);
     }
 
     async getDashboardOverview() {

@@ -9,6 +9,22 @@ class CartController {
         this.updateQuantity = this.updateQuantity.bind(this);
         this.removeItem = this.removeItem.bind(this);
         this.clearCart = this.clearCart.bind(this);
+        this.mergeCart = this.mergeCart.bind(this);
+    }
+
+    async mergeCart(req, res, next) {
+        try {
+            const loggedInId = req.user?.user_id;
+            const { guestId } = req.body;
+
+            if (!loggedInId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+            if (!guestId) return res.status(400).json({ success: false, message: 'Guest ID is required' });
+
+            await this.cartRepo.mergeCarts(guestId, loggedInId);
+            res.json({ success: true, message: 'Cart merged successfully' });
+        } catch (err) {
+            next(err);
+        }
     }
 
     async getCart(req, res, next) {

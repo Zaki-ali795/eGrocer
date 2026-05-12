@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, Clock, CheckCircle, Download, Loader2 } from 'lucide-react';
+import { Wallet, Banknote, TrendingUp, Clock, CheckCircle, Download, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { sellerApi } from '../services/api';
@@ -29,14 +29,15 @@ export default function Payments() {
   }
 
   const totalEarnings = transactions
-    .filter((t: any) => t.type === 'payment' && t.status === 'delivered')
     .reduce((sum: number, t: any) => sum + t.amount, 0);
 
   const pendingPayments = transactions
     .filter((t: any) => t.status === 'pending' || t.status === 'processing')
     .reduce((sum: number, t: any) => sum + t.amount, 0);
 
-  const refunds = 0; // Mocked for now as we don't have refunds in schema yet
+  const refunds = transactions
+    .filter((t: any) => t.type === 'refund')
+    .reduce((sum: number, t: any) => Math.abs(t.amount) + sum, 0);
 
   if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   if (error) return <div className="p-8 text-red-500">Error: {error}</div>;
@@ -62,7 +63,7 @@ export default function Payments() {
               </p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-              <DollarSign className="w-6 h-6" />
+              <Wallet className="w-6 h-6" />
             </div>
           </div>
         </div>
@@ -91,7 +92,7 @@ export default function Payments() {
               <p className="text-sm text-muted-foreground mt-2">This month</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-destructive" />
+              <Banknote className="w-6 h-6 text-destructive" />
             </div>
           </div>
         </div>
@@ -132,7 +133,7 @@ export default function Payments() {
             <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-white" />
+                  <Wallet className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <p className="font-medium text-foreground">eGrocer Wallet</p>
@@ -145,7 +146,7 @@ export default function Payments() {
             <div className="flex items-center justify-between p-4 bg-emerald-100 rounded-lg">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-muted-foreground" />
+                  <Banknote className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
                   <p className="font-medium text-foreground">Bank Transfer</p>
@@ -208,7 +209,7 @@ export default function Payments() {
                     </span>
                   </td>
                   <td className="py-4 px-6 font-medium text-emerald-900">
-                    {transaction.type === 'payment' ? '+' : '-'}Rs.{transaction.amount.toFixed(2)}
+                    {transaction.amount >= 0 ? '+' : ''}Rs.{transaction.amount.toFixed(2)}
                   </td>
                   <td className="py-4 px-6">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1.5 ${

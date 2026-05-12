@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, Settings, CheckCheck, Clock, ShoppingBag, AlertTriangle, MessageSquare, Tag } from 'lucide-react';
+import { useNavigate, Link } from 'react-router';
 import { sellerApi } from '../services/api';
 
 interface NotificationPopoverProps {
@@ -12,6 +13,7 @@ interface NotificationPopoverProps {
 export function NotificationPopover({ isOpen, onClose, userId }: NotificationPopoverProps) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isOpen) {
@@ -70,7 +72,7 @@ export function NotificationPopover({ isOpen, onClose, userId }: NotificationPop
                 )}
               </h3>
               <div className="flex gap-1">
-                <button 
+                <button
                   onClick={markAllRead}
                   className="p-2 hover:bg-white rounded-xl text-gray-400 hover:text-[var(--green-primary)] transition-colors"
                   title="Mark all as read"
@@ -91,7 +93,7 @@ export function NotificationPopover({ isOpen, onClose, userId }: NotificationPop
               ) : (
                 <div className="divide-y divide-gray-50">
                   {notifications.map((n) => (
-                    <div 
+                    <div
                       key={n.notification_id}
                       className={`p-4 flex gap-4 transition-colors hover:bg-gray-50/80 cursor-pointer ${!n.is_read ? 'bg-[var(--green-primary)]/5' : ''}`}
                     >
@@ -114,9 +116,13 @@ export function NotificationPopover({ isOpen, onClose, userId }: NotificationPop
             </div>
 
             <div className="p-4 bg-gray-50 border-t border-gray-50 text-center">
-              <button className="text-xs font-bold text-[var(--green-primary)] hover:underline">
+              <Link
+                to="/notifications"
+                onClick={onClose}
+                className="text-xs font-bold text-[var(--green-primary)] hover:underline inline-block w-full"
+              >
                 View All Activity
-              </button>
+              </Link>
             </div>
           </motion.div>
         </>

@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Search, ShoppingCart, Heart, User, Menu, X, ChevronDown, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, ShoppingCart, Heart, User, Menu, X, ChevronDown, LogOut, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { QuickAccessMenu } from './QuickAccessMenu';
 import { useNavigate } from 'react-router';
+import { productApi, Product } from '../../services/api';
 
 interface NavbarProps {
   cartItemCount: number;
@@ -15,10 +16,42 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      const q = searchQuery.trim();
+      if (q.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const results = await productApi.searchProducts({ q });
+        setSearchResults(results.slice(0, 5)); // Only show top 5 suggestions
+      } catch (err) {
+        console.error('Search failed:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'));
+  }, []);
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = 'http://localhost:5178';
+    setIsLoggedIn(false);
+    const hostname = window.location.hostname;
+    window.location.href = `http://${hostname}:3003`;
   };
 
   const handleSearch = () => {
@@ -59,7 +92,7 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center space-x-3">
             <button
               onClick={() => navigate('/categories')}
               className="px-6 py-2.5 bg-gradient-to-r from-[var(--green-primary)]/10 to-[var(--green-secondary)]/10 text-[var(--green-dark)] border border-[var(--green-primary)]/20 rounded-full font-semibold transition-all hover:from-[var(--green-primary)] hover:to-[var(--green-secondary)] hover:text-white hover:shadow-lg hover:shadow-[var(--green-primary)]/30 flex items-center gap-1"
@@ -79,7 +112,7 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
                 onClick={handleSearch}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--green-primary)]/60 hover:text-[var(--green-primary)] transition-colors"
               >
-                <Search className="w-5 h-5" />
+                {isSearching ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
               </button>
               <input
                 type="text"
@@ -88,9 +121,64 @@ export function Navbar({ cartItemCount, wishlistCount }: NavbarProps) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
+                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                 className="w-full pl-12 pr-4 py-3 bg-[var(--beige)] rounded-full border-2 border-transparent focus:border-[var(--green-primary)] focus:bg-white outline-none transition-all"
               />
+
+              {/* Live Search Results Dropdown */}
+              <AnimatePresence>
+                {isSearchFocused && searchQuery.length >= 2 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
+                  >
+                    {isSearching ? (
+                      <div className="p-4 text-center text-gray-500 text-sm flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Searching...
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <div className="flex flex-col">
+                        <div className="p-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                          Suggestions
+                        </div>
+                        {searchResults.map((product) => (
+                          <div
+                            key={product.id}
+                            onClick={() => {
+                              navigate(`/product/${product.id}`);
+                              setSearchQuery('');
+                            }}
+                            className="flex items-center gap-3 p-3 hover:bg-[var(--green-primary)]/5 cursor-pointer transition-colors group"
+                          >
+                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-50 shrink-0">
+                              <img src={product.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-semibold text-gray-800 truncate">{product.name}</div>
+                              <div className="text-xs text-gray-500">{product.category}</div>
+                            </div>
+                            <div className="text-sm font-bold text-[var(--green-primary)]">
+                              Rs {product.price}
+                            </div>
+                          </div>
+                        ))}
+                        <div
+                          onClick={handleSearch}
+                          className="p-3 text-center text-sm font-bold text-[var(--green-primary)] bg-gray-50 hover:bg-[var(--green-primary)]/10 cursor-pointer transition-colors"
+                        >
+                          View all results for "{searchQuery}"
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center text-gray-500 text-sm">
+                        No products found for "{searchQuery}"
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
 

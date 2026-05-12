@@ -112,15 +112,47 @@ class CartRepository extends BaseRepository {
     }
 
     /**
-     * Clear the entire cart.
+     * Clear all items from the customer's cart.
      */
     async clearCart(customerId) {
         const cartId = await this._getOrCreateCart(customerId);
-
         const req = this.pool.request();
         req.input('cartId', cartId);
-
         await req.query('DELETE FROM CartItems WHERE cart_id = @cartId');
+    }
+
+    /**
+     * Merge items from a guest cart into a logged-in user's cart.
+     */
+    async mergeCarts(guestId, loggedInId) {
+        if (guestId === loggedInId) return;
+
+        const guestCartId = await this._getOrCreateCart(guestId);
+        const loggedInCartId = await this._getOrCreateCart(loggedInId);
+
+        const req = this.pool.request();
+        req.input('guestCartId', guestCartId);
+        req.input('loggedInCartId', loggedInCartId);
+
+        await req.query(`
+            UPDATE li
+            SET li.quantity = li.quantity + g.quantity
+            FROM CartItems li
+            JOIN CartItems g ON li.product_id = g.product_id
+            WHERE li.cart_id = @loggedInCartId AND g.cart_id = @guestCartId;
+
+            INSERT INTO CartItems (cart_id, product_id, quantity)
+            SELECT @loggedInCartId, g.product_id, g.quantity
+            FROM CartItems g
+            WHERE g.cart_id = @guestCartId
+            AND g.product_id NOT IN (
+                SELECT li.product_id 
+                FROM CartItems li 
+                WHERE li.cart_id = @loggedInCartId
+            );
+
+            DELETE FROM CartItems WHERE cart_id = @guestCartId;
+        `);
     }
 }
 

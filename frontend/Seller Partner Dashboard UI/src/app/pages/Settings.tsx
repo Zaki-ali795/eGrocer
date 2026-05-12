@@ -184,10 +184,17 @@ export default function Settings() {
                       onClick={async () => {
                         if (!sellerId) return;
                         try {
+                          const nameParts = profileData.contactName.trim().split(/\s+/);
+                          const firstName = nameParts[0] || '';
+                          const lastName = nameParts.slice(1).join(' ') || '';
+
                           await sellerApi.updateProfile(sellerId, {
                             storeName: profileData.storeName,
                             storeDescription: profileData.description,
-                            phone: profileData.phone
+                            phone: profileData.phone,
+                            firstName,
+                            lastName,
+                            email: profileData.email
                           });
                           alert("Profile updated successfully!");
                         } catch (err: any) {

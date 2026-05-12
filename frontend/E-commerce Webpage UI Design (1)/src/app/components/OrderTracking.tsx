@@ -69,7 +69,7 @@ export function OrderTracking({ orders, isLoading }: OrderTrackingProps) {
                         <span>{order.items} {order.items === 1 ? 'item' : 'items'}</span>
                         <span>•</span>
                         <span className="text-[var(--green-primary)] font-bold">
-                          Rs {order.total.toLocaleString('en-IN')}
+                          Rs. {order.total.toLocaleString('en-IN')}
                         </span>
                       </div>
                     </div>

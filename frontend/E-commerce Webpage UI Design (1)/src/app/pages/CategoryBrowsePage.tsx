@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight, Package, Search, SlidersHorizontal, X, Check } from 'lucide-react';
+import { useLocation } from 'react-router';
 import { productApi, Category, Product } from '../../services/api';
 import { ProductCard } from '../components/ProductCard';
 
@@ -12,8 +13,16 @@ interface CategoryBrowsePageProps {
 }
 
 export function CategoryBrowsePage({ onAddToCart, onWishlistToggle, wishlistItems }: CategoryBrowsePageProps) {
+  const location = useLocation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  
+  // Reset view when navigating to /categories (e.g. from Navbar)
+  useEffect(() => {
+    if (location.pathname === '/categories') {
+      setSelectedCategory(null);
+    }
+  }, [location.pathname, location.key]); // Use location.key to detect clicks on the same route
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(false);

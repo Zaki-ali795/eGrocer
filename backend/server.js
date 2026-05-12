@@ -94,6 +94,7 @@ app.use('/api/wishlist', require('./routes/wishlistRoutes'));
 app.use('/api/cart',     require('./routes/cartRoutes'));
 app.use('/api/bids',     require('./routes/bidRoutes'));
 app.use('/api/admin',    require('./routes/adminRoutes'));
+app.use('/api/promo',    require('./routes/promoRoutes'));
 
 // ── 404 Handler ────────────────────────────────────────────────
 app.use((req, res) => {
@@ -104,7 +105,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // ── Start ───────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 (async () => {
     try {

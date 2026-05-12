@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
 import { motion } from 'motion/react';
+import { Toaster } from 'sonner';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
@@ -22,6 +23,14 @@ interface CartItem {
   price: number;
   quantity: number;
   image: string;
+}
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
 }
 
 export default function App() {
@@ -57,9 +66,21 @@ export default function App() {
     // 1. Capture userId from URL if coming from login redirect
     const urlParams = new URLSearchParams(window.location.search);
     const urlId = urlParams.get('userId');
+    const urlToken = urlParams.get('token');
     
     if (urlId) {
+      // If we were previously using a guest ID, merge the carts
+      const guestId = localStorage.getItem('userId') || '3';
+      
+      // We set the token FIRST so the mergeCart request is authenticated as the NEW user
+      if (urlToken) localStorage.setItem('token', urlToken);
       localStorage.setItem('userId', urlId);
+
+      // Trigger merge in background
+      cartApi.mergeCart(guestId).then(() => {
+        refreshCart();
+      }).catch(err => console.warn('Cart merge failed:', err));
+
       // Clear old session data
       localStorage.removeItem('user');
       // Clean URL without reloading
@@ -125,6 +146,8 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="top-center" richColors />
+      <ScrollToTop />
       <div className="min-h-screen bg-[var(--background)]">
         <Navbar
           cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
@@ -136,7 +159,7 @@ export default function App() {
           <Route path="/categories" element={<CategoryBrowsePage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
           <Route path="/product/:productId" element={<ProductDetailPage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} />} />
           <Route path="/search" element={<SearchResultsPage onAddToCart={handleAddToCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
-          <Route path="/cart" element={<CartPage items={cartItems} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} onClearCart={handleClearCart} />} />
+          <Route path="/cart" element={<CartPage items={cartItems} onUpdateQuantity={handleUpdateQuantity} onRemoveItem={handleRemoveItem} onClearCart={handleClearCart} onWishlistToggle={handleWishlistToggle} wishlistItems={wishlistItems} />} />
           <Route path="/wishlist" element={<WishlistPage onAddToCart={handleAddToCart} items={wishlistItems} onWishlistUpdate={refreshWishlist} />} />
           <Route path="/requests" element={<RequestsPage />} />
           <Route path="/tracking" element={<TrackingPage />} />

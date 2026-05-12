@@ -33,6 +33,7 @@ class AdminController {
         this.markNotificationAsRead = this.markNotificationAsRead.bind(this);
         this.changePassword = this.changePassword.bind(this);
         this.updateAdminProfile = this.updateAdminProfile.bind(this);
+        this.processRefund = this.processRefund.bind(this);
     }
 
     async getDashboardOverview(req, res, next) {
@@ -288,6 +289,16 @@ class AdminController {
             // In a real app, get user ID from token/session. Defaulting to 1 for Admin.
             const result = await this.adminService.updateAdminProfile(1, req.body);
             res.json({ success: true, message: 'Profile updated successfully' });
+        } catch (err) {
+            next(err);
+        }
+    }
+    async processRefund(req, res, next) {
+        try {
+            const { orderId, reason } = req.body;
+            // Defaulting to admin ID 1 for now (in real app, from JWT)
+            const result = await this.adminService.processRefund(orderId, 1, reason);
+            res.json({ success: true, message: 'Refund processed successfully', data: result });
         } catch (err) {
             next(err);
         }

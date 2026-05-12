@@ -168,8 +168,16 @@ class SellerRepository extends BaseRepository {
             .input('sellerId', sellerId)
             .query(`
                 SELECT 
-                    ISNULL((SELECT SUM(quantity * unit_price) FROM OrderItems WHERE seller_id = @sellerId), 0) AS total_revenue,
-                    (SELECT COUNT(DISTINCT order_id) FROM OrderItems WHERE seller_id = @sellerId) AS total_orders,
+                    ISNULL((SELECT SUM(CASE WHEN o.order_status = 'refunded' THEN -(oi.quantity * oi.unit_price) ELSE (oi.quantity * oi.unit_price) END) 
+                            FROM OrderItems oi 
+                            INNER JOIN Orders o ON oi.order_id = o.order_id 
+                            WHERE oi.seller_id = @sellerId 
+                              AND o.order_status != 'cancelled'), 0) AS total_revenue,
+                    (SELECT COUNT(DISTINCT oi.order_id) 
+                     FROM OrderItems oi 
+                     INNER JOIN Orders o ON oi.order_id = o.order_id 
+                     WHERE oi.seller_id = @sellerId 
+                       AND o.order_status != 'cancelled') AS total_orders,
                     (SELECT COUNT(*) FROM ProductRequests WHERE request_status = 'open') AS pending_requests,
                     (SELECT COUNT(*) FROM Inventory i INNER JOIN Products p ON i.product_id = p.product_id WHERE p.seller_id = @sellerId AND p.is_active = 1 AND i.quantity_in_stock < 20) AS low_stock_count
             `);
@@ -205,11 +213,12 @@ class SellerRepository extends BaseRepository {
             .query(`
                 SELECT 
                     CAST(o.created_at AS DATE) as date,
-                    SUM(oi.quantity * oi.unit_price) as sales,
+                    SUM(CASE WHEN o.order_status = 'refunded' THEN -(oi.quantity * oi.unit_price) ELSE (oi.quantity * oi.unit_price) END) as sales,
                     COUNT(DISTINCT o.order_id) as orders
                 FROM OrderItems oi
                 INNER JOIN Orders o ON oi.order_id = o.order_id
                 WHERE oi.seller_id = @sellerId 
+                  AND o.order_status != 'cancelled'
                   AND o.created_at >= DATEADD(day, -30, GETDATE())
                 GROUP BY CAST(o.created_at AS DATE)
                 ORDER BY date ASC
@@ -337,6 +346,18 @@ class SellerRepository extends BaseRepository {
     }
 
     async updateOrderStatus(orderId, status) {
+        // Validation: Prevent updates if order is in a final state
+        const currentStatusResult = await this.pool.request()
+            .input('orderId', orderId)
+            .query('SELECT order_status FROM Orders WHERE order_id = @orderId');
+        
+        const currentStatus = currentStatusResult.recordset[0]?.order_status;
+        const finalStates = ['delivered', 'cancelled', 'refunded'];
+        
+        if (finalStates.includes(currentStatus)) {
+            throw new Error(`Order is already ${currentStatus} and cannot be modified.`);
+        }
+
         const transaction = this.pool.transaction();
         try {
             await transaction.begin();
@@ -365,6 +386,7 @@ class SellerRepository extends BaseRepository {
             const notes = status === 'processing' ? 'Order is being prepared' : 
                          status === 'confirmed'  ? 'Order has been confirmed' :
                          status === 'dispatched' ? 'Order is on its way' :
+                         status === 'delivered'  ? 'Order delivered successfully' :
                          `Order status updated to ${status}`;
                          
             req.input('notes', notes);
@@ -372,6 +394,35 @@ class SellerRepository extends BaseRepository {
                 INSERT INTO OrderStatusHistory (order_id, status, notes)
                 VALUES (@orderId, @status, @notes)
             `);
+
+            // 4. If delivered, ensure payment is marked as paid (for COD) and invoice exists
+            if (status === 'delivered') {
+                await transaction.request()
+                    .input('orderId', orderId)
+                    .query(`
+                        UPDATE Orders 
+                        SET payment_status = 'paid', updated_at = GETDATE() 
+                        WHERE order_id = @orderId AND payment_status = 'pending';
+
+                        UPDATE PaymentTransactions
+                        SET status = 'completed'
+                        WHERE order_id = @orderId AND status = 'pending';
+
+                        IF NOT EXISTS (SELECT 1 FROM Invoices WHERE order_id = @orderId)
+                        BEGIN
+                            INSERT INTO Invoices (order_id, invoice_number, subtotal, tax_amount, discount_amount, payment_method)
+                            SELECT 
+                                order_id, 
+                                'INV-' + SUBSTRING(order_number, 5, 10), 
+                                subtotal, 
+                                tax_amount, 
+                                discount_amount, 
+                                payment_method
+                            FROM Orders 
+                            WHERE order_id = @orderId;
+                        END
+                    `);
+            }
 
             await transaction.commit();
         } catch (err) {
@@ -399,10 +450,10 @@ class SellerRepository extends BaseRepository {
                 WHERE seller_id = @sellerId;
                 
                 UPDATE Users 
-                SET first_name = @firstName,
-                    last_name = @lastName,
-                    email = @email,
-                    phone = @phone 
+                SET first_name = ISNULL(NULLIF(@firstName, ''), first_name),
+                    last_name = ISNULL(NULLIF(@lastName, ''), last_name),
+                    email = ISNULL(NULLIF(@email, ''), email),
+                    phone = ISNULL(NULLIF(@phone, ''), phone) 
                 WHERE user_id = @sellerId;
             `);
     }
@@ -421,12 +472,19 @@ class SellerRepository extends BaseRepository {
                     oi.order_item_id AS transaction_id,
                     oi.order_id,
                     o.created_at AS date,
-                    oi.quantity * oi.unit_price AS amount,
+                    CASE 
+                        WHEN o.order_status = 'refunded' THEN -(oi.quantity * oi.unit_price)
+                        ELSE (oi.quantity * oi.unit_price)
+                    END AS amount,
                     o.order_status AS status,
-                    'payment' AS type
+                    CASE 
+                        WHEN o.order_status = 'refunded' THEN 'refund'
+                        ELSE 'payment'
+                    END AS type
                 FROM OrderItems oi
                 INNER JOIN Orders o ON oi.order_id = o.order_id
                 WHERE oi.seller_id = @sellerId
+                  AND o.order_status != 'cancelled'
                 ORDER BY o.created_at DESC
             `);
         return result.recordset;

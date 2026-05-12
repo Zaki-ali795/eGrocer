@@ -1,4 +1,4 @@
-import { Users, ShoppingCart, DollarSign, Zap, Package, TrendingUp, TrendingDown, Clock, Loader2 } from 'lucide-react';
+import { Users, ShoppingCart, Wallet, Zap, Package, TrendingUp, TrendingDown, Clock, Loader2 } from 'lucide-react';
 import { KPICard } from './KPICard';
 import { motion } from 'motion/react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
@@ -87,13 +87,13 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
         />
         <KPICard
           title="Revenue (Monthly)"
-          value={`Rs ${stats.monthly_revenue.toLocaleString()}`}
+          value={`Rs. ${stats.monthly_revenue.toLocaleString()}`}
           change="+0%"
           changeType="positive"
-          icon={DollarSign}
+          icon={Wallet}
           gradient="bg-gradient-to-br from-[var(--green-dark)] to-[var(--green-primary)]"
           delay={0.3}
-          subtitle={<span>Rs {(stats.monthly_revenue / (stats.today_orders || 1)).toFixed(0)} avg order value</span>}
+          subtitle={<span>Rs. {(stats.monthly_revenue / (stats.today_orders || 1)).toFixed(0)} avg order value</span>}
         />
         <KPICard
           title="Active Flash Deals"

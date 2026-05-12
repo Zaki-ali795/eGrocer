@@ -27,6 +27,7 @@ const navItems = [
   { path: '/requests', label: 'Requests', icon: Handshake },
   { path: '/promotions', label: 'Promotions', icon: Tag },
   { path: '/payments', label: 'Payments', icon: Wallet },
+  { path: '/notifications', label: 'Notifications', icon: Bell },
   { path: '/settings', label: 'Settings', icon: Settings }
 ];
 
@@ -35,7 +36,8 @@ export default function Layout() {
   
   const handleLogout = () => {
     logout();
-    window.location.href = 'http://localhost:5178';
+    const hostname = window.location.hostname;
+    window.location.href = `http://${hostname}:3003`;
   };
   const [requestCount, setRequestCount] = useState(0);
   const [profile, setProfile] = useState<any>(null);

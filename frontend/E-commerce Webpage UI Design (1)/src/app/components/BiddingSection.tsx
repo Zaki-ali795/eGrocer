@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   MessageSquare, TrendingDown, CheckCircle2, Store, Clock,
   Loader2, PackageSearch, ChevronDown, ChevronUp,
-  DollarSign, Tag, ShoppingBag, Sparkles, Send, AlertCircle,
+  Banknote, Tag, ShoppingBag, Sparkles, Send, AlertCircle,
   Star, Truck, Award,
 } from 'lucide-react';
 import { bidApi, ProductRequest } from '../../services/api';
@@ -119,8 +119,8 @@ function RequestCard({
             )}
             {request.maxBudget && (
               <div className="flex items-center gap-1 mt-2">
-                <DollarSign className="w-3.5 h-3.5 text-[var(--green-primary)]" />
-                <span className="text-xs text-gray-500">Max budget: <strong className="text-gray-700">Rs {request.maxBudget.toLocaleString('en-IN')}</strong></span>
+                <Banknote className="w-3.5 h-3.5 text-[var(--green-primary)]" />
+                <span className="text-xs text-gray-500">Max budget: <strong className="text-gray-700">Rs. {request.maxBudget.toLocaleString('en-IN')}</strong></span>
               </div>
             )}
           </div>
@@ -450,14 +450,16 @@ export function BiddingSection() {
                       Max Budget (Rs) <span className="text-gray-400 font-normal">(optional)</span>
                     </label>
                     <div className="relative">
-                      <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--green-primary)]/60" />
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--green-primary)] font-bold text-sm">
+                        Rs.
+                      </div>
                       <input
                         type="number"
                         min={0}
                         value={form.maxBudget}
                         onChange={e => setForm(f => ({ ...f, maxBudget: e.target.value }))}
                         placeholder="e.g. 500"
-                        className="w-full pl-11 pr-4 py-3.5 bg-[var(--beige)]/40 border-2 border-transparent rounded-2xl focus:border-[var(--green-primary)] outline-none transition-all text-gray-800 placeholder-gray-400"
+                        className="w-full pl-12 pr-4 py-3.5 bg-[var(--beige)]/40 border-2 border-transparent rounded-2xl focus:border-[var(--green-primary)] outline-none transition-all text-gray-800 placeholder-gray-400"
                       />
                     </div>
                   </div>

@@ -36,7 +36,7 @@ class OrderService {
 
         const paymentStrategies = require('../strategies/PaymentStrategy');
         const strategy = paymentStrategies[paymentMethod] || paymentStrategies.cash;
-        const { orderStatus, paymentStatus, dbMethod } = strategy.process();
+        const { orderStatus, paymentStatus, dbMethod, transactionReference } = strategy.process();
 
         // Resolve Address ID
         console.log('OrderService: Resolving address for customer:', customerId, 'Address provided:', address);
@@ -66,7 +66,8 @@ class OrderService {
             discountAmount,
             paymentMethod: dbMethod,
             orderStatus,
-            paymentStatus
+            paymentStatus,
+            transactionReference
         };
 
         return this.orderRepo.createOrder(orderData, processedItems);
@@ -152,8 +153,18 @@ class OrderService {
         return Array.from(orderMap.values());
     }
 
+    async processRefund(orderId, adminId, reason) {
+        console.log(`[OrderService] Processing refund for Order ID: ${orderId}, Approved by: ${adminId}`);
+        return await this.orderRepo.refundOrder(orderId, adminId, reason);
+    }
+
     async getDummyCustomerAndAddress() {
         return this.orderRepo.getDummyCustomerAndAddress();
+    }
+
+    async requestRefund(orderId, customerId, reason) {
+        console.log(`[OrderService] Customer ${customerId} requested refund for Order ${orderId}`);
+        return await this.orderRepo.requestRefund(orderId, customerId, reason);
     }
 }
 
